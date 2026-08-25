@@ -313,7 +313,7 @@ export default async function HomePage() {
                         <img
                           src={project.cover_image_url}
                           alt={project.title}
-                          className="h-full w-full object-cover transition duration-700 group-hover:scale-105"
+                          className="h-full w-full object-cover object-top transition duration-700 group-hover:scale-105"
                         />
                       ) : (
                         <div className="flex h-full items-center justify-center">

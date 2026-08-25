@@ -2,7 +2,6 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { sql } from "@/lib/db";
 import {
-  ArrowLeft,
   ArrowUpRight,
   CalendarDays,
   CheckCircle2,
@@ -164,35 +163,14 @@ export default async function ProjectDetailsPage({
   return (
     <main className="min-h-screen bg-neutral-50">
       {/* =====================================================
-          TOP NAVIGATION
-      ====================================================== */}
-
-      <div className="border-b border-neutral-200 bg-white">
-        <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-6 py-4">
-          <Link
-            href="/"
-            className="text-sm font-semibold tracking-tight text-neutral-950"
-          >
-            Nirdeshona
-          </Link>
-
-          <Link
-            href="/"
-            className="inline-flex items-center gap-2 text-sm font-medium text-neutral-500 transition hover:text-neutral-950"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Back to projects
-          </Link>
-        </div>
-      </div>
-
-      {/* =====================================================
           HERO
       ====================================================== */}
 
       <section className="border-b border-neutral-200 bg-white">
-        <div className="mx-auto w-full max-w-6xl px-6 py-14 sm:py-20">
+        <div className="mx-auto w-full max-w-6xl px-4 py-12 sm:px-6 sm:py-16 lg:py-20">
           <div className="max-w-3xl">
+            {/* Status / Category */}
+
             <div className="flex flex-wrap items-center gap-2">
               {project.category && (
                 <span className="rounded-full bg-neutral-100 px-3 py-1.5 text-xs font-medium text-neutral-700">
@@ -214,15 +192,21 @@ export default async function ProjectDetailsPage({
               )}
             </div>
 
+            {/* Title */}
+
             <h1 className="mt-6 text-4xl font-bold tracking-tight text-neutral-950 sm:text-5xl lg:text-6xl">
               {project.title}
             </h1>
+
+            {/* Short description */}
 
             {project.short_description && (
               <p className="mt-6 max-w-2xl text-lg leading-8 text-neutral-600 sm:text-xl">
                 {project.short_description}
               </p>
             )}
+
+            {/* Actions */}
 
             <div className="mt-8 flex flex-wrap gap-3">
               {project.live_url && (
@@ -259,12 +243,12 @@ export default async function ProjectDetailsPage({
 
       {project.cover_image_url && (
         <section className="border-b border-neutral-200 bg-neutral-50">
-          <div className="mx-auto w-full max-w-6xl px-6 py-10 sm:py-14">
+          <div className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 sm:py-12">
             <div className="overflow-hidden rounded-3xl border border-neutral-200 bg-white shadow-sm">
               <img
                 src={project.cover_image_url}
                 alt={project.title}
-                className="block aspect-[16/8] w-full object-cover"
+                className="block aspect-[16/8] w-full object-cover object-top"
               />
             </div>
           </div>
@@ -275,9 +259,11 @@ export default async function ProjectDetailsPage({
           MAIN CONTENT
       ====================================================== */}
 
-      <section className="mx-auto w-full max-w-6xl px-6 py-14 sm:py-20">
+      <section className="mx-auto w-full max-w-6xl px-4 py-12 sm:px-6 sm:py-16 lg:py-20">
         <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_320px]">
-          {/* Main column */}
+          {/* =================================================
+              MAIN COLUMN
+          ================================================== */}
 
           <div className="space-y-10">
             {/* Description */}
@@ -343,7 +329,7 @@ export default async function ProjectDetailsPage({
                           item.caption ||
                           `${project.title} project image`
                         }
-                        className="aspect-video w-full object-cover transition duration-300 hover:scale-[1.02]"
+                        className="aspect-video w-full object-cover object-top transition duration-300 hover:scale-[1.02]"
                       />
 
                       {item.caption && (
@@ -363,7 +349,7 @@ export default async function ProjectDetailsPage({
           ================================================== */}
 
           <aside className="space-y-5">
-            {/* Project information */}
+            {/* Project Information */}
 
             <div className="rounded-3xl border border-neutral-200 bg-white p-6 shadow-sm">
               <h2 className="text-base font-semibold text-neutral-950">
@@ -477,7 +463,7 @@ export default async function ProjectDetailsPage({
               </div>
             )}
 
-            {/* External links */}
+            {/* External Links */}
 
             {(project.live_url || project.repository_url) && (
               <div className="rounded-3xl border border-neutral-200 bg-white p-6 shadow-sm">
@@ -525,11 +511,11 @@ export default async function ProjectDetailsPage({
       </section>
 
       {/* =====================================================
-          FOOTER CTA
+          PROJECT CTA
       ====================================================== */}
 
       <section className="border-t border-neutral-200 bg-white">
-        <div className="mx-auto max-w-6xl px-6 py-16 text-center">
+        <div className="mx-auto max-w-6xl px-4 py-14 text-center sm:px-6 sm:py-16">
           <FolderKanban className="mx-auto h-7 w-7 text-neutral-400" />
 
           <h2 className="mt-4 text-2xl font-semibold tracking-tight text-neutral-950">
