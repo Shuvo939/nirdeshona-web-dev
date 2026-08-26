@@ -10,9 +10,7 @@ import {
 import { sql } from "@/lib/db";
 
 type SearchPageProps = {
-  searchParams: Promise<{
-    q?: string;
-  }>;
+  searchParams: Promise<{ q?: string }>;
 };
 
 type SearchResult = {
@@ -46,7 +44,6 @@ export default async function SearchPage({
 }: SearchPageProps) {
   const params = await searchParams;
   const query = params.q?.trim() ?? "";
-
   let results: SearchResult[] = [];
 
   if (query) {
@@ -56,6 +53,7 @@ export default async function SearchPage({
       sql`
         select
           id,
+          slug,
           title,
           short_description
         from projects
@@ -67,13 +65,12 @@ export default async function SearchPage({
         order by featured desc, created_at desc
         limit 12
       `,
-
       sql`
         select
           id,
+          slug,
           title,
-          excerpt,
-          slug
+          excerpt
         from posts
         where
           status = 'published'
@@ -94,10 +91,9 @@ export default async function SearchPage({
         description: project.short_description
           ? String(project.short_description)
           : null,
-        href: `/projects/${project.slug ?? project.id}`,
+        href: `/projects/${project.slug}`,
         type: "Project" as const,
       })),
-
       ...posts.map((post) => ({
         id: String(post.id),
         title: String(post.title),
@@ -110,40 +106,28 @@ export default async function SearchPage({
 
   return (
     <main className="relative min-h-[calc(100vh-72px)] overflow-hidden bg-white">
-      {/* =========================================================
-          BACKGROUND
-      ========================================================== */}
-
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-0 overflow-hidden"
       >
         <div className="absolute left-1/2 top-0 h-[520px] w-[520px] -translate-x-1/2 rounded-full bg-neutral-100/70 blur-3xl" />
-
         <div
           className="absolute inset-0 opacity-[0.3]"
           style={{
             backgroundImage:
               "linear-gradient(to right, #e5e5e5 1px, transparent 1px), linear-gradient(to bottom, #e5e5e5 1px, transparent 1px)",
             backgroundSize: "64px 64px",
-            maskImage:
-              "linear-gradient(to bottom, black, transparent 75%)",
+            maskImage: "linear-gradient(to bottom, black, transparent 75%)",
             WebkitMaskImage:
               "linear-gradient(to bottom, black, transparent 75%)",
           }}
         />
       </div>
 
-      {/* =========================================================
-          CONTENT
-      ========================================================== */}
-
       <div className="relative z-10 mx-auto w-full max-w-6xl px-6 py-16 sm:px-8 lg:px-10 lg:py-20">
-        {/* Header */}
         <div className="mx-auto max-w-3xl text-center">
           <div className="inline-flex items-center gap-2 rounded-full border border-neutral-200 bg-white px-3.5 py-2 shadow-sm">
             <Search className="h-3.5 w-3.5 text-neutral-500" />
-
             <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-neutral-500">
               Search Nirdeshona
             </span>
@@ -159,12 +143,7 @@ export default async function SearchPage({
           </p>
         </div>
 
-        {/* Search form */}
-        <form
-          action="/search"
-          method="GET"
-          className="mx-auto mt-10 max-w-3xl"
-        >
+        <form action="/search" method="GET" className="mx-auto mt-10 max-w-3xl">
           <div className="group flex items-center gap-3 rounded-2xl border border-neutral-200 bg-white p-2 shadow-lg shadow-black/[0.04] transition focus-within:border-neutral-300 focus-within:shadow-xl focus-within:shadow-black/[0.06]">
             <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-neutral-100 text-neutral-500 transition group-focus-within:bg-neutral-950 group-focus-within:text-white">
               <Search className="h-5 w-5" />
@@ -197,10 +176,6 @@ export default async function SearchPage({
           </button>
         </form>
 
-        {/* =======================================================
-            SEARCH RESULTS
-        ======================================================== */}
-
         {query ? (
           <section className="mx-auto mt-14 max-w-4xl">
             <div className="mb-6 flex items-end justify-between gap-4 border-b border-neutral-200 pb-4">
@@ -208,7 +183,6 @@ export default async function SearchPage({
                 <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-neutral-400">
                   Search results
                 </p>
-
                 <h2 className="mt-1 text-xl font-semibold tracking-tight text-neutral-950">
                   Results for &quot;{query}&quot;
                 </h2>
@@ -284,21 +258,15 @@ export default async function SearchPage({
             )}
           </section>
         ) : (
-          /* =====================================================
-             EMPTY SEARCH STATE
-          ====================================================== */
-
           <section className="mx-auto mt-14 max-w-4xl">
             <div className="mb-5 flex items-center gap-2">
               <Sparkles className="h-4 w-4 text-neutral-400" />
-
               <p className="text-xs font-semibold uppercase tracking-[0.16em] text-neutral-400">
                 Explore Nirdeshona
               </p>
             </div>
 
             <div className="grid gap-3 sm:grid-cols-2">
-              {/* Services */}
               <Link
                 href="/services"
                 className="group rounded-3xl border border-neutral-200 bg-white p-6 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-neutral-300 hover:shadow-md"
@@ -307,7 +275,6 @@ export default async function SearchPage({
                   <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-neutral-100 text-neutral-600 transition group-hover:bg-neutral-950 group-hover:text-white">
                     <BriefcaseBusiness className="h-5 w-5" />
                   </div>
-
                   <ArrowRight className="h-4 w-4 text-neutral-300 transition group-hover:translate-x-0.5 group-hover:text-neutral-700" />
                 </div>
 
@@ -320,7 +287,6 @@ export default async function SearchPage({
                 </p>
               </Link>
 
-              {/* Projects */}
               <Link
                 href="/projects"
                 className="group rounded-3xl border border-neutral-200 bg-white p-6 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-neutral-300 hover:shadow-md"
@@ -329,7 +295,6 @@ export default async function SearchPage({
                   <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-neutral-100 text-neutral-600 transition group-hover:bg-neutral-950 group-hover:text-white">
                     <BriefcaseBusiness className="h-5 w-5" />
                   </div>
-
                   <ArrowRight className="h-4 w-4 text-neutral-300 transition group-hover:translate-x-0.5 group-hover:text-neutral-700" />
                 </div>
 
@@ -343,11 +308,9 @@ export default async function SearchPage({
               </Link>
             </div>
 
-            {/* Popular services */}
             <div className="mt-8 rounded-3xl border border-neutral-200 bg-neutral-50/70 p-5 sm:p-6">
               <div className="flex items-center gap-2">
                 <BookOpen className="h-4 w-4 text-neutral-400" />
-
                 <p className="text-xs font-semibold uppercase tracking-[0.16em] text-neutral-400">
                   Popular
                 </p>
@@ -364,7 +327,6 @@ export default async function SearchPage({
                       <p className="text-sm font-semibold text-neutral-800 transition group-hover:text-neutral-950">
                         {service.title}
                       </p>
-
                       <p className="mt-0.5 text-xs text-neutral-500">
                         {service.description}
                       </p>
