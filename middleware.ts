@@ -1,6 +1,12 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
+const VISITOR_COOKIE = "nirdeshona_visitor_id";
+
+function generateVisitorId() {
+  return crypto.randomUUID();
+}
+
 export async function middleware(request: NextRequest) {
   let response = NextResponse.next({
     request,
@@ -32,8 +38,22 @@ export async function middleware(request: NextRequest) {
     }
   );
 
-  // Refresh/validate the Supabase auth session.
+  // Refresh/validate Supabase auth session.
   await supabase.auth.getUser();
+
+  // Create visitor ID if it doesn't exist.
+  const existingVisitorId =
+    request.cookies.get(VISITOR_COOKIE)?.value;
+
+  if (!existingVisitorId) {
+    response.cookies.set(VISITOR_COOKIE, generateVisitorId(), {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      path: "/",
+      maxAge: 60 * 60 * 24 * 365 * 2, // 2 years
+    });
+  }
 
   return response;
 }

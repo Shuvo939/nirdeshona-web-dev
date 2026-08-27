@@ -8,8 +8,7 @@ export async function trackPostView(postId: string) {
 
   const visitorId = cookieStore.get(VISITOR_COOKIE)?.value;
 
-  // Middleware should normally create this cookie.
-  // If it doesn't exist, don't count the view.
+  // No visitor cookie = do not count.
   if (!visitorId) {
     return {
       counted: false,
@@ -17,7 +16,7 @@ export async function trackPostView(postId: string) {
   }
 
   const result = await sql`
-    insert into post_view_tracking (
+    insert into public.post_view_tracking (
       post_id,
       visitor_id,
       last_viewed_at
@@ -34,6 +33,7 @@ export async function trackPostView(postId: string) {
     returning post_id
   `;
 
+  // Existing visit within the last 12 hours.
   if (result.length === 0) {
     return {
       counted: false,
@@ -41,7 +41,7 @@ export async function trackPostView(postId: string) {
   }
 
   await sql`
-    update posts
+    update public.posts
     set views_count = views_count + 1
     where id = ${postId}
   `;
