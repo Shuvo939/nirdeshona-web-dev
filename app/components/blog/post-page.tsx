@@ -87,7 +87,6 @@ export default async function PostPage({
         <div className="min-w-0">
           <PostContent
             post={post}
-            tags={tags}
           />
 
           <PostReactions

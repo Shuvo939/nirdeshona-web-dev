@@ -1,82 +1,111 @@
+import type { ReactNode } from "react";
+
 import { requireAdmin } from "@/lib/auth/require-admin";
 
-const links = [
-  { href: "/admin", label: "Overview" },
-  { href: "/admin/projects", label: "Projects" },
-  { href: "/admin/posts", label: "Posts" },
-  { href: "/admin/tickets", label: "Support Tickets" },
-];
+import AdminNav from "./admin-nav";
 
 export default async function AdminLayout({
   children,
 }: {
-  children: React.ReactNode;
+  children: ReactNode;
 }) {
-  const { fullName } = await requireAdmin();
+  await requireAdmin();
 
   return (
-    <div className="min-h-screen bg-neutral-50 md:flex">
-      {/* =====================================================
-          DESKTOP SIDEBAR
-      ====================================================== */}
-      <aside className="hidden w-56 shrink-0 border-r border-neutral-200 bg-white md:block">
-        <div className="sticky top-0 p-4">
-          <p className="mb-6 px-3 text-sm text-neutral-500">
-            Signed in as{" "}
-            <span className="font-medium text-neutral-700">
-              {fullName ?? "Admin"}
-            </span>
-          </p>
+    <div className="min-h-screen bg-neutral-50">
+      <div className="flex min-h-screen">
+        {/* =====================================================
+            DESKTOP SIDEBAR
+        ====================================================== */}
 
-          <nav className="space-y-1">
-            {links.map((link) => (
-              <a
-                key={link.href}
-                href={link.href}
-                className="block rounded-lg px-3 py-2.5 text-sm font-medium text-neutral-600 transition hover:bg-neutral-100 hover:text-neutral-950"
-              >
-                {link.label}
-              </a>
-            ))}
-          </nav>
-        </div>
-      </aside>
+        <aside className="hidden w-64 shrink-0 border-r border-neutral-200 bg-white lg:block">
+          <div className="sticky top-0 flex h-screen flex-col">
+            {/* Brand */}
 
-      {/* =====================================================
-          MOBILE TOP NAVIGATION
-      ====================================================== */}
-      <div className="border-b border-neutral-200 bg-white md:hidden">
-        <div className="px-4 py-4">
-          <div className="mb-3">
-            <p className="text-xs font-medium uppercase tracking-[0.14em] text-neutral-400">
-              Admin
-            </p>
+            <div className="border-b border-neutral-200 px-5 py-5">
+              <div className="flex items-center gap-3">
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-neutral-950 text-sm font-bold text-white">
+                  N
+                </div>
 
-            <p className="mt-1 text-sm font-medium text-neutral-700">
-              Signed in as {fullName ?? "Admin"}
-            </p>
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-semibold tracking-tight text-neutral-950">
+                    Nirdeshona
+                  </p>
+
+                  <p className="mt-0.5 text-xs text-neutral-400">
+                    Administration
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Navigation */}
+
+            <div className="flex-1 overflow-y-auto px-3 py-5">
+              <p className="mb-3 px-3 text-[10px] font-semibold uppercase tracking-[0.16em] text-neutral-400">
+                Workspace
+              </p>
+
+              <AdminNav />
+            </div>
+
+            {/* Footer */}
+
+            <div className="border-t border-neutral-200 p-4">
+              <div className="rounded-2xl bg-neutral-50 px-4 py-3">
+                <p className="text-xs font-medium text-neutral-700">
+                  Admin workspace
+                </p>
+
+                <p className="mt-1 text-[11px] leading-5 text-neutral-400">
+                  Manage your projects, content, clients and support requests.
+                </p>
+              </div>
+            </div>
           </div>
+        </aside>
 
-          <nav className="-mx-1 flex gap-1 overflow-x-auto px-1 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            {links.map((link) => (
-              <a
-                key={link.href}
-                href={link.href}
-                className="shrink-0 rounded-lg px-3 py-2 text-sm font-medium text-neutral-600 transition hover:bg-neutral-100 hover:text-neutral-950"
-              >
-                {link.label}
-              </a>
-            ))}
-          </nav>
+        {/* =====================================================
+            MAIN AREA
+        ====================================================== */}
+
+        <div className="min-w-0 flex-1">
+          {/* Mobile header */}
+
+          <header className="sticky top-0 z-40 border-b border-neutral-200 bg-white/95 backdrop-blur lg:hidden">
+            <div className="px-4 py-3 sm:px-6">
+              <div className="flex items-center gap-3">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-neutral-950 text-sm font-bold text-white">
+                  N
+                </div>
+
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold tracking-tight text-neutral-950">
+                    Nirdeshona
+                  </p>
+
+                  <p className="text-[11px] text-neutral-400">
+                    Administration
+                  </p>
+                </div>
+              </div>
+
+              <div className="mt-3 -mx-1 overflow-x-auto px-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                <AdminNav mobile />
+              </div>
+            </div>
+          </header>
+
+          {/* Page content */}
+
+          <main className="min-w-0 p-4 sm:p-6 lg:p-8 xl:p-10">
+            <div className="mx-auto w-full max-w-[1600px]">
+              {children}
+            </div>
+          </main>
         </div>
       </div>
-
-      {/* =====================================================
-          MAIN CONTENT
-      ====================================================== */}
-      <main className="min-w-0 flex-1 p-4 sm:p-6 lg:p-8">
-        {children}
-      </main>
     </div>
   );
 }

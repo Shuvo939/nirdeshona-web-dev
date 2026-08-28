@@ -1,57 +1,155 @@
 import { sql } from "@/lib/db";
-import { deletePost } from "./actions";
+import PostsTable from "./posts-table";
+import Link from "next/link";
+
+type PostRow = {
+  id: string;
+  title: string;
+  slug: string;
+  status: string;
+  views_count: number;
+  published_at: string | null;
+};
 
 export default async function AdminPostsPage() {
-  const posts = await sql`
-    select id, title, slug, status, views_count, published_at
-    from posts
+  const posts = (await sql`
+    select
+      id,
+      title,
+      slug,
+      status,
+      views_count,
+      published_at
+    from public.posts
     order by created_at desc
-  `;
+  `) as PostRow[];
+
+  const totalPosts = posts.length;
+
+  const publishedPosts = posts.filter(
+    (post) => post.status.toLowerCase() === "published"
+  ).length;
+
+  const draftPosts = posts.filter(
+    (post) => post.status.toLowerCase() === "draft"
+  ).length;
+
+  const totalViews = posts.reduce(
+    (total, post) => total + Number(post.views_count || 0),
+    0
+  );
 
   return (
-    <div>
-      <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">Posts</h1>
-        <a href="/admin/posts/new" className="rounded bg-black px-4 py-2 text-sm text-white">
-          + New Post
-        </a>
+    <div className="mx-auto w-full max-w-7xl space-y-8">
+      {/* =====================================================
+          HEADER
+      ====================================================== */}
+
+      <header className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <div className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-neutral-400">
+            <span>Content</span>
+            <span className="text-neutral-300">/</span>
+            <span>Posts</span>
+          </div>
+
+          <h1 className="text-3xl font-bold tracking-[-0.035em] text-neutral-950 sm:text-4xl">
+            Posts
+          </h1>
+
+          <p className="mt-2 max-w-2xl text-sm leading-6 text-neutral-500">
+            Create, manage and monitor your website content from one place.
+          </p>
+        </div>
+
+        <Link
+          href="/admin/posts/new"
+          className="inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-xl bg-neutral-950 px-5 text-sm font-semibold text-white shadow-sm transition hover:bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-neutral-950 focus:ring-offset-2"
+        >
+          <span className="text-base leading-none">+</span>
+          New post
+        </Link>
+      </header>
+
+      {/* =====================================================
+          STATISTICS
+      ====================================================== */}
+
+      <section className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+        <StatCard
+          label="Total posts"
+          value={totalPosts}
+          description="All content"
+        />
+
+        <StatCard
+          label="Published"
+          value={publishedPosts}
+          description="Live on website"
+        />
+
+        <StatCard
+          label="Drafts"
+          value={draftPosts}
+          description="Not published"
+        />
+
+        <StatCard
+          label="Total views"
+          value={totalViews.toLocaleString()}
+          description="Across all posts"
+        />
+      </section>
+
+      {/* =====================================================
+          POSTS
+      ====================================================== */}
+
+      <section className="overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm">
+        <div className="border-b border-neutral-200 px-5 py-5 sm:px-6">
+          <div>
+            <h2 className="text-base font-semibold text-neutral-950">
+              All posts
+            </h2>
+
+            <p className="mt-1 text-sm text-neutral-500">
+              Manage your published and draft content.
+            </p>
+          </div>
+        </div>
+
+        <PostsTable posts={posts} />
+      </section>
+    </div>
+  );
+}
+
+/* ============================================================
+   STAT CARD
+============================================================ */
+
+function StatCard({
+  label,
+  value,
+  description,
+}: {
+  label: string;
+  value: number | string;
+  description: string;
+}) {
+  return (
+    <div className="rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm">
+      <div className="flex items-center justify-between gap-3">
+        <p className="text-sm font-medium text-neutral-500">{label}</p>
+
+        <span className="h-2 w-2 rounded-full bg-neutral-300" />
       </div>
 
-      <table className="w-full text-left text-sm">
-        <thead>
-          <tr className="border-b text-neutral-500">
-            <th className="py-2">Title</th>
-            <th>Status</th>
-            <th>Views</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody>
-          {posts.map((p) => (
-            <tr key={p.id} className="border-b">
-              <td className="py-2">{p.title}</td>
-              <td>{p.status}</td>
-              <td>{p.views_count}</td>
-              <td className="space-x-3 text-right">
-                <a href={`/admin/posts/${p.id}/edit`} className="text-blue-600 hover:underline">
-                  Edit
-                </a>
-                <form
-                  action={async () => {
-                    "use server";
-                    await deletePost(p.id);
-                  }}
-                  className="inline"
-                >
-                  <button type="submit" className="text-red-600 hover:underline">
-                    Delete
-                  </button>
-                </form>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      <p className="mt-3 text-3xl font-bold tracking-tight text-neutral-950">
+        {value}
+      </p>
+
+      <p className="mt-1 text-xs text-neutral-400">{description}</p>
     </div>
   );
 }

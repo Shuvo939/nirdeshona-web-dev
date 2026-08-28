@@ -1,6 +1,6 @@
 import {
-  Check,
   Heart,
+  Lightbulb,
   ThumbsUp,
 } from "lucide-react";
 
@@ -46,81 +46,90 @@ export default function PostReactions({
     {
       type: "helpful" as const,
       label: "Helpful",
-      icon: Check,
+      icon: Lightbulb,
     },
   ];
 
   return (
-    <section className="mt-10 rounded-3xl border border-neutral-200 bg-neutral-50 p-5 sm:p-6">
+    <section className="mt-12 border-y border-neutral-200 py-7">
       <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="text-sm font-semibold text-neutral-950">
-            Was this article helpful?
-          </h2>
+          <p className="text-sm font-semibold text-neutral-950">
+            Enjoyed this article?
+          </p>
 
-          <p className="mt-1 text-xs text-neutral-500">
-            Share your reaction with the author.
+          <p className="mt-1 text-xs leading-5 text-neutral-500">
+            Let the author know what you think.
           </p>
         </div>
 
-        {currentReaction && (
-          <form action={removeReaction}>
-            <input
-              type="hidden"
-              name="postId"
-              value={postId}
-            />
+        <div className="flex items-center gap-2">
+          {reactions.map(({ type, label, icon: Icon }) => {
+            const count = reactionMap[type] || 0;
+            const isActive = currentReaction === type;
 
-            <button
-              type="submit"
-              className="inline-flex items-center gap-1.5 text-xs font-medium text-neutral-500 hover:text-neutral-950"
-            >
-              <Check className="h-3.5 w-3.5" />
-              Remove reaction
-            </button>
-          </form>
-        )}
-      </div>
-
-      <div className="mt-5 grid gap-2 sm:grid-cols-3">
-        {reactions.map(
-          ({ type, label, icon: Icon }) => (
-            <form
-              action={reactToPost}
-              key={type}
-            >
-              <input
-                type="hidden"
-                name="postId"
-                value={postId}
-              />
-
-              <input
-                type="hidden"
-                name="reactionType"
-                value={type}
-              />
-
-              <button
-                type="submit"
-                className={`flex w-full items-center justify-between rounded-2xl border px-4 py-3 text-sm transition ${
-                  currentReaction === type
-                    ? "border-neutral-950 bg-neutral-950 text-white"
-                    : "border-neutral-200 bg-white text-neutral-700 hover:border-neutral-300"
-                }`}
+            return (
+              <div
+                key={type}
+                className="relative"
               >
-                <span className="flex items-center gap-2">
-                  <Icon className="h-4 w-4" />
-                  {label}
-                </span>
+                {isActive ? (
+                  <form action={removeReaction}>
+                    <input
+                      type="hidden"
+                      name="postId"
+                      value={postId}
+                    />
 
-                <span className="text-xs opacity-60">
-                  {reactionMap[type] || 0}
-                </span>
-              </button>
-            </form>
-          )
-        )}
+                    <button
+                      type="submit"
+                      title={`Remove ${label} reaction`}
+                      aria-label={`Remove ${label} reaction`}
+                      className="group flex h-10 min-w-10 items-center justify-center gap-2 rounded-full border border-neutral-950 bg-neutral-950 px-3 text-white transition hover:bg-neutral-800"
+                    >
+                      <Icon className="h-4 w-4" />
+
+                      {count > 0 && (
+                        <span className="text-xs font-semibold tabular-nums">
+                          {count.toLocaleString()}
+                        </span>
+                      )}
+                    </button>
+                  </form>
+                ) : (
+                  <form action={reactToPost}>
+                    <input
+                      type="hidden"
+                      name="postId"
+                      value={postId}
+                    />
+
+                    <input
+                      type="hidden"
+                      name="reactionType"
+                      value={type}
+                    />
+
+                    <button
+                      type="submit"
+                      title={label}
+                      aria-label={label}
+                      className="group flex h-10 min-w-10 items-center justify-center gap-2 rounded-full border border-neutral-200 bg-white px-3 text-neutral-500 transition hover:border-neutral-300 hover:bg-neutral-50 hover:text-neutral-950"
+                    >
+                      <Icon className="h-4 w-4 transition-transform group-hover:scale-105" />
+
+                      {count > 0 && (
+                        <span className="text-xs font-medium tabular-nums text-neutral-500 group-hover:text-neutral-900">
+                          {count.toLocaleString()}
+                        </span>
+                      )}
+                    </button>
+                  </form>
+                )}
+              </div>
+            );
+          })}
+        </div>
       </div>
     </section>
   );
