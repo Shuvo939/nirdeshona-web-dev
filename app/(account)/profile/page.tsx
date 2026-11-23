@@ -14,6 +14,8 @@ export default async function ProfilePage() {
 
   const checks = [Boolean(user.fullName), Boolean(user.avatarUrl), Boolean(user.phone), Boolean(user.company), Boolean(extra?.bio)];
   const completeness = Math.round((checks.filter(Boolean).length / checks.length) * 100);
+  const labels = ["name", "photo", "phone", "organisation", "bio"];
+  const missing = labels.filter((_, i) => !checks[i]);
 
   return (
     <div className="flex flex-col gap-8 px-4 py-8 sm:px-6 lg:px-0">
@@ -23,18 +25,19 @@ export default async function ProfilePage() {
         crumbs={[{ label: "Profile" }]}
       />
       <section className="flex max-w-3xl flex-col gap-6">
-        <div className="rounded-3xl border border-neutral-200 bg-white p-5 sm:p-6">
-        <div>
-          <div className="mb-2 flex justify-between text-xs text-neutral-500">
-            <span>Profile completeness</span>
-            <span className="font-semibold text-neutral-900">{completeness}%</span>
-          </div>
-          <div className="h-2 overflow-hidden rounded-full bg-white ring-1 ring-neutral-200">
-            <div className="h-full rounded-full bg-neutral-950" style={{ width: `${completeness}%` }} />
-          </div>
-        </div>
-        </div>
         <ProfileForm
+          between={
+            <div className="rounded-3xl border border-neutral-200 bg-white p-5 sm:p-6">
+              <div className="mb-2 flex justify-between text-xs text-neutral-500">
+                <span>Profile completeness</span>
+                <span className="font-semibold text-neutral-900">{completeness}%</span>
+              </div>
+              <div className="h-2 overflow-hidden rounded-full bg-neutral-100">
+                <div className={`h-full rounded-full ${completeness === 100 ? "bg-emerald-500" : "bg-neutral-950"}`} style={{ width: `${completeness}%` }} />
+              </div>
+              {missing.length > 0 && <p className="mt-3 text-xs text-neutral-500">Still missing: {missing.join(", ")}.</p>}
+            </div>
+          }
           initial={{
             fullName: user.fullName ?? "",
             email: user.email,

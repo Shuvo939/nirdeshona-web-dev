@@ -10,8 +10,9 @@ import { EmailForm, PasswordForm } from "./security-forms";
 
 export const metadata: Metadata = { title: "Settings — Nirdeshona Web", robots: { index: false } };
 
-export default async function SettingsPage() {
+export default async function SettingsPage({ searchParams }: { searchParams: Promise<{ password?: string }> }) {
   const user = await requireUser("/settings");
+  const { password } = await searchParams;
 
   return (
     <div className="flex flex-col gap-8 px-4 py-8 sm:px-6 lg:px-0">
@@ -21,6 +22,11 @@ export default async function SettingsPage() {
         crumbs={[{ label: "Settings" }]}
       />
       <section className="flex max-w-3xl flex-col gap-6">
+        {password === "updated" && (
+          <div role="status" className="flex items-center gap-2 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-800">
+            <ShieldCheck className="h-4 w-4" /> Your password was reset successfully.
+          </div>
+        )}
         <Card icon={<ShieldCheck className="h-5 w-5" />} title="Account" description="Basic information about your account.">
           <dl className="grid grid-cols-1 gap-4 text-sm sm:grid-cols-3">
             <div>

@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { FormEvent, useState } from "react";
 import { CheckCircle2, Eye, EyeOff, Loader2 } from "lucide-react";
 
@@ -14,7 +15,6 @@ export function PasswordForm({ email }: { email: string }) {
   const [current, setCurrent] = useState("");
   const [next, setNext] = useState("");
   const [confirm, setConfirm] = useState("");
-  const [show, setShow] = useState(false);
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState<Status>(null);
 
@@ -43,26 +43,22 @@ export function PasswordForm({ email }: { email: string }) {
 
   return (
     <form onSubmit={submit} className="flex flex-col gap-4">
-      <PasswordInput label="Current password" value={current} onChange={setCurrent} show={show} autoComplete="current-password" />
+      <PasswordInput id="current-password" label="Current password" value={current} onChange={setCurrent} autoComplete="current-password" />
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <PasswordInput label="New password" value={next} onChange={setNext} show={show} autoComplete="new-password" />
-        <PasswordInput label="Confirm new password" value={confirm} onChange={setConfirm} show={show} autoComplete="new-password" />
+        <PasswordInput id="new-password" label="New password" value={next} onChange={setNext} autoComplete="new-password" />
+        <PasswordInput id="confirm-password" label="Confirm new password" value={confirm} onChange={setConfirm} autoComplete="new-password" />
       </div>
-      <div className="flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <button type="button" onClick={() => setShow((v) => !v)} className="inline-flex items-center gap-1.5 text-xs font-medium text-neutral-500 hover:text-neutral-950">
-          {show ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />} {show ? "Hide" : "Show"} passwords
-        </button>
-        <div className="flex flex-col-reverse items-stretch gap-3 sm:flex-row sm:items-center">
-          <StatusText status={status} />
-          <SubmitButton loading={loading}>Update password</SubmitButton>
-        </div>
+      {next.length > 0 && <StrengthMeter password={next} />}
+      <div className="flex flex-col-reverse items-stretch gap-3 sm:flex-row sm:items-center sm:justify-end">
+        <StatusText status={status} />
+        <SubmitButton loading={loading}>Update password</SubmitButton>
       </div>
-      <p className="text-xs text-neutral-500">
-        Signed in with Google and never set a password? Use{" "}
-        <a href="/forgot-password" className="font-medium underline">
-          reset password
-        </a>{" "}
-        to create one.
+      <p className="text-xs leading-5 text-neutral-500">
+        Forgot your current password, or signed up with Google?{" "}
+        <Link href="/settings/password" className="font-medium text-neutral-900 underline">
+          Reset it with an email code
+        </Link>
+        .
       </p>
     </form>
   );
@@ -106,23 +102,71 @@ export function EmailForm({ email }: { email: string }) {
 }
 
 function PasswordInput({
+  id,
   label,
   value,
   onChange,
-  show,
   autoComplete,
 }: {
+  id: string;
   label: string;
   value: string;
   onChange: (v: string) => void;
-  show: boolean;
   autoComplete: string;
 }) {
+  const [show, setShow] = useState(false);
   return (
-    <label className="block">
-      <span className="mb-2 block text-sm font-medium text-neutral-800">{label}</span>
-      <input type={show ? "text" : "password"} value={value} onChange={(e) => onChange(e.target.value)} required autoComplete={autoComplete} className={inputClass} />
-    </label>
+    <div>
+      <label htmlFor={id} className="mb-2 block text-sm font-medium text-neutral-800">
+        {label}
+      </label>
+      <div className="relative">
+        <input
+          id={id}
+          type={show ? "text" : "password"}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          required
+          autoComplete={autoComplete}
+          className={`${inputClass} pr-11`}
+        />
+        <button
+          type="button"
+          onClick={() => setShow((v) => !v)}
+          aria-label={show ? `Hide ${label.toLowerCase()}` : `Show ${label.toLowerCase()}`}
+          aria-pressed={show}
+          className="absolute inset-y-0 right-0 flex w-11 items-center justify-center rounded-r-xl text-neutral-400 transition hover:text-neutral-800"
+        >
+          {show ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function StrengthMeter({ password }: { password: string }) {
+  const checks = [password.length >= 8, /[A-Z]/.test(password) && /[a-z]/.test(password), /\d/.test(password), /[^A-Za-z0-9]/.test(password), password.length >= 12];
+  const score = checks.filter(Boolean).length;
+  const levels = [
+    { label: "Too weak", color: "bg-red-500" },
+    { label: "Weak", color: "bg-red-500" },
+    { label: "Fair", color: "bg-amber-500" },
+    { label: "Good", color: "bg-lime-500" },
+    { label: "Strong", color: "bg-emerald-500" },
+    { label: "Very strong", color: "bg-emerald-600" },
+  ];
+  const level = levels[score];
+  return (
+    <div>
+      <div className="flex gap-1">
+        {[0, 1, 2, 3, 4].map((i) => (
+          <span key={i} className={`h-1.5 flex-1 rounded-full ${i < score ? level.color : "bg-neutral-200"}`} />
+        ))}
+      </div>
+      <p className="mt-1.5 text-xs text-neutral-500">
+        Strength: <span className="font-medium text-neutral-800">{level.label}</span> · use 12+ characters with numbers and symbols
+      </p>
+    </div>
   );
 }
 
