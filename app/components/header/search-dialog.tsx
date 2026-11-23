@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { getCachedIndex, latestPosts, loadIndex, searchAll, type Hit } from "@/lib/search-client";
 import {
   ArrowRight,
   BookOpen,
@@ -15,25 +16,6 @@ import {
   Search,
   X,
 } from "lucide-react";
-
-type Hit = {
-  type: "service" | "page" | "project" | "post" | "faq";
-  title: string;
-  description: string | null;
-  href: string;
-  meta?: string | null;
-  image?: string | null;
-};
-
-type Response = { q: string; services?: Hit[]; pages?: Hit[]; projects?: Hit[]; posts?: Hit[]; faqs?: Hit[] };
-
-const GROUPS: { key: keyof Omit<Response, "q">; label: string }[] = [
-  { key: "posts", label: "Articles" },
-  { key: "projects", label: "Projects" },
-  { key: "services", label: "Services" },
-  { key: "pages", label: "Pages" },
-  { key: "faqs", label: "FAQ" },
-];
 
 const QUICK_LINKS: Hit[] = [
   { type: "service", title: "Web Development", description: "Websites and web apps", href: "/services/web-development" },
@@ -80,47 +62,26 @@ function Highlight({ text, q }: { text: string; q: string }) {
   );
 }
 
-const cache = new Map<string, Response>();
-
 export default function SearchDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
   const [query, setQuery] = useState("");
-  const [data, setData] = useState<Response | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [index, setIndex] = useState<Hit[] | null>(null);
   const [active, setActive] = useState(0);
   const [recent, setRecent] = useState<string[]>([]);
 
-  // Load results (debounced, abortable, cached per query).
+  // Load the search index once (usually already prefetched while idle).
   useEffect(() => {
     if (!open) return;
-    const q = query.trim();
-    const cached = cache.get(q);
-    if (cached) {
-      setData(cached);
-      setLoading(false);
-      return;
-    }
-    const controller = new AbortController();
-    setLoading(true);
-    const timer = window.setTimeout(async () => {
-      try {
-        const res = await fetch(`/api/search?q=${encodeURIComponent(q)}`, { signal: controller.signal });
-        const json = (await res.json()) as Response;
-        cache.set(q, json);
-        setData(json);
-      } catch {
-        /* aborted or offline */
-      } finally {
-        if (!controller.signal.aborted) setLoading(false);
-      }
-    }, q ? 180 : 0);
+    const cached = getCachedIndex();
+    if (cached) setIndex(cached);
+    let alive = true;
+    void loadIndex().then((items) => alive && setIndex(items));
     return () => {
-      controller.abort();
-      window.clearTimeout(timer);
+      alive = false;
     };
-  }, [query, open]);
+  }, [open]);
 
   useEffect(() => {
     if (!open) {
@@ -139,18 +100,15 @@ export default function SearchDialog({ open, onClose }: { open: boolean; onClose
   }, [open]);
 
   const q = query.trim();
+  const loading = Boolean(q) && index === null;
 
   const sections = useMemo(() => {
     if (!q) {
-      const latest = data && !data.q ? (data.posts ?? []) : [];
-      return [
-        { label: "Quick links", items: QUICK_LINKS },
-        ...(latest.length ? [{ label: "Latest articles", items: latest }] : []),
-      ];
+      const latest = index ? latestPosts(index) : [];
+      return [{ label: "Quick links", items: QUICK_LINKS }, ...(latest.length ? [{ label: "Latest articles", items: latest }] : [])];
     }
-    if (!data || data.q !== q) return [];
-    return GROUPS.map((g) => ({ label: g.label, items: data[g.key] ?? [] })).filter((s) => s.items.length > 0);
-  }, [data, q]);
+    return searchAll(q, index ?? []);
+  }, [index, q]);
 
   const flat = useMemo(() => sections.flatMap((s) => s.items), [sections]);
   useEffect(() => setActive(0), [q]);
@@ -185,8 +143,8 @@ export default function SearchDialog({ open, onClose }: { open: boolean; onClose
 
   if (!open) return null;
 
-  let index = -1;
-  const showEmpty = q && !loading && data?.q === q && flat.length === 0;
+  let cursor = -1;
+  const showEmpty = q && !loading && flat.length === 0;
 
   return (
     <div className="fixed inset-0 z-[9999] h-[100dvh] w-screen" onKeyDown={onKeyDown}>
@@ -213,7 +171,21 @@ export default function SearchDialog({ open, onClose }: { open: boolean; onClose
                 <X className="h-4 w-4" />
               </button>
             )}
-            <kbd className="hidden rounded-md border border-neutral-200 px-1.5 py-0.5 text-[10px] font-medium text-neutral-400 sm:block">ESC</kbd>
+            <button
+              type="button"
+              onClick={onClose}
+              className="hidden rounded-md border border-neutral-200 px-1.5 py-0.5 text-[10px] font-medium text-neutral-400 transition hover:bg-neutral-100 hover:text-neutral-700 sm:block"
+            >
+              ESC
+            </button>
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label="Close search"
+              className="-mr-1 shrink-0 rounded-lg px-2 py-1.5 text-sm font-semibold text-neutral-600 transition hover:bg-neutral-100 hover:text-neutral-950 sm:hidden"
+            >
+              Cancel
+            </button>
           </div>
 
           <div ref={listRef} className="min-h-0 flex-1 overflow-y-auto p-2">
@@ -234,8 +206,8 @@ export default function SearchDialog({ open, onClose }: { open: boolean; onClose
               <div key={section.label} className="pb-1">
                 <p className="px-4 pb-1.5 pt-3 text-[11px] font-semibold uppercase tracking-wider text-neutral-400">{section.label}</p>
                 {section.items.map((item) => {
-                  index += 1;
-                  const i = index;
+                  cursor += 1;
+                  const i = cursor;
                   const Icon = ICONS[item.type];
                   const selected = i === active;
                   return (
@@ -281,7 +253,7 @@ export default function SearchDialog({ open, onClose }: { open: boolean; onClose
               </div>
             )}
 
-            {q && data?.q === q && (
+            {q && !loading && (
               <button
                 type="button"
                 onClick={() => go(`/search?q=${encodeURIComponent(q)}`)}
