@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+
+import { createCaptcha } from "@/lib/captcha";
 import Link from "next/link";
 import {
   Clock3,
@@ -238,7 +240,7 @@ export default async function ContactPage({
           ================================================== */}
 
           <div className="rounded-3xl border border-neutral-200 bg-white p-6 shadow-sm sm:p-8 lg:p-10">
-            <ContactForm defaultService={service ?? ""} />
+            <ContactForm defaultService={service ?? ""} initialCaptcha={createCaptcha()} />
           </div>
         </div>
       </section>

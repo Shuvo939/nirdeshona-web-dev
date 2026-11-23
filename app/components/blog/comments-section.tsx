@@ -3,12 +3,13 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
-import { Flag, Link2, Loader2, MoreHorizontal, Pencil, SendHorizonal, ShieldCheck, Trash2, EyeOff } from "lucide-react";
+import { CornerDownRight, EyeOff, Flag, Link2, Loader2, MoreVertical, Pencil, SendHorizonal, ShieldCheck, Trash2, X } from "lucide-react";
 
 import ConfirmDialog from "@/app/components/confirm-dialog";
-import type { CommentNode } from "@/lib/comments";
+import type { CommentNode, ReactionType } from "@/lib/comments";
 
-import { addComment, deleteComment, editComment, hideComment, reportComment, toggleCommentLike } from "./community-actions";
+import { addComment, deleteComment, editComment, hideComment, reportComment, setCommentReaction } from "./community-actions";
+import { REACTION_META, REACTION_ORDER } from "./reaction-meta";
 
 export type Viewer = { id: string; name: string | null; avatarUrl: string | null; isAdmin: boolean } | null;
 type Sort = "relevant" | "newest" | "oldest";
@@ -139,6 +140,17 @@ function Composer({
             aria-label={placeholder}
             className="max-h-60 min-h-[24px] flex-1 resize-none bg-transparent py-0.5 text-sm leading-6 text-neutral-900 outline-none placeholder:text-neutral-500"
           />
+          {onCancel && (
+            <button
+              type="button"
+              onClick={onCancel}
+              aria-label="Cancel"
+              title="Cancel"
+              className="mb-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-neutral-400 transition hover:bg-neutral-200 hover:text-neutral-700"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          )}
           <button
             type="button"
             onClick={submit}
@@ -149,9 +161,18 @@ function Composer({
             {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <SendHorizonal className="h-4 w-4" />}
           </button>
         </div>
-        <p className="mt-1 px-3 text-[11px] text-neutral-400">
-          Enter to post · Shift + Enter for a new line{onCancel ? " · Esc to cancel" : ""}
-        </p>
+        <div className="mt-1 flex items-center gap-2 px-3 text-[11px] text-neutral-400">
+          <span className="hidden sm:inline">Enter to post · Shift + Enter for a new line</span>
+          <span className="sm:hidden">Tap send to post</span>
+          {onCancel && (
+            <>
+              <span>·</span>
+              <button type="button" onClick={onCancel} className="font-semibold text-blue-600 hover:underline">
+                Cancel
+              </button>
+            </>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -161,6 +182,90 @@ function Composer({
 /* one comment                                                         */
 /* ------------------------------------------------------------------ */
 
+function ReactionSummary({ comment }: { comment: CommentNode }) {
+  if (comment.reaction_count === 0) return null;
+  const top = comment.top_reactions.length ? comment.top_reactions : (["like"] as ReactionType[]);
+  return (
+    <span
+      title={`${comment.reaction_count} reaction${comment.reaction_count === 1 ? "" : "s"}`}
+      className="absolute -bottom-3 right-2 flex items-center gap-0.5 rounded-full bg-white py-0.5 pl-0.5 pr-1.5 text-[12px] leading-none text-neutral-600 shadow-[0_1px_3px_rgba(0,0,0,0.2)]"
+    >
+      <span className="flex -space-x-1">
+        {top.slice(0, 3).map((r) => (
+          <span key={r} className="flex h-[18px] w-[18px] items-center justify-center rounded-full bg-white text-[13px]">
+            {REACTION_META[r].emoji}
+          </span>
+        ))}
+      </span>
+      {comment.reaction_count > 1 && <span className="ml-0.5">{comment.reaction_count}</span>}
+    </span>
+  );
+}
+
+function ReactButton({ comment, onReact }: { comment: CommentNode; onReact: (c: CommentNode, r: ReactionType | null) => void }) {
+  const [open, setOpen] = useState(false);
+  const hover = useRef<number | null>(null);
+  const press = useRef<number | null>(null);
+  const long = useRef(false);
+  const mine = comment.my_reaction ? REACTION_META[comment.my_reaction] : null;
+
+  const openSoon = () => {
+    if (hover.current) window.clearTimeout(hover.current);
+    hover.current = window.setTimeout(() => setOpen(true), 450);
+  };
+  const closeSoon = () => {
+    if (hover.current) window.clearTimeout(hover.current);
+    hover.current = window.setTimeout(() => setOpen(false), 300);
+  };
+
+  return (
+    <span className="relative" onMouseEnter={openSoon} onMouseLeave={closeSoon}>
+      {open && (
+        <span role="menu" aria-label="React" className="absolute bottom-full left-[-8px] z-30 mb-1.5 flex gap-0.5 rounded-full border border-neutral-200 bg-white p-1 shadow-xl">
+          {REACTION_ORDER.map((r) => (
+            <button
+              key={r}
+              type="button"
+              role="menuitem"
+              title={REACTION_META[r].label}
+              aria-label={REACTION_META[r].label}
+              onClick={() => {
+                setOpen(false);
+                onReact(comment, comment.my_reaction === r ? null : r);
+              }}
+              className={`flex h-9 w-9 items-center justify-center rounded-full text-[22px] transition duration-150 hover:-translate-y-1 hover:scale-125 ${comment.my_reaction === r ? "bg-neutral-100" : ""}`}
+            >
+              {REACTION_META[r].emoji}
+            </button>
+          ))}
+        </span>
+      )}
+      <button
+        type="button"
+        onClick={() => {
+          if (long.current) {
+            long.current = false;
+            return;
+          }
+          onReact(comment, comment.my_reaction ? null : "like");
+        }}
+        onTouchStart={() => {
+          long.current = false;
+          press.current = window.setTimeout(() => {
+            long.current = true;
+            setOpen(true);
+          }, 400);
+        }}
+        onTouchEnd={() => press.current && window.clearTimeout(press.current)}
+        onContextMenu={(e) => e.preventDefault()}
+        className={`select-none font-semibold hover:underline ${mine ? mine.color : "text-neutral-600"}`}
+      >
+        {mine ? mine.label : "Like"}
+      </button>
+    </span>
+  );
+}
+
 function CommentItem({
   comment,
   viewer,
@@ -168,7 +273,7 @@ function CommentItem({
   highlighted,
   isReply,
   onReply,
-  onLike,
+  onReact,
   onEdit,
   onDelete,
   onHide,
@@ -180,7 +285,7 @@ function CommentItem({
   highlighted: boolean;
   isReply: boolean;
   onReply: (c: CommentNode) => void;
-  onLike: (c: CommentNode) => void;
+  onReact: (c: CommentNode, r: ReactionType | null) => void;
   onEdit: (c: CommentNode, text: string) => Promise<boolean>;
   onDelete: (c: CommentNode) => void;
   onHide: (c: CommentNode) => void;
@@ -188,15 +293,19 @@ function CommentItem({
 }) {
   const [menu, setMenu] = useState(false);
   const [editing, setEditing] = useState(false);
-  const menuRef = useRef<HTMLDivElement>(null);
+  const menuRef = useRef<HTMLSpanElement>(null);
   const mine = viewer?.id === comment.user_id;
   const pending = comment.id.startsWith("temp-");
 
   useEffect(() => {
     if (!menu) return;
-    const close = (e: MouseEvent) => !menuRef.current?.contains(e.target as Node) && setMenu(false);
+    const close = (e: MouseEvent | TouchEvent) => !menuRef.current?.contains(e.target as Node) && setMenu(false);
     document.addEventListener("mousedown", close);
-    return () => document.removeEventListener("mousedown", close);
+    document.addEventListener("touchstart", close);
+    return () => {
+      document.removeEventListener("mousedown", close);
+      document.removeEventListener("touchstart", close);
+    };
   }, [menu]);
 
   if (editing && viewer) {
@@ -220,91 +329,83 @@ function CommentItem({
   }
 
   return (
-    <div id={`comment-${comment.id}`} className={`flex scroll-mt-28 gap-2.5 ${pending ? "opacity-60" : ""}`}>
+    <div id={`comment-${comment.id}`} className={`flex scroll-mt-28 gap-2 ${pending ? "opacity-60" : ""}`}>
       <Avatar name={comment.full_name} url={comment.avatar_url} size={isReply ? "h-8 w-8" : "h-9 w-9"} />
       <div className="min-w-0 flex-1">
-        <div className="group flex items-center gap-1">
-          <div
-            className={`relative min-w-0 max-w-full rounded-2xl px-3.5 py-2 transition-colors duration-700 ${
-              highlighted ? "bg-amber-100 ring-2 ring-amber-300" : "bg-neutral-100"
-            }`}
-          >
-            <div className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5">
-              <span className="text-[13px] font-semibold text-neutral-950">{comment.full_name || "Member"}</span>
-              {comment.user_id === postAuthorId && (
-                <span className="rounded bg-neutral-950 px-1.5 py-px text-[10px] font-semibold text-white">Author</span>
-              )}
-              {comment.role === "ADMIN" && comment.user_id !== postAuthorId && (
-                <span className="inline-flex items-center gap-0.5 rounded bg-blue-50 px-1.5 py-px text-[10px] font-semibold text-blue-700">
-                  <ShieldCheck className="h-2.5 w-2.5" /> Team
-                </span>
-              )}
-            </div>
-            <p className="whitespace-pre-wrap break-words text-sm leading-6 text-neutral-800">
-              <RichText text={comment.content} />
-            </p>
-            {comment.like_count > 0 && (
-              <span className="absolute -bottom-2.5 right-1 flex items-center gap-1 rounded-full bg-white px-1.5 py-0.5 text-[11px] text-neutral-600 shadow ring-1 ring-neutral-100">
-                👍 {comment.like_count}
+        <div
+          className={`relative inline-block max-w-full rounded-[18px] px-3 py-2 transition-colors duration-700 ${
+            highlighted ? "bg-amber-100 ring-2 ring-amber-300" : "bg-[#f0f2f5]"
+          } ${comment.reaction_count > 0 ? "mb-2" : ""}`}
+        >
+          <div className="flex flex-wrap items-center gap-x-1.5">
+            <span className="text-[13px] font-semibold leading-5 text-neutral-950">{comment.full_name || "Member"}</span>
+            {comment.user_id === postAuthorId && (
+              <span className="rounded bg-neutral-950 px-1.5 py-px text-[10px] font-semibold text-white">Author</span>
+            )}
+            {comment.role === "ADMIN" && comment.user_id !== postAuthorId && (
+              <span className="inline-flex items-center gap-0.5 rounded bg-blue-50 px-1.5 py-px text-[10px] font-semibold text-blue-700">
+                <ShieldCheck className="h-2.5 w-2.5" /> Team
               </span>
             )}
           </div>
-
-          {viewer && !pending && (
-            <div ref={menuRef} className="relative shrink-0">
-              <button
-                type="button"
-                aria-label="Comment options"
-                onClick={() => setMenu((v) => !v)}
-                className="flex h-8 w-8 items-center justify-center rounded-full text-neutral-500 opacity-100 transition hover:bg-neutral-100 sm:opacity-0 sm:group-hover:opacity-100 sm:focus:opacity-100 data-[open=true]:opacity-100"
-                data-open={menu}
-              >
-                <MoreHorizontal className="h-4 w-4" />
-              </button>
-              {menu && (
-                <div className="absolute right-0 top-full z-20 mt-1 w-48 overflow-hidden rounded-xl border border-neutral-200 bg-white p-1 shadow-xl">
-                  <MenuButton
-                    icon={<Link2 className="h-4 w-4" />}
-                    label="Copy link"
-                    onClick={() => {
-                      setMenu(false);
-                      const url = `${window.location.href.split("#")[0]}#comment-${comment.id}`;
-                      void navigator.clipboard?.writeText(url);
-                    }}
-                  />
-                  {mine && <MenuButton icon={<Pencil className="h-4 w-4" />} label="Edit" onClick={() => { setMenu(false); setEditing(true); }} />}
-                  {(mine || viewer.isAdmin) && (
-                    <MenuButton danger icon={<Trash2 className="h-4 w-4" />} label="Delete" onClick={() => { setMenu(false); onDelete(comment); }} />
-                  )}
-                  {viewer.isAdmin && !mine && (
-                    <MenuButton icon={<EyeOff className="h-4 w-4" />} label="Hide comment" onClick={() => { setMenu(false); onHide(comment); }} />
-                  )}
-                  {!mine && <MenuButton icon={<Flag className="h-4 w-4" />} label="Report" onClick={() => { setMenu(false); onReport(comment); }} />}
-                </div>
-              )}
-            </div>
-          )}
+          <p className="whitespace-pre-wrap break-words text-[15px] leading-5 text-neutral-900">
+            <RichText text={comment.content} />
+          </p>
+          <ReactionSummary comment={comment} />
         </div>
 
-        <div className="mt-1 flex flex-wrap items-center gap-x-3 px-3 text-xs text-neutral-500">
+        <div className="mt-0.5 flex flex-wrap items-center gap-x-3 px-3 text-xs text-neutral-500">
           <a href={`#comment-${comment.id}`} className="hover:underline" title={new Date(comment.created_at).toLocaleString("en-GB")}>
             {pending ? "Posting…" : timeAgo(comment.created_at)}
           </a>
           {!pending && (
             <>
-              <button
-                type="button"
-                onClick={() => onLike(comment)}
-                className={`font-semibold hover:underline ${comment.liked ? "text-blue-600" : "text-neutral-600"}`}
-              >
-                Like
-              </button>
+              {viewer ? (
+                <ReactButton comment={comment} onReact={onReact} />
+              ) : (
+                <button type="button" onClick={() => onReact(comment, "like")} className="font-semibold text-neutral-600 hover:underline">
+                  Like
+                </button>
+              )}
               <button type="button" onClick={() => onReply(comment)} className="font-semibold text-neutral-600 hover:underline">
                 Reply
               </button>
+              {comment.edited_at && <span>Edited</span>}
+              {viewer && (
+                <span ref={menuRef} className="relative">
+                  <button
+                    type="button"
+                    aria-label="Comment options"
+                    aria-expanded={menu}
+                    onClick={() => setMenu((v) => !v)}
+                    className="-my-1 flex h-7 w-7 items-center justify-center rounded-full text-neutral-500 transition hover:bg-neutral-100 hover:text-neutral-800"
+                  >
+                    <MoreVertical className="h-4 w-4" />
+                  </button>
+                  {menu && (
+                    <span className="absolute left-0 top-full z-30 mt-1 block w-48 overflow-hidden rounded-xl border border-neutral-200 bg-white p-1 shadow-xl">
+                      <MenuButton
+                        icon={<Link2 className="h-4 w-4" />}
+                        label="Copy link"
+                        onClick={() => {
+                          setMenu(false);
+                          void navigator.clipboard?.writeText(`${window.location.href.split("#")[0]}#comment-${comment.id}`);
+                        }}
+                      />
+                      {mine && <MenuButton icon={<Pencil className="h-4 w-4" />} label="Edit" onClick={() => { setMenu(false); setEditing(true); }} />}
+                      {(mine || viewer.isAdmin) && (
+                        <MenuButton danger icon={<Trash2 className="h-4 w-4" />} label="Delete" onClick={() => { setMenu(false); onDelete(comment); }} />
+                      )}
+                      {viewer.isAdmin && !mine && (
+                        <MenuButton icon={<EyeOff className="h-4 w-4" />} label="Hide comment" onClick={() => { setMenu(false); onHide(comment); }} />
+                      )}
+                      {!mine && <MenuButton icon={<Flag className="h-4 w-4" />} label="Report" onClick={() => { setMenu(false); onReport(comment); }} />}
+                    </span>
+                  )}
+                </span>
+              )}
             </>
           )}
-          {comment.edited_at && <span>Edited</span>}
         </div>
       </div>
     </div>
@@ -384,7 +485,7 @@ export default function CommentsSection({
       if (c.parent_id) (replies[c.parent_id] ??= []).push(c);
       else roots.push(c);
     }
-    const score = (c: CommentNode) => c.like_count * 2 + (replies[c.id]?.length ?? 0) * 3 + (c.user_id === postAuthorId ? 1 : 0);
+    const score = (c: CommentNode) => c.reaction_count * 2 + (replies[c.id]?.length ?? 0) * 3 + (c.user_id === postAuthorId ? 1 : 0);
     roots.sort((a, b) => {
       if (a.id.startsWith("temp-") || b.id.startsWith("temp-")) return a.id.startsWith("temp-") ? -1 : 1;
       if (sort === "oldest") return +new Date(a.created_at) - +new Date(b.created_at);
@@ -409,8 +510,9 @@ export default function CommentsSection({
       full_name: viewer.name,
       avatar_url: viewer.avatarUrl,
       role: viewer.isAdmin ? "ADMIN" : "USER",
-      like_count: 0,
-      liked: false,
+      reaction_count: 0,
+      top_reactions: [],
+      my_reaction: null,
     };
     setComments((prev) => [...prev, optimistic]);
     if (rootId) setExpanded((e) => ({ ...e, [rootId]: true }));
@@ -424,19 +526,42 @@ export default function CommentsSection({
     return true;
   }
 
-  function like(c: CommentNode) {
+  // Latest click wins: the UI updates instantly, and only the newest desired
+  // state is sent. The server sets exactly that state (never toggles), so
+  // rapid clicks can't double count; its totals are applied when idle.
+  const desired = useRef<Record<string, ReactionType | null>>({});
+  const inflight = useRef<Set<string>>(new Set());
+
+  async function flushReaction(id: string) {
+    inflight.current.add(id);
+    const target = desired.current[id];
+    const res = await setCommentReaction(id, target);
+    inflight.current.delete(id);
+    if (desired.current[id] !== target) return void flushReaction(id);
+    if (!res.ok) {
+      flash(res.error);
+      return;
+    }
+    setComments((prev) =>
+      prev.map((x) => (x.id === id ? { ...x, reaction_count: res.count, top_reactions: res.top, my_reaction: res.mine } : x)),
+    );
+  }
+
+  function react(c: CommentNode, next: ReactionType | null) {
     if (!viewer) return void (window.location.href = `/login?next=${encodeURIComponent(pathname)}`);
-    const next = !c.liked;
-    setComments((prev) => prev.map((x) => (x.id === c.id ? { ...x, liked: next, like_count: x.like_count + (next ? 1 : -1) } : x)));
-    start(async () => {
-      const res = await toggleCommentLike(c.id, next);
-      if (!res.ok) {
-        setComments((prev) => prev.map((x) => (x.id === c.id ? { ...x, liked: !next, like_count: x.like_count + (next ? -1 : 1) } : x)));
-        flash(res.error);
-      } else {
-        setComments((prev) => prev.map((x) => (x.id === c.id ? { ...x, like_count: res.count } : x)));
-      }
-    });
+    setComments((prev) =>
+      prev.map((x) => {
+        if (x.id !== c.id) return x;
+        const had = x.my_reaction !== null;
+        const count = Math.max(0, x.reaction_count + (next && !had ? 1 : !next && had ? -1 : 0));
+        let top = x.top_reactions.filter((r) => r !== x.my_reaction || count > 1);
+        if (next && !top.includes(next)) top = [next, ...top].slice(0, 3);
+        if (count === 0) top = [];
+        return { ...x, my_reaction: next, reaction_count: count, top_reactions: top };
+      }),
+    );
+    desired.current[c.id] = next;
+    if (!inflight.current.has(c.id)) void flushReaction(c.id);
   }
 
   async function edit(c: CommentNode, text: string) {
@@ -528,7 +653,7 @@ export default function CommentsSection({
                   highlighted={highlight === root.id}
                   isReply={false}
                   onReply={startReply}
-                  onLike={like}
+                  onReact={react}
                   onEdit={edit}
                   onDelete={(c) => setConfirm({ comment: c, kind: "delete" })}
                   onHide={(c) => setConfirm({ comment: c, kind: "hide" })}
@@ -543,7 +668,8 @@ export default function CommentsSection({
                         onClick={() => setExpanded((e) => ({ ...e, [root.id]: true }))}
                         className="w-fit text-left text-[13px] font-semibold text-neutral-600 hover:underline"
                       >
-                        ↳ View {thread.length} replies
+                        <CornerDownRight className="mr-1 inline h-3.5 w-3.5" />
+                        View all {thread.length} replies
                       </button>
                     )}
                     {shown.map((reply) => (
@@ -555,7 +681,7 @@ export default function CommentsSection({
                         highlighted={highlight === reply.id}
                         isReply
                         onReply={startReply}
-                        onLike={like}
+                        onReact={react}
                         onEdit={edit}
                         onDelete={(c) => setConfirm({ comment: c, kind: "delete" })}
                         onHide={(c) => setConfirm({ comment: c, kind: "hide" })}

@@ -1,6 +1,8 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
+import { REMEMBER_COOKIE, isPersistent, withRemember } from "@/lib/supabase/remember";
+
 const VISITOR_COOKIE = "nirdeshona_visitor_id";
 
 function generateVisitorId() {
@@ -30,8 +32,9 @@ export async function proxy(request: NextRequest) {
             request,
           });
 
+          const persistent = isPersistent(request.cookies.get(REMEMBER_COOKIE)?.value);
           for (const { name, value, options } of cookiesToSet) {
-            response.cookies.set(name, value, options);
+            response.cookies.set(name, value, withRemember(options, persistent));
           }
         },
       },

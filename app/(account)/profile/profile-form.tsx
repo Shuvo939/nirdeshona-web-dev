@@ -1,5 +1,6 @@
 "use client";
 
+import { compressImage } from "@/lib/image-compress";
 import { useActionState, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Camera, CheckCircle2, Loader2, Trash2 } from "lucide-react";
@@ -26,9 +27,18 @@ export default function ProfileForm({
   const fileRef = useRef<HTMLInputElement>(null);
   const errors = state.fieldErrors ?? {};
 
-  async function upload(file: File) {
+  async function upload(original: File) {
     setAvatarError(null);
     setUploading(true);
+    let file = original;
+    try {
+      // Any size is fine: shrink in the browser first (avatars end up 320 px anyway).
+      file = await compressImage(original, { maxBytes: 3 * 1024 * 1024, maxEdge: 1200 });
+    } catch (e) {
+      setUploading(false);
+      setAvatarError(e instanceof Error ? e.message : "Couldn't process that image.");
+      return;
+    }
     const data = new FormData();
     data.append("file", file);
     const res = await fetch("/api/account/avatar", { method: "POST", body: data });
@@ -72,7 +82,7 @@ export default function ProfileForm({
         </div>
         <div>
           <p className="text-sm font-semibold text-neutral-950">Profile photo</p>
-          <p className="mt-1 text-xs text-neutral-500">JPG, PNG or WebP, up to 5 MB. It will be cropped to a square.</p>
+          <p className="mt-1 text-xs text-neutral-500">JPG, PNG or WebP — any size, we compress it for you. It will be cropped to a square.</p>
           <div className="mt-3 flex gap-2">
             <button
               type="button"

@@ -2,6 +2,7 @@ import crypto from "node:crypto";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
+import { verifyCaptcha } from "@/lib/captcha";
 import { sql } from "@/lib/db";
 import { sendEmail } from "@/lib/email";
 import { headPrivateObject, hasR2 } from "@/lib/r2";
@@ -40,6 +41,8 @@ const ContactSchema = z.object({
   attachmentKey: z.string().trim().max(500).optional(),
   // Honeypot: real visitors never see or fill this field.
   website: z.string().max(200).optional(),
+  captchaToken: z.string().optional(),
+  captchaAnswer: z.string().optional(),
 });
 
 /* ============================================================
@@ -148,11 +151,18 @@ export async function POST(request: Request) {
       message,
       attachmentKey,
       website,
+      captchaToken,
+      captchaAnswer,
     } = parsed.data;
 
     // Bots fill hidden fields — pretend success, store nothing.
     if (website) {
       return NextResponse.json({ ok: true }, { status: 200 });
+    }
+
+    const captcha = await verifyCaptcha(captchaToken, captchaAnswer);
+    if (!captcha.ok) {
+      return NextResponse.json({ error: captcha.error, captcha: true }, { status: 400 });
     }
 
     const hash = ipHash(request);

@@ -56,7 +56,7 @@ export default function MediaUploader() {
       >
         <UploadCloud className="h-8 w-8 text-neutral-400" />
         <span className="text-sm font-semibold text-neutral-900">Drop files here or click to upload</span>
-        <span className="text-xs text-neutral-500">Images (large photos are compressed to WebP), PDF, MP4 · up to 25 MB · 20 at a time</span>
+        <span className="text-xs text-neutral-500">Images of any size (compressed to under 5 MB, keeping quality) · PDF & MP4 up to 25 MB · 20 at a time</span>
       </button>
       <input ref={input} type="file" multiple accept={Object.keys(MEDIA_TYPES).join(",")} className="hidden" onChange={(e) => { void handle(e.target.files); e.target.value = ""; }} />
       {jobs.length > 0 && (

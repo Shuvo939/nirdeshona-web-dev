@@ -4,7 +4,7 @@ import { z } from "zod";
 
 import { logActivity } from "@/lib/audit";
 import { getSessionUser } from "@/lib/auth/session";
-import { REACTIONS, type CommentNode, type ReactionType } from "@/lib/comments";
+import { REACTIONS, getCommentReactionSummary, type CommentNode, type ReactionType } from "@/lib/comments";
 import { sql } from "@/lib/db";
 
 type Result<T = object> = ({ ok: true } & T) | { ok: false; error: string };
@@ -80,8 +80,9 @@ export async function addComment(input: { postId: string; parentId?: string | nu
       full_name: user.fullName,
       avatar_url: user.avatarUrl,
       role: user.role,
-      like_count: 0,
-      liked: false,
+      reaction_count: 0,
+      top_reactions: [],
+      my_reaction: null,
     },
   };
 }
@@ -135,20 +136,26 @@ export async function hideComment(commentId: string): Promise<Result> {
   return { ok: true };
 }
 
-export async function toggleCommentLike(commentId: string, like: boolean): Promise<Result<{ count: number }>> {
+// Idempotent: sets the viewer's reaction to exactly `type` (or removes it),
+// so repeated/rapid clicks can never double count. Returns the true totals.
+export async function setCommentReaction(
+  commentId: string,
+  type: ReactionType | null,
+): Promise<Result<{ count: number; top: ReactionType[]; mine: ReactionType | null }>> {
   const auth = await activeUser();
   if ("error" in auth) return { ok: false, error: auth.error! };
-  if (like) {
+  if (type && !REACTIONS.includes(type)) return { ok: false, error: "Unknown reaction." };
+
+  if (type) {
     await sql`
-      insert into comment_likes (comment_id, user_id)
-      select id, ${auth.user.id} from comments where id = ${commentId} and status = 'visible'
-      on conflict do nothing
+      insert into comment_likes (comment_id, user_id, reaction_type)
+      select id, ${auth.user.id}, ${type} from comments where id = ${commentId} and status = 'visible'
+      on conflict (comment_id, user_id) do update set reaction_type = excluded.reaction_type
     `;
   } else {
     await sql`delete from comment_likes where comment_id = ${commentId} and user_id = ${auth.user.id}`;
   }
-  const [{ count }] = await sql`select count(*)::int as count from comment_likes where comment_id = ${commentId}`;
-  return { ok: true, count };
+  return { ok: true, ...(await getCommentReactionSummary(commentId, auth.user.id)) };
 }
 
 export async function reportComment(commentId: string, reason: string): Promise<Result> {

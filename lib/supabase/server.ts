@@ -1,12 +1,15 @@
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 
+import { REMEMBER_COOKIE, isPersistent, withRemember } from "./remember";
+
 // Use this in Server Components, Server Actions, and Route Handlers
 // to read the logged-in user's session (role checks, RLS-scoped
 // queries via Supabase client, etc). For general app data queries,
 // prefer the raw-SQL `sql` client in lib/db — this one is for auth only.
-export async function createClient() {
+export async function createClient(opts: { persistent?: boolean } = {}) {
   const cookieStore = await cookies();
+  const persistent = opts.persistent ?? isPersistent(cookieStore.get(REMEMBER_COOKIE)?.value);
 
   return createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -19,7 +22,7 @@ export async function createClient() {
         setAll(cookiesToSet) {
           try {
             cookiesToSet.forEach(({ name, value, options }) =>
-              cookieStore.set(name, value, options)
+              cookieStore.set(name, value, withRemember(options, persistent))
             );
           } catch {
             // called from a Server Component — safe to ignore if you

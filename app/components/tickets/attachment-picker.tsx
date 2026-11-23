@@ -3,6 +3,7 @@
 import { useRef, useState } from "react";
 import { FileText, ImageIcon, Loader2, Paperclip, X } from "lucide-react";
 
+import { compressImage, isCompressibleImage } from "@/lib/image-compress";
 import {
   ATTACHMENT_ACCEPT,
   ATTACHMENT_TYPES,
@@ -37,9 +38,13 @@ export default function AttachmentPicker({
     onBusyChange?.(busyCount.current > 0);
   }
 
-  async function uploadOne(file: File, id: string) {
+  async function uploadOne(original: File, id: string) {
     setBusy(1);
     try {
+      // Photos of any size are compressed (WhatsApp-style) to ≤ 5 MB first.
+      const file = isCompressibleImage(original) ? await compressImage(original) : original;
+      if (file.size > MAX_ATTACHMENT_SIZE) throw new Error("File is larger than 10 MB.");
+      patch(id, { name: file.name, size: file.size, type: file.type });
       const res = await fetch("/api/attachments", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -78,7 +83,7 @@ export default function AttachmentPicker({
         setError(`“${file.name}” isn't a supported file type.`);
         continue;
       }
-      if (file.size > MAX_ATTACHMENT_SIZE) {
+      if (file.size > MAX_ATTACHMENT_SIZE && !isCompressibleImage(file)) {
         setError(`“${file.name}” is larger than 10 MB.`);
         continue;
       }
