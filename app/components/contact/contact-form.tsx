@@ -1,5 +1,7 @@
 "use client";
 
+import Captcha, { type CaptchaValue } from "@/app/components/captcha";
+import { compressImage, isCompressibleImage } from "@/lib/image-compress";
 import {
   ArrowRight,
   CheckCircle2,
@@ -57,133 +59,15 @@ const budgets = [
   "Let's discuss",
 ];
 
-/* ============================================================
-   IMAGE COMPRESSION
-============================================================ */
-
-async function compactImage(
-  file: File
-): Promise<File> {
-  /*
-   * GIF is deliberately kept untouched because
-   * converting an animated GIF to WebP through
-   * canvas would destroy the animation.
-   */
-  if (file.type === "image/gif") {
-    return file;
-  }
-
-  if (
-    ![
-      "image/jpeg",
-      "image/png",
-      "image/webp",
-    ].includes(file.type)
-  ) {
-    return file;
-  }
-
-  const bitmap =
-    await createImageBitmap(file);
-
-  try {
-    /*
-     * Don't allow unnecessarily huge
-     * image dimensions.
-     */
-    const MAX_DIMENSION = 2400;
-
-    const scale = Math.min(
-      1,
-      MAX_DIMENSION /
-        Math.max(
-          bitmap.width,
-          bitmap.height
-        )
-    );
-
-    const width = Math.max(
-      1,
-      Math.round(bitmap.width * scale)
-    );
-
-    const height = Math.max(
-      1,
-      Math.round(bitmap.height * scale)
-    );
-
-    const canvas =
-      document.createElement("canvas");
-
-    canvas.width = width;
-    canvas.height = height;
-
-    const context =
-      canvas.getContext("2d");
-
-    if (!context) {
-      return file;
-    }
-
-    context.drawImage(
-      bitmap,
-      0,
-      0,
-      width,
-      height
-    );
-
-    const blob =
-      await new Promise<Blob | null>(
-        (resolve) =>
-          canvas.toBlob(
-            resolve,
-            "image/webp",
-            0.82
-          )
-      );
-
-    if (!blob) {
-      return file;
-    }
-
-    /*
-     * Only use the compacted file if it
-     * is actually smaller.
-     */
-    if (blob.size >= file.size) {
-      return file;
-    }
-
-    const baseName =
-      file.name.replace(
-        /\.[^/.]+$/,
-        ""
-      );
-
-    return new File(
-      [blob],
-      `${baseName}.webp`,
-      {
-        type: "image/webp",
-        lastModified:
-          Date.now(),
-      }
-    );
-  } finally {
-    bitmap.close();
-  }
-}
-
-/* ============================================================
-   COMPONENT
-============================================================ */
-
 export default function ContactForm({
   defaultService = "",
+  initialCaptcha,
 }: {
   defaultService?: string;
+  initialCaptcha: { token: string; image: string };
 }) {
+  const [captcha, setCaptcha] = useState<CaptchaValue>({ token: initialCaptcha.token, answer: "" });
+  const [captchaKey, setCaptchaKey] = useState(0);
   const [status, setStatus] =
     useState<Status>("idle");
 
@@ -223,9 +107,11 @@ export default function ContactForm({
        ORIGINAL FILE SIZE
     -------------------------------------------------------- */
 
+    // Photos of any size are compressed below; other files keep the 10 MB limit.
     if (
       selectedFile.size >
-      MAX_FILE_SIZE
+        MAX_FILE_SIZE &&
+      !isCompressibleImage(selectedFile)
     ) {
       setErrorMessage(
         "Attachment must be 10 MB or smaller."
@@ -271,7 +157,7 @@ export default function ContactForm({
         setCompacting(true);
 
         const compacted =
-          await compactImage(
+          await compressImage(
             selectedFile
           );
 
@@ -282,11 +168,17 @@ export default function ContactForm({
           error
         );
 
-        /*
-         * If compression fails,
-         * safely fall back to original.
-         */
-        setFile(selectedFile);
+        if (selectedFile.size <= MAX_FILE_SIZE) {
+          setFile(selectedFile);
+        } else {
+          setErrorMessage(
+            error instanceof Error
+              ? error.message
+              : "Couldn't compress this image."
+          );
+          event.target.value = "";
+          setFile(null);
+        }
       } finally {
         setCompacting(false);
       }
@@ -469,6 +361,8 @@ export default function ContactForm({
             message: fieldData.get("message"),
             attachmentKey,
             website: fieldData.get("website") || undefined,
+            captchaToken: captcha.token,
+            captchaAnswer: captcha.answer,
           }),
         }
       );
@@ -484,6 +378,7 @@ export default function ContactForm({
       }
 
       setStatus("sent");
+      setCaptchaKey((k) => k + 1);
       setFile(null);
       setMessageLength(0);
 
@@ -499,6 +394,7 @@ export default function ContactForm({
       );
 
       setStatus("error");
+      setCaptchaKey((k) => k + 1); // each security check works once
 
       setErrorMessage(
         error instanceof Error
@@ -768,7 +664,7 @@ export default function ContactForm({
                 </p>
 
                 <p className="mt-1 text-xs text-neutral-400">
-                  Maximum size: 10 MB
+                  Photos: any size (auto-compressed) · Documents: up to 10 MB
                 </p>
 
                 <span className="mt-4 inline-flex h-9 items-center rounded-lg border border-neutral-200 bg-white px-4 text-xs font-semibold text-neutral-700 shadow-sm">
@@ -851,6 +747,12 @@ export default function ContactForm({
               </p>
             </div>
           )}
+
+        {/* Security check */}
+
+        <div className="max-w-sm">
+          <Captcha initial={initialCaptcha} refreshKey={captchaKey} onChange={setCaptcha} />
+        </div>
 
         {/* Submit */}
 

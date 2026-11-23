@@ -10,6 +10,7 @@ import {
   Loader2,
   ShieldCheck,
 } from "lucide-react";
+import Captcha, { type CaptchaValue } from "@/app/components/captcha";
 import { createClient } from "@/lib/supabase/client";
 
 type Step = "email" | "otp" | "password" | "success";
@@ -20,8 +21,10 @@ const OTP_LENGTH = 8;
 // /settings/password (signed in, email locked to the account's address).
 export default function ForgotPasswordFlow({
   accountEmail,
+  initialCaptcha,
 }: {
   accountEmail?: string;
+  initialCaptcha?: { token: string; image: string };
 }) {
   const router = useRouter();
   const supabase = createClient();
@@ -30,6 +33,8 @@ export default function ForgotPasswordFlow({
   const [step, setStep] = useState<Step>("email");
 
   const [email, setEmail] = useState(accountEmail ?? "");
+  const [captcha, setCaptcha] = useState<CaptchaValue>({ token: initialCaptcha?.token ?? "", answer: "" });
+  const [captchaKey, setCaptchaKey] = useState(0);
   const [otp, setOtp] = useState("");
 
   const [password, setPassword] = useState("");
@@ -63,11 +68,19 @@ export default function ForgotPasswordFlow({
 
     setLoading(true);
 
-    const { error } =
-      await supabase.auth.resetPasswordForEmail(trimmedEmail);
+    const res = await fetch("/api/auth/recover", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        email: trimmedEmail,
+        ...(embedded ? {} : { captchaToken: captcha.token, captchaAnswer: captcha.answer }),
+      }),
+    });
+    const result = await res.json().catch(() => ({}));
 
-    if (error) {
-      setError(getAuthErrorMessage(error.message));
+    if (!res.ok) {
+      setError(result.error ?? "Couldn't send the code. Please try again.");
+      if (!embedded) setCaptchaKey((k) => k + 1);
       setLoading(false);
       return;
     }
@@ -273,6 +286,10 @@ export default function ForgotPasswordFlow({
                   autoComplete="email"
                   disabled={loading}
                 />
+              )}
+
+              {!embedded && initialCaptcha && (
+                <Captcha initial={initialCaptcha} refreshKey={captchaKey} onChange={setCaptcha} />
               )}
 
               {error && <ErrorMessage message={error} />}

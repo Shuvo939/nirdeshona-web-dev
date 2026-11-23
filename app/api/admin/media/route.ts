@@ -3,15 +3,17 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { getSessionUser } from "@/lib/auth/session";
-import { MEDIA_MAX_SIZE, MEDIA_TYPES } from "@/lib/media";
+import { MEDIA_TYPES, maxSizeFor } from "@/lib/media";
 import { hasR2, presignPublicPut } from "@/lib/r2";
 
 export const runtime = "nodejs";
 
-const Schema = z.object({
-  contentType: z.string().refine((t) => t in MEDIA_TYPES, "This file type isn't allowed."),
-  size: z.number().int().positive().max(MEDIA_MAX_SIZE, "Files must be 25 MB or smaller."),
-});
+const Schema = z
+  .object({
+    contentType: z.string().refine((t) => t in MEDIA_TYPES, "This file type isn't allowed."),
+    size: z.number().int().positive(),
+  })
+  .refine((v) => v.size <= maxSizeFor(v.contentType), "Images must be 5 MB or smaller after compression; other files 25 MB.");
 
 // Step 1: admin asks for a presigned PUT URL; the browser uploads straight to R2.
 export async function POST(request: Request) {

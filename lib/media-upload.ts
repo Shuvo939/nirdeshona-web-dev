@@ -1,24 +1,7 @@
 "use client";
 
-import { MEDIA_MAX_SIZE, MEDIA_TYPES } from "@/lib/media";
-
-// Downscale large photos in the browser before uploading.
-export async function compressImage(file: File): Promise<File> {
-  if (!["image/jpeg", "image/png", "image/webp"].includes(file.type) || file.size < 400 * 1024) return file;
-  try {
-    const bitmap = await createImageBitmap(file);
-    const scale = Math.min(1, 2400 / Math.max(bitmap.width, bitmap.height));
-    const canvas = document.createElement("canvas");
-    canvas.width = Math.round(bitmap.width * scale);
-    canvas.height = Math.round(bitmap.height * scale);
-    canvas.getContext("2d")!.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
-    const blob: Blob | null = await new Promise((r) => canvas.toBlob(r, "image/webp", 0.85));
-    if (!blob || blob.size >= file.size) return file;
-    return new File([blob], file.name.replace(/\.[^.]+$/, "") + ".webp", { type: "image/webp" });
-  } catch {
-    return file;
-  }
-}
+import { compressImage } from "@/lib/image-compress";
+import { MEDIA_MAX_SIZE, MEDIA_TYPES, maxSizeFor } from "@/lib/media";
 
 export type UploadedMedia = { id: string; file_url: string; file_name: string; file_size: number; mime_type: string };
 
@@ -29,7 +12,9 @@ export type UploadedMedia = { id: string; file_url: string; file_name: string; f
 export async function uploadMedia(original: File, onProgress?: (percent: number) => void): Promise<UploadedMedia & { key: string }> {
   if (!(original.type in MEDIA_TYPES)) throw new Error("Unsupported file type");
   const file = await compressImage(original);
-  if (file.size > MEDIA_MAX_SIZE) throw new Error("File is larger than 25 MB");
+  if (file.size > maxSizeFor(file.type)) {
+    throw new Error(file.type.startsWith("image/") ? "Image is still larger than 5 MB" : `File is larger than ${MEDIA_MAX_SIZE / 1024 / 1024} MB`);
+  }
 
   const res = await fetch("/api/admin/media", {
     method: "POST",

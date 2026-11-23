@@ -4,7 +4,7 @@ import { z } from "zod";
 import { logActivity } from "@/lib/audit";
 import { getSessionUser } from "@/lib/auth/session";
 import { sql } from "@/lib/db";
-import { MEDIA_MAX_SIZE, MEDIA_TYPES } from "@/lib/media";
+import { MEDIA_TYPES, maxSizeFor } from "@/lib/media";
 import { headPublicObject, publicUrlFor } from "@/lib/r2";
 
 export const runtime = "nodejs";
@@ -23,7 +23,7 @@ export async function POST(request: Request) {
   if (!parsed.success) return NextResponse.json({ error: "Invalid upload." }, { status: 400 });
 
   const head = await headPublicObject(parsed.data.key);
-  if (!head || head.size > MEDIA_MAX_SIZE || !(head.contentType in MEDIA_TYPES)) {
+  if (!head || !(head.contentType in MEDIA_TYPES) || head.size > maxSizeFor(head.contentType)) {
     return NextResponse.json({ error: "Upload didn't complete. Please try again." }, { status: 400 });
   }
 
