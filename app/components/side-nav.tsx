@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect, useRef } from "react";
 import {
   Activity,
   Bell,
@@ -50,10 +51,19 @@ function isActive(pathname: string, link: SideNavLink) {
 
 export default function SideNav({ groups, mobile = false, label }: { groups: SideNavGroup[]; mobile?: boolean; label: string }) {
   const pathname = usePathname();
+  const mobileRef = useRef<HTMLElement>(null);
+
+  // Keep the active tab visible in the horizontally scrolling mobile bar.
+  useEffect(() => {
+    if (!mobile) return;
+    const el = mobileRef.current?.querySelector<HTMLElement>('[aria-current="page"]');
+    const scroller = mobileRef.current?.parentElement;
+    if (el && scroller) scroller.scrollTo({ left: el.offsetLeft - scroller.clientWidth / 2 + el.offsetWidth / 2, behavior: "auto" });
+  }, [pathname, mobile]);
 
   if (mobile) {
     return (
-      <nav aria-label={label} className="flex min-w-max gap-1.5">
+      <nav ref={mobileRef} aria-label={label} className="flex min-w-max gap-1.5">
         {groups.flatMap((g) => g.links).map((link) => {
           const Icon = ICONS[link.icon];
           const active = isActive(pathname, link);

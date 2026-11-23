@@ -12,7 +12,9 @@ const inputClass =
 
 export default function ProfileForm({
   initial,
+  between,
 }: {
+  between?: React.ReactNode;
   initial: { fullName: string; email: string; phone: string; company: string; bio: string; avatarUrl: string | null };
 }) {
   const router = useRouter();
@@ -105,6 +107,8 @@ export default function ProfileForm({
           />
         </div>
       </div>
+
+      {between}
 
       <form action={action} className="flex flex-col gap-5 rounded-3xl border border-neutral-200 bg-white p-5 sm:p-6">
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
