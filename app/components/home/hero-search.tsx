@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Search } from "lucide-react";
 
 import SearchDialog from "@/app/components/header/search-dialog";
+import { loadIndex } from "@/lib/search-client";
 
 // Display-only search bar: opens the live search popup.
 export default function HeroSearch() {
@@ -13,6 +14,8 @@ export default function HeroSearch() {
       <button
         type="button"
         onClick={() => setOpen(true)}
+        onPointerEnter={() => void loadIndex()}
+        onTouchStart={() => void loadIndex()}
         className="group flex h-14 w-full items-center gap-3 rounded-2xl border border-neutral-200 bg-white px-4 text-left shadow-sm transition hover:border-neutral-300 hover:shadow-md"
       >
         <Search className="h-5 w-5 text-neutral-400 transition group-hover:text-neutral-700" />
