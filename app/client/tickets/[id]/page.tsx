@@ -51,6 +51,7 @@ export default async function ClientTicketPage({ params }: { params: Promise<{ i
             </div>
             <ReplyForm
               action={reply}
+              ticketId={ticket.id}
               placeholder="Add more details or reply to the team…"
               disabled={closed}
               disabledText="This ticket is closed. Reopen it if you need more help."
