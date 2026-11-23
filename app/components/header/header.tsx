@@ -2,11 +2,13 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { ArrowUpRight, Sparkles } from "lucide-react";
 
+import { sql } from "@/lib/db";
 import { createClient } from "@/lib/supabase/server";
 
 import DesktopNav from "./desktop-nav";
 import MobileNav from "./mobile-nav";
 import SearchTrigger from "./search-trigger";
+import NotificationBell from "./notification-bell";
 import UserMenu from "./user-menu";
 
 export default async function Header() {
@@ -30,6 +32,18 @@ export default async function Header() {
       .maybeSingle();
 
     profile = data;
+  }
+
+  let unreadCount = 0;
+  if (user) {
+    try {
+      const [row] = await sql`
+        select count(*)::int as unread from notifications where user_id = ${user.id} and read_at is null
+      `;
+      unreadCount = row?.unread ?? 0;
+    } catch {
+      unreadCount = 0;
+    }
   }
 
   async function signOut() {
@@ -178,10 +192,13 @@ export default async function Header() {
                 </Link>
               </div>
             ) : (
-              <UserMenu
-                user={userData!}
-                signOut={signOut}
-              />
+              <>
+                <NotificationBell initialUnread={unreadCount} />
+                <UserMenu
+                  user={userData!}
+                  signOut={signOut}
+                />
+              </>
             )}
 
             {/* MOBILE GUEST AUTH */}

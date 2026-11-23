@@ -26,6 +26,7 @@ export type TicketMessage = {
   full_name: string | null;
   avatar_url: string | null;
   role: string;
+  attachments: { id: string; name: string; size: number; type: string; url: string }[];
 };
 
 export async function getTicket(ticketId: string) {
@@ -53,7 +54,12 @@ export async function canAccessTicket(user: SessionUser, ticket: TicketRow) {
 
 export async function getTicketMessages(ticketId: string) {
   return (await sql`
-    select m.id, m.message, m.created_at, m.sender_id, p.full_name, p.avatar_url, p.role
+    select m.id, m.message, m.created_at, m.sender_id, p.full_name, p.avatar_url, p.role,
+      coalesce((
+        select json_agg(json_build_object('id', a.id, 'name', a.file_name, 'size', a.file_size,
+                                          'type', a.mime_type, 'url', a.file_url) order by a.created_at)
+        from ticket_attachments a where a.ticket_message_id = m.id
+      ), '[]'::json) as attachments
     from ticket_messages m
     join profiles p on p.id = m.sender_id
     where m.ticket_id = ${ticketId}

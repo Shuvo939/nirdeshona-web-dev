@@ -7,6 +7,8 @@ import { z } from "zod";
 import { getSessionUser } from "@/lib/auth/session";
 import { sql } from "@/lib/db";
 import { canAccessTicket, getTicket, notifyTicketActivity } from "@/lib/tickets";
+import { parseAttachmentField } from "@/lib/tickets/attachments";
+import { insertAttachments, verifyAttachments } from "@/lib/tickets/save-attachments";
 
 export type FormState = {
   error?: string;
@@ -63,16 +65,24 @@ export async function createTicket(_prev: FormState, formData: FormData): Promis
   `;
   if (recent >= 5) return { error: "You've opened several tickets recently. Please wait a little before opening another." };
 
+  const attachments = parseAttachmentField(formData.get("attachments"));
+  if ("error" in attachments) return { error: attachments.error };
+  // No ticket id yet, so only the user's own upload prefix is allowed.
+  const verified = await verifyAttachments(attachments, "00000000-0000-0000-0000-000000000000", user.id);
+  if (!verified.ok) return { error: verified.error };
+
   const ticket = await sql.begin(async (tx) => {
     const [row] = await tx`
       insert into support_tickets (client_id, project_id, created_by, subject, priority)
       values (${clientId}, ${projectId || null}, ${user.id}, ${subject}, ${priority})
       returning id, ticket_number, client_id, subject
     `;
-    await tx`
+    const [msg] = await tx`
       insert into ticket_messages (ticket_id, sender_id, message)
       values (${row.id}, ${user.id}, ${message})
+      returning id
     `;
+    await insertAttachments(tx, msg.id, verified.files);
     return row;
   });
 
@@ -102,10 +112,19 @@ export async function replyToTicketAsClient(ticketId: string, _prev: FormState, 
   const parsed = ReplySchema.safeParse({ message: formData.get("message") });
   if (!parsed.success) return { fieldErrors: fieldErrors(parsed.error) };
 
-  await sql`
-    insert into ticket_messages (ticket_id, sender_id, message)
-    values (${ticket.id}, ${user.id}, ${parsed.data.message})
-  `;
+  const attachments = parseAttachmentField(formData.get("attachments"));
+  if ("error" in attachments) return { error: attachments.error };
+  const verified = await verifyAttachments(attachments, ticket.id, user.id);
+  if (!verified.ok) return { error: verified.error };
+
+  await sql.begin(async (tx) => {
+    const [msg] = await tx`
+      insert into ticket_messages (ticket_id, sender_id, message)
+      values (${ticket.id}, ${user.id}, ${parsed.data.message})
+      returning id
+    `;
+    await insertAttachments(tx, msg.id, verified.files);
+  });
   // A client reply moves "waiting for client" / "resolved" back to open.
   await sql`
     update support_tickets

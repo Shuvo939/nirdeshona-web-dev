@@ -1,7 +1,8 @@
-import { ShieldCheck } from "lucide-react";
+import { FileText, ShieldCheck } from "lucide-react";
 
 import { formatDate } from "@/app/components/marketing";
 import type { TicketMessage } from "@/lib/tickets";
+import { formatBytes } from "@/lib/tickets/attachments";
 
 function initials(name: string | null) {
   return (name || "?")
@@ -45,6 +46,30 @@ export default function TicketThread({ messages, viewerId }: { messages: TicketM
               >
                 {m.message}
               </div>
+              {m.attachments.length > 0 && (
+                <div className={`mt-2 flex flex-wrap gap-2 ${mine ? "justify-end" : ""}`}>
+                  {m.attachments.map((a) =>
+                    a.type.startsWith("image/") ? (
+                      <a key={a.id} href={a.url} target="_blank" rel="noreferrer" className="block overflow-hidden rounded-xl border border-neutral-200 bg-white">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={a.url} alt={a.name} loading="lazy" className="h-28 w-40 object-cover transition hover:opacity-90" />
+                      </a>
+                    ) : (
+                      <a
+                        key={a.id}
+                        href={a.url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="flex max-w-full items-center gap-2 rounded-xl border border-neutral-200 bg-white px-3 py-2 text-xs text-neutral-700 transition hover:border-neutral-300"
+                      >
+                        <FileText className="h-4 w-4 shrink-0 text-neutral-400" />
+                        <span className="max-w-[180px] truncate font-medium">{a.name}</span>
+                        <span className="shrink-0 text-neutral-400">{formatBytes(a.size)}</span>
+                      </a>
+                    ),
+                  )}
+                </div>
+              )}
             </div>
           </li>
         );

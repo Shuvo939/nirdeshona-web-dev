@@ -4,6 +4,7 @@ import { useActionState, useMemo, useState } from "react";
 import { Loader2 } from "lucide-react";
 
 import { createTicket, type FormState } from "@/app/client/actions";
+import AttachmentPicker from "@/app/components/tickets/attachment-picker";
 
 type Option = { id: string; name: string };
 type ProjectOption = { id: string; title: string; client_id: string };
@@ -32,6 +33,7 @@ export default function NewTicketForm({
   const [clientId, setClientId] = useState(defaultProject?.client_id ?? clients[0]?.id ?? "");
   const clientProjects = useMemo(() => projects.filter((p) => p.client_id === clientId), [projects, clientId]);
   const errors = state.fieldErrors ?? {};
+  const [uploading, setUploading] = useState(false);
 
   return (
     <form action={action} className="flex flex-col gap-5">
@@ -98,11 +100,16 @@ export default function NewTicketForm({
         />
       </Field>
 
+      <div className="rounded-xl border border-dashed border-neutral-200 p-3">
+        <p className="mb-1 text-xs text-neutral-500">Screenshots or documents help us fix things faster (up to 5 files, 10 MB each).</p>
+        <AttachmentPicker onBusyChange={setUploading} />
+      </div>
+
       <div className="flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-xs text-neutral-500">We usually reply within one business day. Urgent issues are handled the same day.</p>
         <button
           type="submit"
-          disabled={pending}
+          disabled={pending || uploading}
           className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-neutral-950 px-6 text-sm font-semibold text-white transition hover:bg-neutral-800 disabled:opacity-60"
         >
           {pending && <Loader2 className="h-4 w-4 animate-spin" />}
