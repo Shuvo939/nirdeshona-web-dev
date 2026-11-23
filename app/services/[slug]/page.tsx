@@ -169,7 +169,7 @@ export default async function ServiceDetailPage({
       </section>
 
       {/* Other services */}
-      <section className="mx-auto max-w-7xl px-4 pt-16 sm:px-6 lg:px-8">
+      <section className="mx-auto max-w-7xl px-4 pb-20 pt-16 sm:px-6 lg:px-8">
         <SectionHeading eyebrow="Explore" title="Other services" />
         <div className="mt-8 grid grid-cols-1 gap-4 md:grid-cols-3">
           {others.map((item) => (

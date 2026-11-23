@@ -22,17 +22,11 @@ import HeroSearch from "@/app/components/home/hero-search";
 import { FaqList, ServiceCard } from "@/app/components/marketing";
 import ProjectCard, { type ProjectCardData } from "@/app/components/project-card";
 import { sql } from "@/lib/db";
-import { faqGroups, packages, processSteps, services, values } from "@/lib/site";
+import { allTech, faqGroups, packages, processSteps, services, values } from "@/lib/site";
 
 export const revalidate = 300;
 
-const STACK = [
-  "Next.js", "React", "TypeScript", "JavaScript", "HTML5", "CSS3", "Tailwind CSS", "shadcn/ui",
-  "PostgreSQL", "SQL", "SQLite", "Supabase", "Neon", "Firebase", "NextAuth.js",
-  "WordPress", "WooCommerce", "Sanity CMS", "Payload CMS", "Strapi", "Typesense",
-  "Cloudflare", "Bunny.net", "Vercel", "Render", "Docker", "GitHub",
-  "Resend", "Brevo", "Figma", "SEO",
-];
+const STACK = allTech;
 const VALUE_ICONS = [Compass, Smartphone, Layers3, HeartHandshake];
 
 export default async function HomePage() {

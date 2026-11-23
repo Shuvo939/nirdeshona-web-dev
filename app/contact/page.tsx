@@ -23,9 +23,9 @@ export const metadata: Metadata = {
 export default async function ContactPage({
   searchParams,
 }: {
-  searchParams: Promise<{ service?: string }>;
+  searchParams: Promise<{ service?: string; message?: string }>;
 }) {
-  const { service } = await searchParams;
+  const { service, message } = await searchParams;
 
   return (
     <main className="min-h-[calc(100vh-72px)] bg-neutral-50">
@@ -240,7 +240,7 @@ export default async function ContactPage({
           ================================================== */}
 
           <div className="rounded-3xl border border-neutral-200 bg-white p-6 shadow-sm sm:p-8 lg:p-10">
-            <ContactForm defaultService={service ?? ""} initialCaptcha={createCaptcha()} />
+            <ContactForm defaultService={service ?? ""} defaultMessage={(message ?? "").slice(0, 1500)} initialCaptcha={createCaptcha()} />
           </div>
         </div>
       </section>

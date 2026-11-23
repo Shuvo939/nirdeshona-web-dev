@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
-import PostListing from "@/app/components/blog/post-listing";
+import PostListing, { parseSort } from "@/app/components/blog/post-listing";
 import { PageHero } from "@/app/components/marketing";
 import { sql } from "@/lib/db";
 
@@ -25,10 +25,10 @@ export default async function BlogTagPage({
   searchParams,
 }: {
   params: Promise<{ slug: string }>;
-  searchParams: Promise<{ page?: string }>;
+  searchParams: Promise<{ page?: string; sort?: string }>;
 }) {
   const { slug } = await params;
-  const { page: rawPage } = await searchParams;
+  const { page: rawPage, sort: rawSort } = await searchParams;
   const tag = await getTag(slug);
   if (!tag) notFound();
   const page = Math.max(1, Number.parseInt(rawPage ?? "1", 10) || 1);
@@ -41,7 +41,7 @@ export default async function BlogTagPage({
         description={`Articles tagged ${tag.name}.`}
         breadcrumbs={[{ label: "Blog", href: "/blog" }, { label: tag.name }]}
       />
-      <PostListing basePath={`/blog/tag/${tag.slug}`} page={page} tagSlug={tag.slug} />
+      <PostListing basePath={`/blog/tag/${tag.slug}`} page={page} tagSlug={tag.slug} sort={parseSort(rawSort)} />
     </>
   );
 }

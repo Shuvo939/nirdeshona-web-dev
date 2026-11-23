@@ -61,9 +61,11 @@ const budgets = [
 
 export default function ContactForm({
   defaultService = "",
+  defaultMessage = "",
   initialCaptcha,
 }: {
   defaultService?: string;
+  defaultMessage?: string;
   initialCaptcha: { token: string; image: string };
 }) {
   const [captcha, setCaptcha] = useState<CaptchaValue>({ token: initialCaptcha.token, answer: "" });
@@ -72,7 +74,7 @@ export default function ContactForm({
     useState<Status>("idle");
 
   const [messageLength, setMessageLength] =
-    useState(0);
+    useState(defaultMessage.length);
 
   const [file, setFile] =
     useState<File | null>(null);
@@ -613,6 +615,7 @@ export default function ContactForm({
               MAX_MESSAGE_LENGTH
             }
             rows={7}
+            defaultValue={defaultMessage}
             placeholder="Tell us about your project, goals, required features, timeline, existing website, or anything else that may help us understand your needs..."
             onChange={(event) =>
               setMessageLength(

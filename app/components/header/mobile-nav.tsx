@@ -1,5 +1,7 @@
 "use client";
 
+import { ServiceIcon } from "@/app/components/marketing";
+import { services as siteServices } from "@/lib/site";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import {
@@ -21,26 +23,12 @@ type Props = {
   role: string | null;
 };
 
-const services = [
-  {
-    title: "Web Development",
-    description: "Websites & applications",
-    href: "/services/web-development",
-    icon: Code2,
-  },
-  {
-    title: "WordPress",
-    description: "Custom WordPress solutions",
-    href: "/services/wordpress",
-    icon: Globe2,
-  },
-  {
-    title: "UI / UX Design",
-    description: "Interfaces people enjoy",
-    href: "/services/design",
-    icon: Palette,
-  },
-];
+const services = siteServices.map((s) => ({
+  title: s.title,
+  description: s.short,
+  href: `/services/${s.slug}`,
+  icon: s.icon,
+}));
 
 export default function MobileNav({
   authenticated,
@@ -235,7 +223,7 @@ export default function MobileNav({
 
                 <div className="overflow-hidden rounded-2xl border border-neutral-200 bg-neutral-50/70">
                   {services.map((service, index) => {
-                    const Icon = service.icon;
+
 
                     return (
                       <Link
@@ -265,7 +253,7 @@ export default function MobileNav({
                             group-hover:text-white
                           "
                         >
-                          <Icon className="h-4 w-4" />
+                          <ServiceIcon icon={service.icon} className="h-4 w-4" />
                         </div>
 
                         <div className="min-w-0 flex-1">
