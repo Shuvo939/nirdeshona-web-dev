@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { sql } from "@/lib/db";
 import { updateProject } from "../../actions";
 import ProjectForm from "../../project-form";
+import { requireAdmin } from "@/lib/auth/require-admin";
 
 type Props = {
   params: Promise<{
@@ -25,6 +26,8 @@ function formatDate(value: unknown) {
 export default async function EditProjectPage({
   params,
 }: Props) {
+  await requireAdmin();
+
   const { id } = await params;
 
   const [projectResult, clients] = await Promise.all([

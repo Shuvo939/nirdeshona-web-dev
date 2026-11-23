@@ -9,6 +9,8 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 
+import { isHttpUrl } from "@/lib/safe-url";
+
 const PostSchema = z.object({
   title: z.string().trim().min(1, "Title is required."),
   slug: z.string().trim().min(1, "Slug is required."),
@@ -18,7 +20,7 @@ const PostSchema = z.object({
   status: z.enum(["draft", "published", "archived"]),
   seo_title: z.string().trim().optional(),
   seo_description: z.string().trim().optional(),
-  cover_image_url: z.string().url().optional().or(z.literal("")),
+  cover_image_url: z.string().url().refine(isHttpUrl, "Must be an http(s) URL").optional().or(z.literal("")),
   cover_image_key: z.string().trim().optional(),
   existing_cover_image_url: z.string().url().optional().or(z.literal("")),
   remove_cover: z.enum(["true", "false"]).default("false"),

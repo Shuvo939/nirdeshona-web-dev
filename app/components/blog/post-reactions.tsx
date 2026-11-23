@@ -1,5 +1,6 @@
 "use client";
 
+import { startNavigationProgress } from "@/app/components/navigation-progress";
 import { useRef, useState, useTransition } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { Link2, ThumbsUp } from "lucide-react";
@@ -41,6 +42,7 @@ export default function PostReactions({
   // Optimistic: update the UI immediately, save in the background, roll back on error.
   function choose(next: ReactionType | null) {
     if (!signedIn) {
+      startNavigationProgress();
       router.push(`/login?next=${encodeURIComponent(pathname)}`);
       return;
     }

@@ -10,6 +10,7 @@ import { getTicket, getTicketMessages } from "@/lib/tickets";
 
 import { replyToTicket, updateTicketMeta } from "../actions";
 import AdminReplyForm from "./admin-reply-form";
+import { requireAdmin } from "@/lib/auth/require-admin";
 
 export const dynamic = "force-dynamic";
 
@@ -17,6 +18,8 @@ const STATUSES = ["OPEN", "IN_PROGRESS", "WAITING_FOR_CLIENT", "RESOLVED", "CLOS
 const PRIORITIES = ["LOW", "NORMAL", "HIGH", "URGENT"];
 
 export default async function AdminTicketDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  await requireAdmin();
+
   const { id } = await params;
   const user = (await getSessionUser())!;
   const ticket = await getTicket(id);

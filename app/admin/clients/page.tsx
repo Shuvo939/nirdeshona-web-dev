@@ -5,10 +5,13 @@ import { sql } from "@/lib/db";
 
 import { saveClient } from "./actions";
 import ClientForm from "./client-form";
+import { requireAdmin } from "@/lib/auth/require-admin";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminClientsPage() {
+  await requireAdmin();
+
   const clients = await sql`
     select c.id, c.name, c.slug, c.logo_url, c.contact_email, c.created_at,
       (select count(*)::int from client_members m where m.client_id = c.id) as members,

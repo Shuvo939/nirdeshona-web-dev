@@ -4,6 +4,7 @@ import { MessageCircle } from "lucide-react";
 
 import { FaqList, PageHero } from "@/app/components/marketing";
 import { faqGroups } from "@/lib/site";
+import { jsonLd as toJsonLd } from "@/lib/json-ld";
 
 export const metadata: Metadata = {
   title: "FAQ — Nirdeshona Web",
@@ -30,7 +31,7 @@ export default function FaqPage() {
 
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: toJsonLd(jsonLd) }} />
       <PageHero
         eyebrow="Help centre"
         title="Frequently asked questions"

@@ -2,12 +2,15 @@ import { sql } from "@/lib/db";
 import { notFound } from "next/navigation";
 import PostForm from "../../post-form";
 import { updatePost } from "../../actions";
+import { requireAdmin } from "@/lib/auth/require-admin";
 
 export default async function EditPostPage({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
+  await requireAdmin();
+
   const { id } = await params;
 
   const [[post], categories, tags, postTags] = await Promise.all([

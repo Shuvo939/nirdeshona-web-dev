@@ -4,27 +4,10 @@ import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2, UploadCloud } from "lucide-react";
 
-import { MEDIA_MAX_SIZE, MEDIA_TYPES } from "@/lib/media";
+import { MEDIA_TYPES } from "@/lib/media";
+import { uploadMedia } from "@/lib/media-upload";
 
 type Job = { id: string; name: string; progress: number; error?: string; done?: boolean };
-
-// Downscale large photos in the browser before uploading (saves bandwidth and storage).
-async function compress(file: File): Promise<File> {
-  if (!["image/jpeg", "image/png", "image/webp"].includes(file.type) || file.size < 400 * 1024) return file;
-  try {
-    const bitmap = await createImageBitmap(file);
-    const scale = Math.min(1, 2400 / Math.max(bitmap.width, bitmap.height));
-    const canvas = document.createElement("canvas");
-    canvas.width = Math.round(bitmap.width * scale);
-    canvas.height = Math.round(bitmap.height * scale);
-    canvas.getContext("2d")!.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
-    const blob: Blob | null = await new Promise((r) => canvas.toBlob(r, "image/webp", 0.85));
-    if (!blob || blob.size >= file.size) return file;
-    return new File([blob], file.name.replace(/\.[^.]+$/, "") + ".webp", { type: "image/webp" });
-  } catch {
-    return file;
-  }
-}
 
 export default function MediaUploader() {
   const router = useRouter();
@@ -38,34 +21,7 @@ export default function MediaUploader() {
     const id = crypto.randomUUID();
     setJobs((j) => [{ id, name: original.name, progress: 0 }, ...j]);
     try {
-      if (!(original.type in MEDIA_TYPES)) throw new Error("Unsupported file type");
-      const file = await compress(original);
-      if (file.size > MEDIA_MAX_SIZE) throw new Error("Larger than 25 MB");
-
-      const res = await fetch("/api/admin/media", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ contentType: file.type, size: file.size }),
-      });
-      const json = await res.json();
-      if (!res.ok) throw new Error(json.error ?? "Upload failed");
-
-      await new Promise<void>((resolve, reject) => {
-        const xhr = new XMLHttpRequest();
-        xhr.open("PUT", json.uploadUrl);
-        xhr.setRequestHeader("Content-Type", file.type);
-        xhr.upload.onprogress = (e) => e.lengthComputable && patch(id, { progress: Math.round((e.loaded / e.total) * 100) });
-        xhr.onload = () => (xhr.status < 300 ? resolve() : reject(new Error("Upload to storage failed")));
-        xhr.onerror = () => reject(new Error("Network error — check R2 CORS"));
-        xhr.send(file);
-      });
-
-      const done = await fetch("/api/admin/media/complete", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ key: json.key, fileName: file.name }),
-      });
-      if (!done.ok) throw new Error((await done.json()).error ?? "Couldn't save");
+      await uploadMedia(original, (progress) => patch(id, { progress }));
       patch(id, { done: true, progress: 100 });
     } catch (e) {
       patch(id, { error: e instanceof Error ? e.message : "Upload failed" });

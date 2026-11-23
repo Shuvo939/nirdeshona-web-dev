@@ -6,11 +6,14 @@ import { sql } from "@/lib/db";
 
 import { AdminHeader, Avatar, Empty, FilterTabs, Pager, SearchBox, pageParam, timeAgo } from "../admin-ui";
 import { deleteCommentAdmin, dismissReports, setCommentStatus } from "./actions";
+import { requireAdmin } from "@/lib/auth/require-admin";
 
 export const dynamic = "force-dynamic";
 const PER_PAGE = 20;
 
 export default async function AdminCommentsPage({ searchParams }: { searchParams: Promise<{ f?: string; q?: string; page?: string }> }) {
+  await requireAdmin();
+
   const sp = await searchParams;
   const filter = ["all", "reported", "hidden"].includes(sp.f ?? "") ? sp.f! : "all";
   const q = sp.q?.trim().slice(0, 80) || null;

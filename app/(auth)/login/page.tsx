@@ -1,5 +1,6 @@
 "use client";
 
+import { safeNextPath } from "@/lib/safe-url";
 import { FormEvent, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -13,7 +14,7 @@ import { createClient } from "@/lib/supabase/client";
 function getSafeNext() {
   if (typeof window === "undefined") return "/client";
   const next = new URLSearchParams(window.location.search).get("next");
-  return next && next.startsWith("/") && !next.startsWith("//") ? next : "/client";
+  return safeNextPath(next, "/account");
 }
 
 export default function LoginPage() {

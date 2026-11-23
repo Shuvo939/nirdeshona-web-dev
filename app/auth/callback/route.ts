@@ -1,16 +1,13 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { safeNextPath } from "@/lib/safe-url";
 
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
 
   const code = searchParams.get("code");
-  let next = searchParams.get("next") ?? "/client";
-
-  // Prevent open redirects.
-  if (!next.startsWith("/") || next.startsWith("//")) {
-    next = "/client";
-  }
+  // Prevent open redirects (rejects //host and /\host too).
+  const next = safeNextPath(searchParams.get("next"), "/account");
 
   if (!code) {
     return NextResponse.redirect(`${origin}/login?error=auth_callback`);

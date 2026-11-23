@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import { StatusBadge, TICKET_PRIORITY, TICKET_STATUS, formatDate } from "@/app/components/marketing";
 import { sql } from "@/lib/db";
+import { requireAdmin } from "@/lib/auth/require-admin";
 
 export const dynamic = "force-dynamic";
 
@@ -13,6 +14,8 @@ const FILTERS = [
 ];
 
 export default async function AdminTicketsPage({ searchParams }: { searchParams: Promise<{ f?: string }> }) {
+  await requireAdmin();
+
   const { f } = await searchParams;
   const filter = FILTERS.some((x) => x.value === f) ? f! : "active";
 

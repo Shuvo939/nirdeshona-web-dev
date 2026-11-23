@@ -13,6 +13,7 @@ import {
 import { sql } from "@/lib/db";
 import { StatusSelector } from "../status-selector";
 import { DeleteContactButton } from "../delete-contact-button";
+import { requireAdmin } from "@/lib/auth/require-admin";
 
 type ContactStatus = "new" | "contacted" | "closed";
 
@@ -50,6 +51,8 @@ export default async function AdminContactDetailPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
+  await requireAdmin();
+
   const { id } = await params;
 
   const rows = (await sql`
@@ -73,6 +76,13 @@ export default async function AdminContactDetailPage({
   const contact = rows[0];
 
   if (!contact) notFound();
+
+  // Private attachments are served through an admin-only signed-URL route.
+  const attachmentHref = contact.attachment_url
+    ? contact.attachment_url.startsWith("private:")
+      ? `/api/admin/contact-attachments/${contact.id}`
+      : contact.attachment_url
+    : null;
 
   return (
     <div className="mx-auto max-w-4xl">
@@ -207,27 +217,27 @@ export default async function AdminContactDetailPage({
         </section>
 
         {/* ATTACHMENT */}
-        {contact.attachment_url && (
+        {attachmentHref && (
           <section className="border-b border-neutral-200 p-6 sm:p-8">
             <SectionTitle title="Attachment" />
 
-            {isImageUrl(contact.attachment_url) ? (
+            {isImageUrl(contact.attachment_url!) ? (
               <a
-                href={contact.attachment_url}
+                href={attachmentHref}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="mt-5 block max-w-md overflow-hidden rounded-2xl border border-neutral-200 transition hover:border-neutral-400"
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
-                  src={contact.attachment_url}
+                  src={attachmentHref}
                   alt="Contact attachment"
                   className="max-h-96 w-full object-contain bg-neutral-50"
                 />
               </a>
             ) : (
               <a
-                href={contact.attachment_url}
+                href={attachmentHref}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="mt-5 inline-flex items-center gap-3 rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-3 text-sm font-semibold text-neutral-700 transition hover:bg-neutral-100 hover:text-neutral-950"

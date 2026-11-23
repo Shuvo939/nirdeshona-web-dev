@@ -1,8 +1,7 @@
-import { S3Client } from "@aws-sdk/client-s3";
-import { PutObjectCommand } from "@aws-sdk/client-s3";
-import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { NextResponse } from "next/server";
 import { z } from "zod";
+
+import { hasR2, presignPrivatePut } from "@/lib/r2";
 
 export const runtime = "nodejs";
 
@@ -35,23 +34,6 @@ const UploadSchema = z.object({
   size: z.number().int().positive().max(MAX_FILE_SIZE),
 });
 
-/* ============================================================
-   R2
-============================================================ */
-
-const r2 =
-  process.env.R2_ACCOUNT_ID &&
-  process.env.R2_ACCESS_KEY_ID &&
-  process.env.R2_SECRET_ACCESS_KEY
-    ? new S3Client({
-        region: "auto",
-        endpoint: `https://${process.env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
-        credentials: {
-          accessKeyId: process.env.R2_ACCESS_KEY_ID,
-          secretAccessKey: process.env.R2_SECRET_ACCESS_KEY,
-        },
-      })
-    : null;
 
 /* ============================================================
    ORIGIN
@@ -139,7 +121,7 @@ export async function POST(request: Request) {
        CONFIGURATION
     -------------------------------------------------------- */
 
-    if (!r2 || !process.env.R2_BUCKET_NAME) {
+    if (!hasR2()) {
       console.error("R2 storage is not configured.");
 
       return NextResponse.json(
@@ -182,27 +164,12 @@ export async function POST(request: Request) {
 
     /* --------------------------------------------------------
        PRESIGNED URL
+       Private bucket (attachments may contain personal documents) and
+       the size is part of the signature, so the browser can't upload a
+       bigger file than it declared.
     -------------------------------------------------------- */
 
-    // Note: ContentLength is intentionally NOT included in the signed
-    // command. R2 doesn't require it to be part of the signature, and
-    // pinning it here makes the signed URL brittle — if the actual
-    // upload's byte count ever drifts even slightly from `size`
-    // (browser quirks, retries, etc.) the PUT gets rejected for no
-    // good reason. `size` is still validated above against
-    // MAX_FILE_SIZE before we ever issue a URL.
-    const command = new PutObjectCommand({
-      Bucket: process.env.R2_BUCKET_NAME,
-      Key: key,
-      ContentType: contentType,
-      Metadata: {
-        source: "contact-form",
-      },
-    });
-
-    const uploadUrl = await getSignedUrl(r2, command, {
-      expiresIn: 600,
-    });
+    const uploadUrl = await presignPrivatePut(key, contentType, size);
 
     return NextResponse.json(
       {

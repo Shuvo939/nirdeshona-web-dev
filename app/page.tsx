@@ -26,7 +26,13 @@ import { faqGroups, packages, processSteps, services, values } from "@/lib/site"
 
 export const revalidate = 300;
 
-const STACK = ["Next.js", "React", "TypeScript", "Tailwind CSS", "PostgreSQL", "Supabase", "WordPress", "Cloudflare", "Vercel", "Figma", "WooCommerce", "Resend"];
+const STACK = [
+  "Next.js", "React", "TypeScript", "JavaScript", "HTML5", "CSS3", "Tailwind CSS", "shadcn/ui",
+  "PostgreSQL", "SQL", "SQLite", "Supabase", "Neon", "Firebase", "NextAuth.js",
+  "WordPress", "WooCommerce", "Sanity CMS", "Payload CMS", "Strapi", "Typesense",
+  "Cloudflare", "Bunny.net", "Vercel", "Render", "Docker", "GitHub",
+  "Resend", "Brevo", "Figma", "SEO",
+];
 const VALUE_ICONS = [Compass, Smartphone, Layers3, HeartHandshake];
 
 export default async function HomePage() {

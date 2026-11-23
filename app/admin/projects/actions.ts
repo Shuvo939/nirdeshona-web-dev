@@ -9,6 +9,8 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 
+import { isHttpUrl } from "@/lib/safe-url";
+
 const ProjectSchema = z.object({
   title: z
     .string()
@@ -62,17 +64,20 @@ const ProjectSchema = z.object({
   cover_image_url: z
     .string()
     .trim()
-    .optional(),
+    .optional()
+    .refine((v) => !v || isHttpUrl(v), "Must be a full http(s) URL"),
 
   live_url: z
     .string()
     .trim()
-    .optional(),
+    .optional()
+    .refine((v) => !v || isHttpUrl(v), "Must be a full http(s) URL"),
 
   repository_url: z
     .string()
     .trim()
-    .optional(),
+    .optional()
+    .refine((v) => !v || isHttpUrl(v), "Must be a full http(s) URL"),
 
   started_at: z
     .string()

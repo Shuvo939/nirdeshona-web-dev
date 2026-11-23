@@ -1,5 +1,6 @@
 import ContactsTable from "./contacts-table";
 import { sql } from "@/lib/db";
+import { requireAdmin } from "@/lib/auth/require-admin";
 
 export type ContactStatus = "new" | "contacted" | "closed";
 
@@ -18,6 +19,8 @@ export type ContactRequest = {
 };
 
 export default async function AdminContactsPage() {
+  await requireAdmin();
+
   const contacts = (await sql`
     select
       id,

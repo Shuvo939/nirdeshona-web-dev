@@ -1,5 +1,6 @@
 "use client";
 
+import { uploadMedia } from "@/lib/media-upload";
 import { useState } from "react";
 import Image from "next/image";
 
@@ -43,6 +44,7 @@ export default function PostForm({
   const [coverUrl, setCoverUrl] = useState(v.cover_image_url ?? "");
   const [coverKey, setCoverKey] = useState("");
   const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
   const [removeCover, setRemoveCover] = useState(false);
 
   async function handleCoverUpload(
@@ -53,30 +55,14 @@ export default function PostForm({
 
     setUploading(true);
 
+    setUploadError(null);
     try {
-      const formData = new FormData();
-      formData.append("file", file);
-
-      const response = await fetch("/api/uploads", {
-        method: "POST",
-        body: formData,
-      });
-
-      const result = await response.json();
-
-      if (!response.ok) {
-        throw new Error(result.error || "Upload failed.");
-      }
-
-      setCoverUrl(result.file.file_url);
-      setCoverKey(result.file.file_key);
+      const uploaded = await uploadMedia(file);
+      setCoverUrl(uploaded.file_url);
+      setCoverKey(uploaded.key);
       setRemoveCover(false);
     } catch (error) {
-      alert(
-        error instanceof Error
-          ? error.message
-          : "Failed to upload cover image."
-      );
+      setUploadError(error instanceof Error ? error.message : "Failed to upload cover image.");
     } finally {
       setUploading(false);
     }
@@ -173,8 +159,10 @@ export default function PostForm({
             </span>
 
             <span className="mt-1 text-xs text-neutral-500">
-              JPG, PNG, WEBP, GIF or AVIF · Maximum 10 MB
+              JPG, PNG, WEBP, GIF or AVIF · large photos are compressed automatically
             </span>
+
+            {uploadError && <span className="mt-2 text-xs font-medium text-red-600">{uploadError}</span>}
 
             <input
               type="file"
