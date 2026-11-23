@@ -6,6 +6,7 @@ import {
   ArrowUpRight,
   ChevronDown,
   CircleHelp,
+  FolderKanban,
   LayoutDashboard,
   LogOut,
   Settings,
@@ -179,7 +180,7 @@ export default function UserMenu({
               </span>
 
               <Link
-                href="/profile"
+                href="/account"
                 onClick={() => setOpen(false)}
                 className="
                   flex items-center gap-1 text-[11px]
@@ -187,7 +188,7 @@ export default function UserMenu({
                   hover:text-neutral-950
                 "
               >
-                View profile
+                My account
                 <ArrowUpRight className="h-3 w-3" />
               </Link>
             </div>
@@ -195,12 +196,20 @@ export default function UserMenu({
 
           {/* Navigation */}
           <div className="py-2">
-            {user.role === "CLIENT" && (
+            <MenuItem
+              href="/account"
+              icon={<LayoutDashboard className="h-4 w-4" />}
+              label="My account"
+              description="Overview and activity"
+              onClick={() => setOpen(false)}
+            />
+
+            {user.role !== "USER" && (
               <MenuItem
                 href="/client"
-                icon={<LayoutDashboard className="h-4 w-4" />}
-                label="Dashboard"
-                description="Manage your projects"
+                icon={<FolderKanban className="h-4 w-4" />}
+                label="Client portal"
+                description="Projects and support tickets"
                 onClick={() => setOpen(false)}
               />
             )}

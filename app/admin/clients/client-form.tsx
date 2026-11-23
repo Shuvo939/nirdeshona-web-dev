@@ -3,7 +3,7 @@
 import { useActionState, useState } from "react";
 import { CheckCircle2, Loader2 } from "lucide-react";
 
-import type { FormState } from "@/app/client/actions";
+import type { FormState } from "@/app/(account)/client/actions";
 
 const inputClass =
   "h-11 w-full rounded-xl border border-neutral-200 bg-white px-3.5 text-sm outline-none transition focus:border-neutral-950 focus:ring-2 focus:ring-neutral-950/10";

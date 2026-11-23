@@ -225,7 +225,7 @@ export async function POST(request: Request) {
       const attachmentText = attachmentUrl ? `Attachment: ${attachmentUrl}` : "Attachment: None";
 
       await resend.emails.send({
-        from: "Nirdeshona Web <notifications@nirdeshona.com>",
+        from: process.env.RESEND_FROM_EMAIL || "Nirdeshona Web <notifications@web.nirdeshona.com>",
         to: process.env.ADMIN_EMAIL,
         replyTo: email,
         subject: `New contact request from ${name}`,

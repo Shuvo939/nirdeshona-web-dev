@@ -1,13 +1,17 @@
 "use server";
 
+import { logActivity } from "@/lib/audit";
+
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
-import type { FormState } from "@/app/client/actions";
+import type { FormState } from "@/app/(account)/client/actions";
 import { requireAdmin } from "@/lib/auth/require-admin";
 import { getSessionUser } from "@/lib/auth/session";
 import { sql } from "@/lib/db";
 import { getTicket, notifyTicketActivity } from "@/lib/tickets";
+import { parseAttachmentField } from "@/lib/tickets/attachments";
+import { insertAttachments, verifyAttachments } from "@/lib/tickets/save-attachments";
 
 const STATUSES = ["OPEN", "IN_PROGRESS", "WAITING_FOR_CLIENT", "RESOLVED", "CLOSED"] as const;
 const PRIORITIES = ["LOW", "NORMAL", "HIGH", "URGENT"] as const;
@@ -21,7 +25,7 @@ const STATUS_LABELS: Record<string, string> = {
 };
 
 export async function replyToTicket(ticketId: string, _prev: FormState, formData: FormData): Promise<FormState> {
-  await requireAdmin();
+  const { userId: actorId } = await requireAdmin();
   const user = (await getSessionUser())!;
   const ticket = await getTicket(ticketId);
   if (!ticket) return { error: "Ticket not found." };
@@ -33,18 +37,29 @@ export async function replyToTicket(ticketId: string, _prev: FormState, formData
   const parsedStatus = z.enum(STATUSES).safeParse(formData.get("nextStatus"));
   const nextStatus = parsedStatus.success ? parsedStatus.data : "WAITING_FOR_CLIENT";
 
-  await sql`insert into ticket_messages (ticket_id, sender_id, message) values (${ticketId}, ${user.id}, ${message})`;
+  const attachments = parseAttachmentField(formData.get("attachments"));
+  if ("error" in attachments) return { error: attachments.error };
+  const verified = await verifyAttachments(attachments, ticketId, user.id);
+  if (!verified.ok) return { error: verified.error };
+
+  await sql.begin(async (tx) => {
+    const [msg] = await tx`
+      insert into ticket_messages (ticket_id, sender_id, message) values (${ticketId}, ${user.id}, ${message}) returning id
+    `;
+    await insertAttachments(tx, msg.id, verified.files);
+  });
   await sql`update support_tickets set updated_at = now(), status = ${nextStatus}::ticket_status where id = ${ticketId}`;
 
   await notifyTicketActivity({ ticket, actor: user, kind: "reply", message });
 
+  await logActivity(actorId, { action: "ticket.reply", entity: "ticket", summary: `Replied to ticket #${ticket.ticket_number}` });
   revalidatePath(`/admin/tickets/${ticketId}`);
   revalidatePath("/admin/tickets");
   return { ok: true };
 }
 
 export async function updateTicketMeta(ticketId: string, formData: FormData) {
-  await requireAdmin();
+  const { userId: actorId } = await requireAdmin();
   const user = (await getSessionUser())!;
   const ticket = await getTicket(ticketId);
   if (!ticket) return;
@@ -68,6 +83,7 @@ export async function updateTicketMeta(ticketId: string, formData: FormData) {
     });
   }
 
+  await logActivity(actorId, { action: "ticket.update", entity: "ticket", summary: `Updated ticket #${ticket.ticket_number}` });
   revalidatePath(`/admin/tickets/${ticketId}`);
   revalidatePath("/admin/tickets");
 }

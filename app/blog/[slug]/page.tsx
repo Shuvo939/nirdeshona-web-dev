@@ -5,12 +5,7 @@ import { sql } from "@/lib/db";
 import { trackPostView } from "@/lib/posts/views";
 import PostPage from "@/app/components/blog/post-page";
 
-import type {
-  Comment,
-  Post,
-  ReactionCount,
-  Tag,
-} from "@/app/components/blog/types";
+import type { Post, Tag } from "@/app/components/blog/types";
 
 type PageProps = {
   params: Promise<{ slug: string }>;
@@ -146,57 +141,15 @@ export default async function SinglePostPage({
     post.views_count = Number(freshPost.views_count);
   }
 
-  const [tags, comments, reactionCounts] = await Promise.all([
-    (await sql`
-      select
-        t.id,
-        t.name,
-        t.slug
-      from public.tags t
-      inner join public.post_tags pt
-        on pt.tag_id = t.id
-      where pt.post_id = ${post.id}
-      order by t.name asc
-    `) as Tag[],
-
-    (await sql`
-      select
-        c.id,
-        c.parent_id,
-        c.content,
-        c.created_at,
-        c.user_id,
-
-        p.full_name,
-        p.avatar_url
-
-      from public.comments c
-
-      left join public.profiles p
-        on p.id = c.user_id
-
-      where c.post_id = ${post.id}
-        and c.status = 'visible'
-
-      order by c.created_at asc
-    `) as Comment[],
-
-    (await sql`
-      select
-        reaction_type,
-        count(*)::int as count
-      from public.post_reactions
-      where post_id = ${post.id}
-      group by reaction_type
-    `) as ReactionCount[],
-  ]);
+  const tags = (await sql`
+    select t.id, t.name, t.slug
+    from public.tags t
+    inner join public.post_tags pt on pt.tag_id = t.id
+    where pt.post_id = ${post.id}
+    order by t.name asc
+  `) as Tag[];
 
   return (
-    <PostPage
-      post={post}
-      tags={tags}
-      comments={comments}
-      reactionCounts={reactionCounts}
-    />
+    <PostPage post={post} tags={tags} />
   );
 }

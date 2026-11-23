@@ -11,6 +11,7 @@ export type SessionUser = {
   avatarUrl: string | null;
   phone: string | null;
   company: string | null;
+  isBanned: boolean;
   createdAt: string;
 };
 
@@ -23,7 +24,7 @@ export async function getSessionUser(): Promise<SessionUser | null> {
   if (!user) return null;
 
   const [profile] = await sql`
-    select full_name, role, avatar_url, phone, company, created_at
+    select full_name, role, avatar_url, phone, company, is_banned, created_at
     from profiles
     where id = ${user.id}
     limit 1
@@ -37,6 +38,7 @@ export async function getSessionUser(): Promise<SessionUser | null> {
     avatarUrl: profile?.avatar_url ?? null,
     phone: profile?.phone ?? null,
     company: profile?.company ?? null,
+    isBanned: Boolean(profile?.is_banned),
     createdAt: String(profile?.created_at ?? user.created_at),
   };
 }

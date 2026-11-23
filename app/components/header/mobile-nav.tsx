@@ -324,9 +324,9 @@ export default function MobileNav({
                     </div>
 
                     <div className="mt-4 flex items-center gap-2">
-                      {role === "CLIENT" && (
+                      {(
                         <Link
-                          href="/client"
+                          href="/account"
                           onClick={close}
                           className="
                             inline-flex flex-1
@@ -340,7 +340,7 @@ export default function MobileNav({
                             hover:bg-neutral-100
                           "
                         >
-                          Dashboard
+                          My account
                           <ArrowUpRight className="h-3 w-3" />
                         </Link>
                       )}

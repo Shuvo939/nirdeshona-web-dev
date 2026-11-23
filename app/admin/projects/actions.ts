@@ -1,5 +1,7 @@
 "use server";
 
+import { logActivity } from "@/lib/audit";
+
 import { sql } from "@/lib/db";
 import { requireAdmin } from "@/lib/auth/require-admin";
 import { PROJECT_CATEGORIES } from "@/lib/projects/categories";
@@ -150,7 +152,7 @@ function parseForm(formData: FormData) {
 ========================================================= */
 
 export async function createProject(formData: FormData) {
-  await requireAdmin();
+  const { userId: actorId } = await requireAdmin();
 
   const data = parseForm(formData);
 
@@ -189,6 +191,7 @@ export async function createProject(formData: FormData) {
     )
   `;
 
+  await logActivity(actorId, { action: "project.create", entity: "project", summary: `Created project “${String(formData.get("title") ?? "").trim()}”` });
   revalidatePath("/admin/projects");
   revalidatePath("/projects");
 
@@ -203,7 +206,7 @@ export async function updateProject(
   id: string,
   formData: FormData
 ) {
-  await requireAdmin();
+  const { userId: actorId } = await requireAdmin();
 
   const data = parseForm(formData);
 
@@ -228,6 +231,7 @@ export async function updateProject(
     where id = ${id}
   `;
 
+  await logActivity(actorId, { action: "project.update", entity: "project", summary: `Updated project “${String(formData.get("title") ?? "").trim()}”` });
   revalidatePath("/admin/projects");
   revalidatePath("/projects");
 
@@ -239,13 +243,14 @@ export async function updateProject(
 ========================================================= */
 
 export async function deleteProject(id: string) {
-  await requireAdmin();
+  const { userId: actorId } = await requireAdmin();
 
   await sql`
     delete from projects
     where id = ${id}
   `;
 
+  await logActivity(actorId, { action: "project.delete", entity: "project", summary: `Deleted a project` });
   revalidatePath("/admin/projects");
   revalidatePath("/projects");
 }
