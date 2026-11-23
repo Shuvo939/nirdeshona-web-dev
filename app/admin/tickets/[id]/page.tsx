@@ -51,7 +51,7 @@ export default async function AdminTicketDetailPage({ params }: { params: Promis
           <div className="rounded-2xl border border-neutral-200 bg-neutral-50/60 p-4 sm:p-6">
             <TicketThread messages={messages} viewerId={user.id} />
           </div>
-          <AdminReplyForm action={replyToTicket.bind(null, ticket.id)} />
+          <AdminReplyForm action={replyToTicket.bind(null, ticket.id)} ticketId={ticket.id} />
         </div>
         <aside className="flex flex-col gap-4">
           <form action={updateTicketMeta.bind(null, ticket.id)} className="flex flex-col gap-3 rounded-2xl border border-neutral-200 bg-white p-5">

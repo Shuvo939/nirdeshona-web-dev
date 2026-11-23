@@ -1,16 +1,20 @@
 "use client";
 
-import { useActionState, useEffect, useRef } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
 import { Loader2, Send } from "lucide-react";
 
 import type { FormState } from "@/app/client/actions";
+
+import AttachmentPicker from "./attachment-picker";
 
 export default function ReplyForm({
   action,
   placeholder = "Write a reply…",
   disabled = false,
   disabledText,
+  ticketId,
 }: {
+  ticketId?: string;
   action: (prev: FormState, formData: FormData) => Promise<FormState>;
   placeholder?: string;
   disabled?: boolean;
@@ -18,9 +22,14 @@ export default function ReplyForm({
 }) {
   const [state, formAction, pending] = useActionState(action, {});
   const formRef = useRef<HTMLFormElement>(null);
+  const [uploading, setUploading] = useState(false);
+  const [pickerKey, setPickerKey] = useState(0);
 
   useEffect(() => {
-    if (state.ok) formRef.current?.reset();
+    if (state.ok) {
+      formRef.current?.reset();
+      setPickerKey((k) => k + 1);
+    }
   }, [state]);
 
   if (disabled) {
@@ -50,6 +59,9 @@ export default function ReplyForm({
         }}
         className="w-full resize-y rounded-xl bg-transparent px-2 py-1 text-sm leading-6 outline-none placeholder:text-neutral-400"
       />
+      <div className="px-1">
+        <AttachmentPicker key={pickerKey} ticketId={ticketId} onBusyChange={setUploading} />
+      </div>
       <div className="mt-2 flex items-center justify-between gap-3 border-t border-neutral-100 pt-3">
         <p className="text-xs text-neutral-400">
           {state.error || state.fieldErrors?.message ? (
@@ -60,7 +72,7 @@ export default function ReplyForm({
         </p>
         <button
           type="submit"
-          disabled={pending}
+          disabled={pending || uploading}
           className="inline-flex h-10 items-center gap-2 rounded-full bg-neutral-950 px-5 text-sm font-semibold text-white transition hover:bg-neutral-800 disabled:opacity-60"
         >
           {pending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}

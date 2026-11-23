@@ -8,6 +8,8 @@ import { requireAdmin } from "@/lib/auth/require-admin";
 import { getSessionUser } from "@/lib/auth/session";
 import { sql } from "@/lib/db";
 import { getTicket, notifyTicketActivity } from "@/lib/tickets";
+import { parseAttachmentField } from "@/lib/tickets/attachments";
+import { insertAttachments, verifyAttachments } from "@/lib/tickets/save-attachments";
 
 const STATUSES = ["OPEN", "IN_PROGRESS", "WAITING_FOR_CLIENT", "RESOLVED", "CLOSED"] as const;
 const PRIORITIES = ["LOW", "NORMAL", "HIGH", "URGENT"] as const;
@@ -33,7 +35,17 @@ export async function replyToTicket(ticketId: string, _prev: FormState, formData
   const parsedStatus = z.enum(STATUSES).safeParse(formData.get("nextStatus"));
   const nextStatus = parsedStatus.success ? parsedStatus.data : "WAITING_FOR_CLIENT";
 
-  await sql`insert into ticket_messages (ticket_id, sender_id, message) values (${ticketId}, ${user.id}, ${message})`;
+  const attachments = parseAttachmentField(formData.get("attachments"));
+  if ("error" in attachments) return { error: attachments.error };
+  const verified = await verifyAttachments(attachments, ticketId, user.id);
+  if (!verified.ok) return { error: verified.error };
+
+  await sql.begin(async (tx) => {
+    const [msg] = await tx`
+      insert into ticket_messages (ticket_id, sender_id, message) values (${ticketId}, ${user.id}, ${message}) returning id
+    `;
+    await insertAttachments(tx, msg.id, verified.files);
+  });
   await sql`update support_tickets set updated_at = now(), status = ${nextStatus}::ticket_status where id = ${ticketId}`;
 
   await notifyTicketActivity({ ticket, actor: user, kind: "reply", message });
