@@ -1,10 +1,12 @@
 "use server";
 
+import { logActivity } from "@/lib/audit";
+
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 
-import type { FormState } from "@/app/client/actions";
+import type { FormState } from "@/app/(account)/client/actions";
 import { requireAdmin } from "@/lib/auth/require-admin";
 import { sql } from "@/lib/db";
 import { sendEmail } from "@/lib/email";
@@ -41,7 +43,7 @@ function errorsOf(error: z.ZodError) {
 }
 
 export async function saveClient(clientId: string | null, _prev: FormState, formData: FormData): Promise<FormState> {
-  await requireAdmin();
+  const { userId: actorId } = await requireAdmin();
   const parsed = parse(formData);
   if (!parsed.success) return { fieldErrors: errorsOf(parsed.error) };
   const v = parsed.data;
@@ -68,6 +70,7 @@ export async function saveClient(clientId: string | null, _prev: FormState, form
     id = row.id;
   }
 
+  await logActivity(actorId, { action: "client.save", entity: "client", summary: `Saved client “${String(formData.get("name") ?? "").trim()}”` });
   revalidatePath("/admin/clients");
   revalidatePath("/clients");
   if (!clientId) redirect(`/admin/clients/${id}`);
@@ -75,15 +78,16 @@ export async function saveClient(clientId: string | null, _prev: FormState, form
 }
 
 export async function deleteClient(clientId: string) {
-  await requireAdmin();
+  const { userId: actorId } = await requireAdmin();
   await sql`delete from clients where id = ${clientId}`;
+  await logActivity(actorId, { action: "client.delete", entity: "client", summary: `Deleted a client` });
   revalidatePath("/admin/clients");
   revalidatePath("/clients");
   redirect("/admin/clients");
 }
 
 export async function addClientMember(clientId: string, _prev: FormState, formData: FormData): Promise<FormState> {
-  await requireAdmin();
+  const { userId: actorId } = await requireAdmin();
   const email = String(formData.get("email") ?? "").trim().toLowerCase();
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return { fieldErrors: { email: "Enter a valid email" } };
 
@@ -118,12 +122,13 @@ export async function addClientMember(clientId: string, _prev: FormState, formDa
     cta: { label: "Open client portal", url: `${site.url}/client` },
   });
 
+  await logActivity(actorId, { action: "client.member_add", entity: "client", summary: `Gave ${email} access to a client portal` });
   revalidatePath(`/admin/clients/${clientId}`);
   return { ok: true };
 }
 
 export async function removeClientMember(clientId: string, userId: string) {
-  await requireAdmin();
+  const { userId: actorId } = await requireAdmin();
   await sql`delete from client_members where client_id = ${clientId} and user_id = ${userId}`;
   // Downgrade to USER if they no longer belong to any client (never touch admins).
   await sql`
@@ -131,5 +136,6 @@ export async function removeClientMember(clientId: string, userId: string) {
     where id = ${userId} and role = 'CLIENT'
       and not exists (select 1 from client_members where user_id = ${userId})
   `;
+  await logActivity(actorId, { action: "client.member_remove", entity: "client", summary: `Removed a user from a client portal` });
   revalidatePath(`/admin/clients/${clientId}`);
 }

@@ -1,112 +1,56 @@
-import {
-  createClient,
-} from "@/lib/supabase/server";
+import { getSessionUser } from "@/lib/auth/session";
+import { getPostComments, getPostReactionSummary } from "@/lib/comments";
+import { sql } from "@/lib/db";
 
-import PostHero from "./post-hero";
+import CommentsSection from "./comments-section";
 import PostContent from "./post-content";
+import PostHero from "./post-hero";
 import PostReactions from "./post-reactions";
-import PostComments from "./post-comments";
 import PostSidebar from "./post-sidebar";
+import RelatedPosts from "./related-posts";
+import type { Post, Tag } from "./types";
 
-import {
-  sql,
-} from "@/lib/db";
+export default async function PostPage({ post, tags }: { post: Post; tags: Tag[] }) {
+  const user = await getSessionUser();
+  const [comments, reactions, related] = await Promise.all([
+    getPostComments(post.id, user?.id ?? null),
+    getPostReactionSummary(post.id, user?.id ?? null),
+    sql`
+      select p.slug, p.title, p.excerpt, p.cover_image_url, p.published_at
+      from posts p
+      where p.status = 'published' and p.id <> ${post.id}
+      order by (p.category_id is not distinct from ${post.category_id}::uuid) desc,
+               (select count(*) from post_tags a join post_tags b on a.tag_id = b.tag_id
+                 where a.post_id = p.id and b.post_id = ${post.id}) desc,
+               p.published_at desc nulls last
+      limit 3
+    `,
+  ]);
 
-import type {
-  Comment,
-  CurrentUser,
-  Post,
-  ReactionCount,
-  Tag,
-} from "./types";
-
-async function getCurrentUser(): Promise<CurrentUser> {
-  const supabase = await createClient();
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return null;
-  }
-
-  return {
-    id: user.id,
-    email: user.email,
-    user_metadata: user.user_metadata,
-  };
-}
-
-export default async function PostPage({
-  post,
-  tags,
-  comments,
-  reactionCounts,
-}: {
-  post: Post;
-  tags: Tag[];
-  comments: Comment[];
-  reactionCounts: ReactionCount[];
-}) {
-  const user = await getCurrentUser();
-
-  let currentReaction:
-    | "like"
-    | "love"
-    | "helpful"
-    | null = null;
-
-  if (user) {
-    const [reaction] = await sql`
-      select reaction_type
-      from public.post_reactions
-      where post_id = ${post.id}
-        and user_id = ${user.id}
-      limit 1
-    `;
-
-    if (
-      reaction?.reaction_type === "like" ||
-      reaction?.reaction_type === "love" ||
-      reaction?.reaction_type === "helpful"
-    ) {
-      currentReaction =
-        reaction.reaction_type;
-    }
-  }
+  const viewer = user ? { id: user.id, name: user.fullName, avatarUrl: user.avatarUrl, isAdmin: user.role === "ADMIN" } : null;
 
   return (
     <main className="min-h-screen bg-white">
-      <PostHero
-        post={post}
-        commentCount={comments.length}
-      />
+      <PostHero post={post} commentCount={comments.length} />
 
-      <div className="mx-auto grid w-full max-w-6xl gap-12 px-6 py-12 sm:px-8 lg:grid-cols-[minmax(0,1fr)_280px] lg:px-10 lg:py-16">
+      <div className="mx-auto grid w-full max-w-6xl grid-cols-1 gap-12 px-5 py-12 sm:px-8 lg:grid-cols-[minmax(0,1fr)_280px] lg:px-10 lg:py-16">
         <div className="min-w-0">
-          <PostContent
-            post={post}
-          />
+          <PostContent post={post} />
 
           <PostReactions
             postId={post.id}
-            reactionCounts={reactionCounts}
-            currentReaction={currentReaction}
+            initialCounts={reactions.counts}
+            initialMine={reactions.mine}
+            signedIn={Boolean(user)}
+            commentCount={comments.length}
           />
 
-          <PostComments
-            postId={post.id}
-            comments={comments}
-            user={user}
-          />
+          <CommentsSection postId={post.id} postAuthorId={post.author_id} initialComments={comments} viewer={viewer} />
+
+          <RelatedPosts posts={related as never} />
         </div>
 
-        <PostSidebar
-          post={post}
-          tags={tags}
-          commentCount={comments.length}
-        />
+        <PostSidebar post={post} tags={tags} commentCount={comments.length} />
       </div>
     </main>
   );

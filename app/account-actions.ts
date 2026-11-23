@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 
-import type { FormState } from "@/app/client/actions";
+import type { FormState } from "@/app/(account)/client/actions";
 import { getSessionUser } from "@/lib/auth/session";
 import { sql } from "@/lib/db";
 import { createClient } from "@/lib/supabase/server";

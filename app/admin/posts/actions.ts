@@ -1,5 +1,7 @@
 "use server";
 
+import { logActivity } from "@/lib/audit";
+
 import { sql } from "@/lib/db";
 import { requireAdmin } from "@/lib/auth/require-admin";
 import { deleteFromR2 } from "@/lib/r2";
@@ -146,13 +148,14 @@ export async function createPost(formData: FormData) {
 
   await syncTags(String(post.id), formData);
 
+  await logActivity(userId, { action: "post.create", entity: "post", summary: `Created post “${String(formData.get("title") ?? "").trim()}”` });
   revalidatePath("/admin/posts");
   revalidatePath("/blog");
   redirect("/admin/posts");
 }
 
 export async function updatePost(id: string, formData: FormData) {
-  await requireAdmin();
+  const { userId: actorId } = await requireAdmin();
 
   const data = parseForm(formData);
 
@@ -202,13 +205,14 @@ export async function updatePost(id: string, formData: FormData) {
     await removeOldCover(oldCover);
   }
 
+  await logActivity(actorId, { action: "post.update", entity: "post", summary: `Updated post “${String(formData.get("title") ?? "").trim()}”` });
   revalidatePath("/admin/posts");
   revalidatePath("/blog");
   redirect("/admin/posts");
 }
 
 export async function deletePost(id: string) {
-  await requireAdmin();
+  const { userId: actorId } = await requireAdmin();
 
   const [post] = await sql`
     select cover_image_url
@@ -225,6 +229,7 @@ export async function deletePost(id: string) {
     where id = ${id}
   `;
 
+  await logActivity(actorId, { action: "post.delete", entity: "post", summary: `Deleted a post` });
   revalidatePath("/admin/posts");
   revalidatePath("/blog");
 }

@@ -1,108 +1,64 @@
 import type { ReactNode } from "react";
 
+import SideNav, { type SideNavGroup } from "@/app/components/side-nav";
 import { requireAdmin } from "@/lib/auth/require-admin";
+import { sql } from "@/lib/db";
 
-import AdminNav from "./admin-nav";
-
-export default async function AdminLayout({
-  children,
-}: {
-  children: ReactNode;
-}) {
+export default async function AdminLayout({ children }: { children: ReactNode }) {
   await requireAdmin();
 
+  const [counts] = await sql`
+    select
+      (select count(*)::int from support_tickets where status in ('OPEN', 'IN_PROGRESS')) as tickets,
+      (select count(*)::int from contact_requests where status = 'new') as contacts,
+      (select count(distinct comment_id)::int from comment_reports where resolved_at is null) as reports
+  `;
+
+  const groups: SideNavGroup[] = [
+    { links: [{ href: "/admin", label: "Overview", icon: "dashboard", exact: true }] },
+    {
+      label: "Content",
+      links: [
+        { href: "/admin/posts", label: "Posts", icon: "newspaper" },
+        { href: "/admin/comments", label: "Comments", icon: "comment", badge: counts.reports },
+        { href: "/admin/media", label: "Media", icon: "image" },
+      ],
+    },
+    {
+      label: "Clients & work",
+      links: [
+        { href: "/admin/clients", label: "Clients", icon: "building" },
+        { href: "/admin/projects", label: "Projects", icon: "folder" },
+        { href: "/admin/tickets", label: "Support tickets", icon: "clipboard", badge: counts.tickets },
+        { href: "/admin/contacts", label: "Contact requests", icon: "inbox", badge: counts.contacts },
+      ],
+    },
+    {
+      label: "System",
+      links: [
+        { href: "/admin/users", label: "Users", icon: "users" },
+        { href: "/admin/activity", label: "Activity log", icon: "activity" },
+      ],
+    },
+  ];
+
   return (
-    <div className="min-h-screen bg-neutral-50">
-      <div className="flex min-h-screen">
-        {/* =====================================================
-            DESKTOP SIDEBAR
-        ====================================================== */}
-
-        <aside className="hidden w-64 shrink-0 border-r border-neutral-200 bg-white lg:block">
-          <div className="sticky top-0 flex h-screen flex-col">
-            {/* Brand */}
-
-            <div className="border-b border-neutral-200 px-5 py-5">
-              <div className="flex items-center gap-3">
-                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-neutral-950 text-sm font-bold text-white">
-                  N
-                </div>
-
-                <div className="min-w-0">
-                  <p className="truncate text-sm font-semibold tracking-tight text-neutral-950">
-                    Nirdeshona
-                  </p>
-
-                  <p className="mt-0.5 text-xs text-neutral-400">
-                    Administration
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Navigation */}
-
-            <div className="flex-1 overflow-y-auto px-3 py-5">
-              <p className="mb-3 px-3 text-[10px] font-semibold uppercase tracking-[0.16em] text-neutral-400">
-                Workspace
-              </p>
-
-              <AdminNav />
-            </div>
-
-            {/* Footer */}
-
-            <div className="border-t border-neutral-200 p-4">
-              <div className="rounded-2xl bg-neutral-50 px-4 py-3">
-                <p className="text-xs font-medium text-neutral-700">
-                  Admin workspace
-                </p>
-
-                <p className="mt-1 text-[11px] leading-5 text-neutral-400">
-                  Manage your projects, content, clients and support requests.
-                </p>
-              </div>
-            </div>
+    <div className="min-h-[calc(100vh-70px)] bg-neutral-50">
+      <div className="flex">
+        <aside className="hidden w-60 shrink-0 border-r border-neutral-200 bg-white lg:block">
+          <div className="sticky top-[70px] max-h-[calc(100vh-70px)] overflow-y-auto px-3 py-6">
+            <SideNav groups={groups} label="Admin navigation" />
           </div>
         </aside>
 
-        {/* =====================================================
-            MAIN AREA
-        ====================================================== */}
-
         <div className="min-w-0 flex-1">
-          {/* Mobile header */}
-
-          <header className="sticky top-0 z-40 border-b border-neutral-200 bg-white/95 backdrop-blur lg:hidden">
-            <div className="px-4 py-3 sm:px-6">
-              <div className="flex items-center gap-3">
-                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-neutral-950 text-sm font-bold text-white">
-                  N
-                </div>
-
-                <div className="min-w-0">
-                  <p className="text-sm font-semibold tracking-tight text-neutral-950">
-                    Nirdeshona
-                  </p>
-
-                  <p className="text-[11px] text-neutral-400">
-                    Administration
-                  </p>
-                </div>
-              </div>
-
-              <div className="mt-3 -mx-1 overflow-x-auto px-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-                <AdminNav mobile />
-              </div>
+          <div className="sticky top-[65px] z-30 border-b border-neutral-200 bg-white/95 backdrop-blur lg:hidden">
+            <div className="overflow-x-auto px-4 py-3 [scrollbar-width:none] sm:px-6 [&::-webkit-scrollbar]:hidden">
+              <SideNav groups={groups} mobile label="Admin navigation" />
             </div>
-          </header>
-
-          {/* Page content */}
-
-          <main className="min-w-0 p-4 sm:p-6 lg:p-8 xl:p-10">
-            <div className="mx-auto w-full max-w-[1600px]">
-              {children}
-            </div>
+          </div>
+          <main className="min-w-0 p-4 sm:p-6 lg:p-8">
+            <div className="mx-auto w-full max-w-[1400px]">{children}</div>
           </main>
         </div>
       </div>

@@ -1,135 +1,170 @@
-import {
-  Heart,
-  Lightbulb,
-  ThumbsUp,
-} from "lucide-react";
+"use client";
 
-import {
-  reactToPost,
-  removeReaction,
-} from "./post-actions";
+import { useRef, useState, useTransition } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import { Link2, ThumbsUp } from "lucide-react";
 
-import type { ReactionCount } from "./types";
+import type { ReactionType } from "@/lib/comments";
 
-type ReactionType =
-  | "like"
-  | "love"
-  | "helpful";
+import { setPostReaction } from "./community-actions";
+import { REACTION_META, REACTION_ORDER } from "./reaction-meta";
 
 export default function PostReactions({
   postId,
-  reactionCounts,
-  currentReaction,
+  initialCounts,
+  initialMine,
+  signedIn,
+  commentCount,
 }: {
   postId: string;
-  reactionCounts: ReactionCount[];
-  currentReaction: ReactionType | null;
+  initialCounts: Partial<Record<ReactionType, number>>;
+  initialMine: ReactionType | null;
+  signedIn: boolean;
+  commentCount: number;
 }) {
-  const reactionMap = Object.fromEntries(
-    reactionCounts.map((reaction) => [
-      reaction.reaction_type,
-      Number(reaction.count),
-    ])
-  );
+  const router = useRouter();
+  const pathname = usePathname();
+  const [counts, setCounts] = useState(initialCounts);
+  const [mine, setMine] = useState(initialMine);
+  const [picker, setPicker] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const [, start] = useTransition();
+  const hoverTimer = useRef<number | null>(null);
+  const pressTimer = useRef<number | null>(null);
+  const longPressed = useRef(false);
 
-  const reactions = [
-    {
-      type: "like" as const,
-      label: "Like",
-      icon: ThumbsUp,
-    },
-    {
-      type: "love" as const,
-      label: "Love",
-      icon: Heart,
-    },
-    {
-      type: "helpful" as const,
-      label: "Helpful",
-      icon: Lightbulb,
-    },
-  ];
+  const total = Object.values(counts).reduce((a, b) => a + (b ?? 0), 0);
+  const top = REACTION_ORDER.filter((r) => (counts[r] ?? 0) > 0)
+    .sort((a, b) => (counts[b] ?? 0) - (counts[a] ?? 0))
+    .slice(0, 3);
+
+  // Optimistic: update the UI immediately, save in the background, roll back on error.
+  function choose(next: ReactionType | null) {
+    if (!signedIn) {
+      router.push(`/login?next=${encodeURIComponent(pathname)}`);
+      return;
+    }
+    setPicker(false);
+    const prevMine = mine;
+    const prevCounts = counts;
+    const updated = { ...counts };
+    if (prevMine) updated[prevMine] = Math.max(0, (updated[prevMine] ?? 1) - 1);
+    if (next) updated[next] = (updated[next] ?? 0) + 1;
+    setCounts(updated);
+    setMine(next);
+    start(async () => {
+      const res = await setPostReaction(postId, next);
+      if (!res.ok) {
+        setCounts(prevCounts);
+        setMine(prevMine);
+      }
+    });
+  }
+
+  function openSoon() {
+    if (hoverTimer.current) window.clearTimeout(hoverTimer.current);
+    hoverTimer.current = window.setTimeout(() => setPicker(true), 350);
+  }
+  function closeSoon() {
+    if (hoverTimer.current) window.clearTimeout(hoverTimer.current);
+    hoverTimer.current = window.setTimeout(() => setPicker(false), 300);
+  }
+
+  async function share() {
+    const url = window.location.href.split("#")[0];
+    try {
+      if (navigator.share) await navigator.share({ url, title: document.title });
+      else {
+        await navigator.clipboard.writeText(url);
+        setCopied(true);
+        window.setTimeout(() => setCopied(false), 1800);
+      }
+    } catch {}
+  }
+
+  const meta = mine ? REACTION_META[mine] : null;
 
   return (
-    <section className="mt-12 border-y border-neutral-200 py-7">
-      <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <p className="text-sm font-semibold text-neutral-950">
-            Enjoyed this article?
-          </p>
-
-          <p className="mt-1 text-xs leading-5 text-neutral-500">
-            Let the author know what you think.
-          </p>
+    <section className="mt-12 rounded-3xl border border-neutral-200 bg-white">
+      <div className="flex items-center justify-between gap-3 px-5 py-3 text-sm text-neutral-500">
+        <div className="flex min-w-0 items-center gap-2">
+          {top.length > 0 ? (
+            <>
+              <span className="flex -space-x-1">
+                {top.map((r) => (
+                  <span key={r} title={`${REACTION_META[r].label}: ${counts[r]}`} className="flex h-6 w-6 items-center justify-center rounded-full bg-white text-sm ring-2 ring-white">
+                    {REACTION_META[r].emoji}
+                  </span>
+                ))}
+              </span>
+              <span className="truncate">
+                {mine ? (total > 1 ? `You and ${total - 1} other${total - 1 === 1 ? "" : "s"}` : "You") : total}
+              </span>
+            </>
+          ) : (
+            <span>Be the first to react</span>
+          )}
         </div>
+        <a href="#comments" className="shrink-0 hover:underline">
+          {commentCount} comment{commentCount === 1 ? "" : "s"}
+        </a>
+      </div>
 
-        <div className="flex items-center gap-2">
-          {reactions.map(({ type, label, icon: Icon }) => {
-            const count = reactionMap[type] || 0;
-            const isActive = currentReaction === type;
-
-            return (
-              <div
-                key={type}
-                className="relative"
-              >
-                {isActive ? (
-                  <form action={removeReaction}>
-                    <input
-                      type="hidden"
-                      name="postId"
-                      value={postId}
-                    />
-
-                    <button
-                      type="submit"
-                      title={`Remove ${label} reaction`}
-                      aria-label={`Remove ${label} reaction`}
-                      className="group flex h-10 min-w-10 items-center justify-center gap-2 rounded-full border border-neutral-950 bg-neutral-950 px-3 text-white transition hover:bg-neutral-800"
-                    >
-                      <Icon className="h-4 w-4" />
-
-                      {count > 0 && (
-                        <span className="text-xs font-semibold tabular-nums">
-                          {count.toLocaleString()}
-                        </span>
-                      )}
-                    </button>
-                  </form>
-                ) : (
-                  <form action={reactToPost}>
-                    <input
-                      type="hidden"
-                      name="postId"
-                      value={postId}
-                    />
-
-                    <input
-                      type="hidden"
-                      name="reactionType"
-                      value={type}
-                    />
-
-                    <button
-                      type="submit"
-                      title={label}
-                      aria-label={label}
-                      className="group flex h-10 min-w-10 items-center justify-center gap-2 rounded-full border border-neutral-200 bg-white px-3 text-neutral-500 transition hover:border-neutral-300 hover:bg-neutral-50 hover:text-neutral-950"
-                    >
-                      <Icon className="h-4 w-4 transition-transform group-hover:scale-105" />
-
-                      {count > 0 && (
-                        <span className="text-xs font-medium tabular-nums text-neutral-500 group-hover:text-neutral-900">
-                          {count.toLocaleString()}
-                        </span>
-                      )}
-                    </button>
-                  </form>
-                )}
-              </div>
-            );
-          })}
+      <div className="grid grid-cols-3 border-t border-neutral-100 p-1.5">
+        <div className="relative" onMouseEnter={openSoon} onMouseLeave={closeSoon}>
+          {picker && (
+            <div
+              role="menu"
+              aria-label="Choose a reaction"
+              className="absolute bottom-full left-0 z-20 mb-2 flex gap-1 rounded-full border border-neutral-200 bg-white p-1.5 shadow-xl"
+              onMouseEnter={openSoon}
+            >
+              {REACTION_ORDER.map((r) => (
+                <button
+                  key={r}
+                  type="button"
+                  role="menuitem"
+                  title={REACTION_META[r].label}
+                  aria-label={REACTION_META[r].label}
+                  onClick={() => choose(r)}
+                  className={`flex h-10 w-10 items-center justify-center rounded-full text-2xl transition duration-150 hover:-translate-y-1 hover:scale-125 ${mine === r ? "bg-neutral-100" : ""}`}
+                >
+                  {REACTION_META[r].emoji}
+                </button>
+              ))}
+            </div>
+          )}
+          <button
+            type="button"
+            onClick={() => {
+              if (longPressed.current) {
+                longPressed.current = false;
+                return;
+              }
+              choose(mine ? null : "like");
+            }}
+            onTouchStart={() => {
+              longPressed.current = false;
+              pressTimer.current = window.setTimeout(() => {
+                longPressed.current = true;
+                setPicker(true);
+              }, 400);
+            }}
+            onTouchEnd={() => pressTimer.current && window.clearTimeout(pressTimer.current)}
+            onContextMenu={(e) => e.preventDefault()}
+            className={`flex h-11 w-full select-none items-center justify-center gap-2 rounded-2xl text-sm font-semibold transition hover:bg-neutral-50 ${meta ? meta.color : "text-neutral-600"}`}
+          >
+            {meta ? <span className="text-lg leading-none">{meta.emoji}</span> : <ThumbsUp className="h-[18px] w-[18px]" />}
+            {meta ? meta.label : "Like"}
+          </button>
         </div>
+        <a href="#comment-composer" className="flex h-11 items-center justify-center gap-2 rounded-2xl text-sm font-semibold text-neutral-600 transition hover:bg-neutral-50">
+          💬 <span>Comment</span>
+        </a>
+        <button type="button" onClick={share} className="flex h-11 items-center justify-center gap-2 rounded-2xl text-sm font-semibold text-neutral-600 transition hover:bg-neutral-50">
+          <Link2 className="h-[18px] w-[18px]" />
+          {copied ? "Copied!" : "Share"}
+        </button>
       </div>
     </section>
   );

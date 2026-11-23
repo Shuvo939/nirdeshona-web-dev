@@ -14,15 +14,14 @@ import {
   Layers3,
 } from "lucide-react";
 
-import SearchDialog from "./search-dialog";
 
 type Props = {
   role: string | null;
 };
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export default function DesktopNav({ role }: Props) {
   const [servicesOpen, setServicesOpen] = useState(false);
-  const [searchOpen, setSearchOpen] = useState(false);
 
   const navClass = `
     relative rounded-xl px-3.5 py-2.5
@@ -238,36 +237,8 @@ export default function DesktopNav({ role }: Props) {
         <Link href="/contact" className={navClass}>
           Contact
         </Link>
-
-        {/* =====================================================
-            ADMIN
-        ====================================================== */}
-        {role === "ADMIN" && (
-          <Link
-            href="/admin"
-            className="
-              ml-0.5
-              rounded-xl
-              px-3.5 py-2.5
-              text-sm font-medium
-              text-neutral-600
-              transition
-              hover:bg-neutral-100
-              hover:text-neutral-950
-            "
-          >
-            Admin
-          </Link>
-        )}
       </nav>
 
-      {/* =======================================================
-          SEARCH DIALOG
-      ======================================================== */}
-      <SearchDialog
-        open={searchOpen}
-        onClose={() => setSearchOpen(false)}
-      />
     </>
   );
 }

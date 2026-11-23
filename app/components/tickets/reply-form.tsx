@@ -3,7 +3,7 @@
 import { useActionState, useEffect, useRef, useState } from "react";
 import { Loader2, Send } from "lucide-react";
 
-import type { FormState } from "@/app/client/actions";
+import type { FormState } from "@/app/(account)/client/actions";
 
 import AttachmentPicker from "./attachment-picker";
 

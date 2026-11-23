@@ -157,3 +157,32 @@ export async function deletePrivateObject(key: string) {
   const { client } = getR2();
   await client.send(new DeleteObjectCommand({ Bucket: privateBucket(), Key: key }));
 }
+
+/* ============================================================
+   PUBLIC MEDIA (admin media library)
+============================================================ */
+
+export async function presignPublicPut(key: string, contentType: string, contentLength: number) {
+  const { getSignedUrl } = await import("@aws-sdk/s3-request-presigner");
+  const { client, bucketName } = getR2();
+  return getSignedUrl(
+    client,
+    new PutObjectCommand({ Bucket: bucketName, Key: key, ContentType: contentType, ContentLength: contentLength }),
+    { expiresIn: 600 },
+  );
+}
+
+export async function headPublicObject(key: string) {
+  const { HeadObjectCommand } = await import("@aws-sdk/client-s3");
+  const { client, bucketName } = getR2();
+  try {
+    const res = await client.send(new HeadObjectCommand({ Bucket: bucketName, Key: key }));
+    return { size: Number(res.ContentLength ?? 0), contentType: res.ContentType ?? "application/octet-stream" };
+  } catch {
+    return null;
+  }
+}
+
+export function publicUrlFor(key: string) {
+  return `${getR2().publicUrl}/${key}`;
+}

@@ -3,7 +3,7 @@
 import { useActionState, useEffect, useRef } from "react";
 import { Loader2, UserPlus } from "lucide-react";
 
-import type { FormState } from "@/app/client/actions";
+import type { FormState } from "@/app/(account)/client/actions";
 
 export default function AddMemberForm({ action }: { action: (prev: FormState, formData: FormData) => Promise<FormState> }) {
   const [state, formAction, pending] = useActionState(action, {});
