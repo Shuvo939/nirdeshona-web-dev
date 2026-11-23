@@ -9,8 +9,10 @@ import {
   FileText,
   Globe2,
   Menu,
+  Newspaper,
   Palette,
   Sparkles,
+  Tag,
   X,
 } from "lucide-react";
 
@@ -172,6 +174,22 @@ export default function MobileNav({
                   label="Our Work"
                   description="Explore our projects"
                   icon={<FileText className="h-4 w-4" />}
+                  onClick={close}
+                />
+
+                <MobileLink
+                  href="/pricing"
+                  label="Pricing"
+                  description="Packages and care plans"
+                  icon={<Tag className="h-4 w-4" />}
+                  onClick={close}
+                />
+
+                <MobileLink
+                  href="/blog"
+                  label="Blog"
+                  description="Guides and articles"
+                  icon={<Newspaper className="h-4 w-4" />}
                   onClick={close}
                 />
 

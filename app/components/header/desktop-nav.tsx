@@ -39,9 +39,7 @@ export default function DesktopNav({ role }: Props) {
         {/* =====================================================
             HOME
         ====================================================== */}
-        <Link href="/" className={navClass}>
-          Home
-        </Link>
+
 
         {/* =====================================================
             SERVICES
@@ -222,6 +220,14 @@ export default function DesktopNav({ role }: Props) {
         {/* =====================================================
             ABOUT
         ====================================================== */}
+        <Link href="/pricing" className={navClass}>
+          Pricing
+        </Link>
+
+        <Link href="/blog" className={navClass}>
+          Blog
+        </Link>
+
         <Link href="/about" className={navClass}>
           About
         </Link>

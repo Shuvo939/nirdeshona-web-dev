@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
+  Building2,
   ClipboardList,
   FolderKanban,
   LayoutDashboard,
@@ -16,6 +17,12 @@ const links = [
     label: "Overview",
     description: "Dashboard overview",
     icon: LayoutDashboard,
+  },
+  {
+    href: "/admin/clients",
+    label: "Clients",
+    description: "Client portal access",
+    icon: Building2,
   },
   {
     href: "/admin/projects",

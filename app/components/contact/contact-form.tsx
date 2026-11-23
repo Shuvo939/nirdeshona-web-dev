@@ -39,12 +39,12 @@ const ALLOWED_FILE_TYPES = [
 
 const services = [
   "Web Development",
-  "WordPress Development",
+  "WordPress Solutions",
   "UI / UX Design",
+  "Custom Development",
+  "E-commerce",
+  "Care & Maintenance",
   "Website Redesign",
-  "Web Application",
-  "Maintenance & Support",
-  "Custom Project",
   "Not sure yet",
 ];
 
@@ -179,7 +179,11 @@ async function compactImage(
    COMPONENT
 ============================================================ */
 
-export default function ContactForm() {
+export default function ContactForm({
+  defaultService = "",
+}: {
+  defaultService?: string;
+}) {
   const [status, setStatus] =
     useState<Status>("idle");
 
@@ -615,7 +619,7 @@ export default function ContactForm() {
             id="service"
             name="service"
             required
-            defaultValue=""
+            defaultValue={services.includes(defaultService) ? defaultService : ""}
             className="h-12 w-full rounded-xl border border-neutral-200 bg-white px-3.5 text-sm text-neutral-800 outline-none transition focus:border-neutral-950 focus:ring-2 focus:ring-neutral-950/10"
           >
             <option

@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import {
   Clock3,
@@ -11,7 +12,19 @@ import {
 
 import ContactForm from "@/app/components/contact/contact-form";
 
-export default function ContactPage() {
+export const metadata: Metadata = {
+  title: "Contact — Nirdeshona Web",
+  description: "Tell us about your project. We reply within one business day.",
+  alternates: { canonical: "/contact" },
+};
+
+export default async function ContactPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ service?: string }>;
+}) {
+  const { service } = await searchParams;
+
   return (
     <main className="min-h-[calc(100vh-72px)] bg-neutral-50">
       {/* =====================================================
@@ -225,7 +238,7 @@ export default function ContactPage() {
           ================================================== */}
 
           <div className="rounded-3xl border border-neutral-200 bg-white p-6 shadow-sm sm:p-8 lg:p-10">
-            <ContactForm />
+            <ContactForm defaultService={service ?? ""} />
           </div>
         </div>
       </section>
