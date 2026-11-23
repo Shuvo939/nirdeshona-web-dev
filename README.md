@@ -1,6 +1,6 @@
 # Nirdeshona Web — Starter
 
-Stack: Next.js 16 (App Router) + TypeScript + Tailwind + Supabase (Postgres + Auth + Storage) + raw SQL (no ORM) + Resend + Crisp + Cloudflare + Vercel.
+Stack: Next.js 16 (App Router) + TypeScript + Tailwind + Supabase (Postgres + Auth) + Cloudflare R2 (files) + raw SQL (no ORM) + Resend + Crisp + Cloudflare + Vercel.
 
 ## 1. Install dependencies
 
@@ -58,11 +58,17 @@ Visit http://localhost:3000.
 - Import it into Vercel (free Hobby plan works for this scale) and add the same environment variables from `.env.local`.
 - Point your domain's DNS through Cloudflare (free plan) for CDN + WAF + Turnstile, then add `web.nirdeshona.com` as a custom domain in Vercel.
 
-## What's included vs. what's a next step
+## What's included
 
-**Included (working end-to-end):** homepage pulling featured projects, contact form → DB + email, login via Supabase Auth, client dashboard showing that client's projects and tickets (RLS-scoped), ticket creation API.
+**Public site:** home, services (+ 6 service detail pages), portfolio with filters/search, blog (index, category, tag, search, pagination, comments, reactions, views), about, pricing (packages + care plans), clients, FAQ (with FAQ structured data), contact (service pre-select via `?service=`), privacy, terms. SEO: per-page metadata, canonical URLs, `sitemap.xml`, `robots.txt`, web manifest, Organization JSON-LD.
 
-**Structure ready, needs UI/logic filled in:** `/services`, `/projects/[slug]`, `/blog`, `/admin`, comments + reactions UI, notifications UI, file upload to Supabase Storage for ticket attachments, Crisp widget embed, Turnstile on the contact form.
+**Client portal:** dashboard (projects + progress, tickets with filters, recent updates), open a ticket, ticket thread with replies / close / reopen, notifications, profile (photo upload to R2, phone, organisation, bio), settings (password, email, sign out everywhere).
+
+**Admin:** overview, clients (create/edit/delete, link portal users by email), projects, posts, support tickets (priority-sorted list, threaded replies, status + priority), contact requests.
+
+**Notifications:** ticket activity creates in-app notifications and (when `RESEND_API_KEY` is set) branded emails to the other side.
+
+Marketing copy, services, pricing and FAQs live in `lib/site.ts`.
 
 ## Why no ORM
 

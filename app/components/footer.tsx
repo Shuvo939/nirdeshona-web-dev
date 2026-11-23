@@ -93,11 +93,11 @@ export default function Footer() {
 
             <div className="mt-6 space-y-3">
               <a
-                href="mailto:hello@nirdeshona.com"
+                href="mailto:contact.nirdeshona@gmail.com"
                 className="group flex items-center gap-2.5 text-sm text-neutral-400 transition hover:text-white"
               >
                 <Mail className="h-4 w-4 text-neutral-500 transition group-hover:text-neutral-300" />
-                hello@nirdeshona.com
+                contact.nirdeshona@gmail.com
               </a>
 
               <div className="flex items-center gap-2.5 text-sm text-neutral-400">
@@ -167,6 +167,7 @@ export default function Footer() {
 
           <FooterColumn title="Resources">
             <FooterLink href="/blog">Blog</FooterLink>
+            <FooterLink href="/pricing">Pricing</FooterLink>
             <FooterLink href="/faq">FAQ</FooterLink>
             <FooterLink href="/privacy">Privacy policy</FooterLink>
             <FooterLink href="/terms">Terms of service</FooterLink>

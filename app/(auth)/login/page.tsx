@@ -10,6 +10,12 @@ import {
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 
+function getSafeNext() {
+  if (typeof window === "undefined") return "/client";
+  const next = new URLSearchParams(window.location.search).get("next");
+  return next && next.startsWith("/") && !next.startsWith("//") ? next : "/client";
+}
+
 export default function LoginPage() {
   const router = useRouter();
   const supabase = createClient();
@@ -47,7 +53,7 @@ export default function LoginPage() {
       return;
     }
 
-    router.push("/client");
+    router.push(getSafeNext());
     router.refresh();
   }
 
@@ -64,7 +70,7 @@ export default function LoginPage() {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
+        redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(getSafeNext())}`,
       },
     });
 
