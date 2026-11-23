@@ -11,7 +11,7 @@ function getResend() {
   return resend;
 }
 
-const FROM = process.env.RESEND_FROM_EMAIL || "Nirdeshona Web <notifications@nirdeshona.com>";
+const FROM = process.env.RESEND_FROM_EMAIL || "Nirdeshona Web <notifications@web.nirdeshona.com>";
 
 function escapeHtml(value: string) {
   return value.replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[ch]!);
