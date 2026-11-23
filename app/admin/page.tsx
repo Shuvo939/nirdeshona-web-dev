@@ -16,10 +16,13 @@ import {
 
 import { AdminHeader, Avatar, timeAgo } from "./admin-ui";
 import { sql } from "@/lib/db";
+import { requireAdmin } from "@/lib/auth/require-admin";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminOverviewPage() {
+  await requireAdmin();
+
   const [[c], activity, comments, users, tickets] = await Promise.all([
     sql`
       select

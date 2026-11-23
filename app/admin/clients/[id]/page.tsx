@@ -9,10 +9,13 @@ import { sql } from "@/lib/db";
 import { addClientMember, deleteClient, removeClientMember, saveClient } from "../actions";
 import AddMemberForm from "../add-member-form";
 import ClientForm from "../client-form";
+import { requireAdmin } from "@/lib/auth/require-admin";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminClientDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  await requireAdmin();
+
   const { id } = await params;
   if (!/^[0-9a-f-]{36}$/i.test(id)) notFound();
 

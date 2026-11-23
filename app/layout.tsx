@@ -1,11 +1,13 @@
 import type { Metadata, Viewport } from "next";
+import { Suspense } from "react";
 
 import "./globals.css";
 
 import Header from "@/app/components/header/header";
 import Footer from "@/app/components/footer";
-import ConstructionPopup from "@/app/components/construction-popup";
+import NavigationProgress from "@/app/components/navigation-progress";
 import { site } from "@/lib/site";
+import { jsonLd } from "@/lib/json-ld";
 
 export const metadata: Metadata = {
   metadataBase: new URL(site.url),
@@ -50,8 +52,11 @@ export default function RootLayout({
       <body className="min-h-screen bg-white text-neutral-950 antialiased">
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }}
+          dangerouslySetInnerHTML={{ __html: jsonLd(organizationJsonLd) }}
         />
+        <Suspense fallback={null}>
+          <NavigationProgress />
+        </Suspense>
         <div className="flex min-h-screen flex-col">
 
           <Header />
@@ -63,7 +68,6 @@ export default function RootLayout({
           <Footer />
 
         </div>
-        <ConstructionPopup />
       </body>
     </html>
   );

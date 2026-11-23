@@ -1,8 +1,11 @@
 import { sql } from "@/lib/db";
 import PostForm from "../post-form";
 import { createPost } from "../actions";
+import { requireAdmin } from "@/lib/auth/require-admin";
 
 export default async function NewPostPage() {
+  await requireAdmin();
+
   const [categories, tags] = await Promise.all([
     sql`
       select id, name

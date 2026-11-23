@@ -1,33 +1,15 @@
-import { HeadObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import crypto from "node:crypto";
 import { NextResponse } from "next/server";
-import { Resend } from "resend";
 import { z } from "zod";
 
 import { sql } from "@/lib/db";
+import { sendEmail } from "@/lib/email";
+import { headPrivateObject, hasR2 } from "@/lib/r2";
+import { site } from "@/lib/site";
 
 export const runtime = "nodejs";
 
-/* ============================================================
-   CONFIGURATION
-============================================================ */
-
-const resend = process.env.RESEND_API_KEY
-  ? new Resend(process.env.RESEND_API_KEY)
-  : null;
-
-const r2 =
-  process.env.R2_ACCOUNT_ID &&
-  process.env.R2_ACCESS_KEY_ID &&
-  process.env.R2_SECRET_ACCESS_KEY
-    ? new S3Client({
-        region: "auto",
-        endpoint: `https://${process.env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
-        credentials: {
-          accessKeyId: process.env.R2_ACCESS_KEY_ID,
-          secretAccessKey: process.env.R2_SECRET_ACCESS_KEY,
-        },
-      })
-    : null;
+const MAX_ATTACHMENT_SIZE = 10 * 1024 * 1024;
 
 /* ============================================================
    VALIDATION
@@ -56,6 +38,8 @@ const ContactSchema = z.object({
   // via /api/contact/upload. This is a raw object key, NOT a URL — we
   // build the public URL ourselves after verifying the object exists.
   attachmentKey: z.string().trim().max(500).optional(),
+  // Honeypot: real visitors never see or fill this field.
+  website: z.string().max(200).optional(),
 });
 
 /* ============================================================
@@ -86,42 +70,31 @@ function isAllowedOrigin(request: Request) {
 
 /* ============================================================
    ATTACHMENT VERIFICATION
+   Attachments live in the private bucket. We confirm the object really
+   exists (and its size) before storing a reference; admins open it via
+   /api/admin/contact-attachments/[id] with a short-lived signed URL.
 ============================================================ */
 
-function getPublicFileUrl(key: string) {
-  const publicUrl = process.env.R2_PUBLIC_URL?.replace(/\/+$/, "");
-
-  if (!publicUrl) {
-    throw new Error("R2_PUBLIC_URL is not configured.");
-  }
-
-  return `${publicUrl}/${key}`;
-}
-
-/**
- * The client uploads the attachment directly to R2 via a presigned URL
- * before ever calling this route. We never trust a key blindly — we
- * confirm the object actually landed in the bucket before persisting
- * a URL to it in the database.
- */
-async function verifyAttachmentExists(key: string) {
-  if (!r2 || !process.env.R2_BUCKET_NAME) {
-    throw new Error("R2 storage is not configured.");
-  }
-
-  // Defense in depth: reject keys that don't look like ones we issued.
-  if (!key.startsWith("contact-attachments/")) {
+async function verifyAttachment(key: string) {
+  if (!hasR2()) throw new Error("R2 storage is not configured.");
+  if (!/^contact-attachments\/\d{4}\/\d{2}\/[0-9a-f-]{36}-[\w.-]{1,120}$/.test(key)) {
     throw new Error("Invalid attachment key.");
   }
+  const head = await headPrivateObject(key);
+  if (!head || head.size > MAX_ATTACHMENT_SIZE) throw new Error("Attachment missing or too large.");
+  return `private:${key}`;
+}
 
-  await r2.send(
-    new HeadObjectCommand({
-      Bucket: process.env.R2_BUCKET_NAME,
-      Key: key,
-    })
-  );
+/* ============================================================
+   RATE LIMIT
+   3 requests per email per 24h, 5 per IP per hour. The IP is stored
+   only as a salted hash.
+============================================================ */
 
-  return getPublicFileUrl(key);
+function ipHash(request: Request) {
+  const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || request.headers.get("x-real-ip") || "unknown";
+  const salt = process.env.AUTH_SECRET || process.env.SUPABASE_SECRET_KEY || "nirdeshona-web";
+  return crypto.createHash("sha256").update(`${salt}:${ip}`).digest("hex").slice(0, 32);
 }
 
 /* ============================================================
@@ -148,7 +121,12 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Invalid request body." }, { status: 400 });
     }
 
-    const parsed = ContactSchema.safeParse(body);
+    // Optional fields the visitor left empty arrive as null/"" — treat them as absent.
+    const cleaned = Object.fromEntries(
+      Object.entries(body as Record<string, unknown>).filter(([, value]) => value !== null && value !== "")
+    );
+
+    const parsed = ContactSchema.safeParse(cleaned);
 
     if (!parsed.success) {
       return NextResponse.json(
@@ -169,7 +147,28 @@ export async function POST(request: Request) {
       preferred_contact_method,
       message,
       attachmentKey,
+      website,
     } = parsed.data;
+
+    // Bots fill hidden fields — pretend success, store nothing.
+    if (website) {
+      return NextResponse.json({ ok: true }, { status: 200 });
+    }
+
+    const hash = ipHash(request);
+    const [{ by_email, by_ip }] = await sql`
+      select
+        count(*) filter (where lower(email) = lower(${email}) and created_at > now() - interval '24 hours')::int as by_email,
+        count(*) filter (where ip_hash = ${hash} and created_at > now() - interval '1 hour')::int as by_ip
+      from public.contact_requests
+      where created_at > now() - interval '24 hours'
+    `;
+    if (by_email >= 3 || by_ip >= 5) {
+      return NextResponse.json(
+        { error: "You've sent several messages recently. Please wait a while, or email us directly." },
+        { status: 429 }
+      );
+    }
 
     /* --------------------------------------------------------
        ATTACHMENT
@@ -179,7 +178,7 @@ export async function POST(request: Request) {
 
     if (attachmentKey) {
       try {
-        attachmentUrl = await verifyAttachmentExists(attachmentKey);
+        attachmentUrl = await verifyAttachment(attachmentKey);
       } catch (error) {
         console.error("Attachment verification failed:", error);
 
@@ -194,7 +193,7 @@ export async function POST(request: Request) {
        DATABASE
     -------------------------------------------------------- */
 
-    await sql`
+    const [saved] = await sql`
       insert into public.contact_requests (
         name,
         email,
@@ -203,7 +202,8 @@ export async function POST(request: Request) {
         budget,
         message,
         attachment_url,
-        preferred_contact_method
+        preferred_contact_method,
+        ip_hash
       )
       values (
         ${name},
@@ -213,45 +213,49 @@ export async function POST(request: Request) {
         ${budget || null},
         ${message},
         ${attachmentUrl},
-        ${preferred_contact_method}
+        ${preferred_contact_method},
+        ${hash}
       )
+      returning id
     `;
 
     /* --------------------------------------------------------
-       ADMIN EMAIL
+       EMAILS (best-effort; never fail the request)
     -------------------------------------------------------- */
 
-    if (resend && process.env.ADMIN_EMAIL) {
-      const attachmentText = attachmentUrl ? `Attachment: ${attachmentUrl}` : "Attachment: None";
+    const adminEmail = process.env.ADMIN_EMAIL;
+    const details = [
+      `Name: ${name}`,
+      `Email: ${email}`,
+      `Phone: ${phone || "-"}`,
+      `Service: ${service || "-"}`,
+      `Budget: ${budget || "-"}`,
+      `Preferred contact: ${preferred_contact_method}`,
+      `Attachment: ${attachmentUrl ? "Yes (open it in the admin panel)" : "None"}`,
+    ].join("\n");
 
-      await resend.emails.send({
-        from: process.env.RESEND_FROM_EMAIL || "Nirdeshona Web <notifications@web.nirdeshona.com>",
-        to: process.env.ADMIN_EMAIL,
-        replyTo: email,
-        subject: `New contact request from ${name}`,
-        text: [
-          "New contact request",
-          "",
-          `Name: ${name}`,
-          `Email: ${email}`,
-          `Phone: ${phone || "-"}`,
-          `Service: ${service || "-"}`,
-          `Budget: ${budget || "-"}`,
-          `Preferred contact: ${preferred_contact_method}`,
-          "",
-          "Message:",
-          message,
-          "",
-          attachmentText,
-        ].join("\n"),
-      });
-    }
+    await Promise.all([
+      adminEmail
+        ? sendEmail({
+            to: adminEmail,
+            replyTo: email,
+            subject: `New contact request from ${name}`,
+            heading: "New contact request",
+            body: `${details}\n\nMessage:\n${message}`,
+            cta: { label: "Open in admin", url: `${site.url}/admin/contacts/${saved.id}` },
+          })
+        : Promise.resolve(),
+      sendEmail({
+        to: email,
+        replyTo: adminEmail || site.email,
+        subject: "We received your message — Nirdeshona Web",
+        heading: `Thanks, ${name.split(" ")[0]}!`,
+        body: `We've received your message and will reply within one business day.\n\nHere's a copy of what you sent:\n\n${message}`,
+        cta: { label: "See our work while you wait", url: `${site.url}/projects` },
+      }),
+    ]);
 
-    /* --------------------------------------------------------
-       SUCCESS
-    -------------------------------------------------------- */
-
-    return NextResponse.json({ ok: true, attachmentUrl }, { status: 200 });
+    return NextResponse.json({ ok: true }, { status: 200 });
   } catch (error) {
     console.error("Contact form error:", error);
 

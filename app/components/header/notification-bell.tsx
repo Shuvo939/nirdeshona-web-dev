@@ -1,5 +1,6 @@
 "use client";
 
+import { startNavigationProgress } from "@/app/components/navigation-progress";
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -78,6 +79,7 @@ export default function NotificationBell({ initialUnread }: { initialUnread: num
       setUnread((u) => Math.max(0, u - 1));
       void fetch(`/api/notifications?id=${item.id}`, { method: "POST" });
     }
+    startNavigationProgress();
     router.push(item.link || "/notifications");
   }
 

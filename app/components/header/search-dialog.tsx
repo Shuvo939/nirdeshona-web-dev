@@ -1,5 +1,6 @@
 "use client";
 
+import { startNavigationProgress } from "@/app/components/navigation-progress";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { getCachedIndex, latestPosts, loadIndex, searchAll, type Hit } from "@/lib/search-client";
@@ -117,6 +118,7 @@ export default function SearchDialog({ open, onClose }: { open: boolean; onClose
     (href: string) => {
       if (q) saveRecent(q);
       onClose();
+      startNavigationProgress();
       router.push(href);
     },
     [q, onClose, router],

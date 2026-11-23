@@ -1,6 +1,7 @@
 import { sql } from "@/lib/db";
 import PostsTable from "./posts-table";
 import Link from "next/link";
+import { requireAdmin } from "@/lib/auth/require-admin";
 
 type PostRow = {
   id: string;
@@ -12,6 +13,8 @@ type PostRow = {
 };
 
 export default async function AdminPostsPage() {
+  await requireAdmin();
+
   const posts = (await sql`
     select
       id,

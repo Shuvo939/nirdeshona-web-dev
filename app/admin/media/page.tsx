@@ -8,11 +8,14 @@ import { AdminHeader, Empty, FilterTabs, Pager, SearchBox, pageParam, timeAgo } 
 import { deleteMedia } from "./actions";
 import CopyButton from "./copy-button";
 import MediaUploader from "./media-uploader";
+import { requireAdmin } from "@/lib/auth/require-admin";
 
 export const dynamic = "force-dynamic";
 const PER_PAGE = 24;
 
 export default async function AdminMediaPage({ searchParams }: { searchParams: Promise<{ type?: string; q?: string; page?: string }> }) {
+  await requireAdmin();
+
   const sp = await searchParams;
   const type = ["image", "document", "video"].includes(sp.type ?? "") ? sp.type! : "all";
   const q = sp.q?.trim().slice(0, 80) || null;

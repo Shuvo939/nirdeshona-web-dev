@@ -12,6 +12,7 @@ import {
   Plus,
   RefreshCw,
 } from "lucide-react";
+import { requireAdmin } from "@/lib/auth/require-admin";
 
 const STATUS_CONFIG: Record<
   string,
@@ -49,6 +50,8 @@ const STATUS_CONFIG: Record<
 };
 
 export default async function AdminProjectsPage() {
+  await requireAdmin();
+
   const projects = await sql`
     select
       id,

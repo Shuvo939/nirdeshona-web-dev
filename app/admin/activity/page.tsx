@@ -3,6 +3,7 @@ import { Activity, Building2, ClipboardList, FolderKanban, ImageIcon, MessageCir
 import { sql } from "@/lib/db";
 
 import { AdminHeader, Avatar, Empty, FilterTabs, Pager, pageParam, timeAgo } from "../admin-ui";
+import { requireAdmin } from "@/lib/auth/require-admin";
 
 export const dynamic = "force-dynamic";
 const PER_PAGE = 40;
@@ -20,6 +21,8 @@ const ENTITIES = [
 ];
 
 export default async function AdminActivityPage({ searchParams }: { searchParams: Promise<{ e?: string; page?: string }> }) {
+  await requireAdmin();
+
   const sp = await searchParams;
   const entity = ENTITIES.some((x) => x.value === sp.e) ? sp.e! : "all";
   const page = pageParam(sp.page);

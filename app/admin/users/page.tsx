@@ -8,11 +8,14 @@ import { sql } from "@/lib/db";
 import { AdminHeader, Avatar, Empty, FilterTabs, Pager, SearchBox, pageParam, timeAgo } from "../admin-ui";
 import { setUserBanned, setUserRole } from "./actions";
 import RoleSelect from "./role-select";
+import { requireAdmin } from "@/lib/auth/require-admin";
 
 export const dynamic = "force-dynamic";
 const PER_PAGE = 25;
 
 export default async function AdminUsersPage({ searchParams }: { searchParams: Promise<{ role?: string; q?: string; page?: string }> }) {
+  await requireAdmin();
+
   const sp = await searchParams;
   const me = await getSessionUser();
   const role = ["ADMIN", "CLIENT", "USER", "SUSPENDED"].includes(sp.role ?? "") ? sp.role! : "ALL";

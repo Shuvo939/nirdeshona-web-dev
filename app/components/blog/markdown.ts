@@ -25,14 +25,26 @@ function safeUrl(value: string) {
 export function renderMarkdown(markdown: string) {
   let html = escapeHtml(markdown);
 
+  // Finished HTML fragments (code, links, images) are parked behind
+  // placeholders so later rules (bold/italic) can't break them — e.g. an
+  // underscore in a URL or in `snake_case` code.
+  const parked: string[] = [];
+  const park = (fragment: string) => `\u0000${parked.push(fragment) - 1}\u0000`;
+
   html = html.replace(
     /```(?:([a-zA-Z0-9_-]+)\n)?([\s\S]*?)```/g,
     (_, language, code) =>
-      `<pre class="my-7 overflow-x-auto rounded-2xl bg-neutral-950 p-5 text-sm leading-7 text-neutral-100"><code>${
+      park(`<pre class="my-7 overflow-x-auto rounded-2xl bg-neutral-950 p-5 text-sm leading-7 text-neutral-100"><code>${
         language
           ? `<span class="mb-3 block text-[10px] font-semibold uppercase tracking-widest text-neutral-500">${language}</span>`
           : ""
-      }${code.trim()}</code></pre>`
+      }${code.trim()}</code></pre>`)
+  );
+
+  // Inline code is parked before any emphasis rules run.
+  html = html.replace(
+    /`([^`\n]+)`/g,
+    (_, code) => park(`<code class="rounded-md bg-neutral-100 px-1.5 py-0.5 font-mono text-[0.9em] text-neutral-800">${code}</code>`)
   );
 
   html = html.replace(
@@ -79,9 +91,9 @@ export function renderMarkdown(markdown: string) {
         return "";
       }
 
-      return `<img src="${safe}" alt="${alt}"${
+      return park(`<img src="${safe}" alt="${alt}"${
         title ? ` title="${title}"` : ""
-      } class="my-8 w-full rounded-2xl border border-neutral-200 object-cover" loading="lazy" />`;
+      } class="my-8 w-full rounded-2xl border border-neutral-200 object-cover" loading="lazy" />`);
     }
   );
 
@@ -94,7 +106,8 @@ export function renderMarkdown(markdown: string) {
         return text;
       }
 
-      return `<a href="${safe}" target="_blank" rel="noopener noreferrer" class="font-medium text-neutral-950 underline decoration-neutral-300 underline-offset-4 transition hover:decoration-neutral-800">${text}</a>`;
+      // Link text may still get bold/italic, so only the opening tag is parked.
+      return `${park(`<a href="${safe}" target="_blank" rel="noopener noreferrer" class="font-medium text-neutral-950 underline decoration-neutral-300 underline-offset-4 transition hover:decoration-neutral-800">`)}${text}</a>`;
     }
   );
 
@@ -118,15 +131,12 @@ export function renderMarkdown(markdown: string) {
     "<em>$1</em>"
   );
 
-  html = html.replace(
-    /`([^`\n]+)`/g,
-    '<code class="rounded-md bg-neutral-100 px-1.5 py-0.5 font-mono text-[0.9em] text-neutral-800">$1</code>'
-  );
+  const restore = (value: string): string => value.replace(/\u0000(\d+)\u0000/g, (_, i: string) => restore(parked[Number(i)]));
 
   return html
     .split(/\n{2,}/)
     .map((block) => {
-      const trimmed = block.trim();
+      const trimmed = restore(block.trim());
 
       if (!trimmed) {
         return "";

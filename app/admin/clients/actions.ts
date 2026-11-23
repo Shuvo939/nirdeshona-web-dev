@@ -6,6 +6,8 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 
+import { isHttpUrl } from "@/lib/safe-url";
+
 import type { FormState } from "@/app/(account)/client/actions";
 import { requireAdmin } from "@/lib/auth/require-admin";
 import { sql } from "@/lib/db";
@@ -21,7 +23,7 @@ const ClientSchema = z.object({
     .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "Use lowercase letters, numbers and hyphens"),
   contact_email: z.union([z.string().trim().email("Invalid email"), z.literal("")]),
   contact_phone: z.string().trim().max(30, "Too long"),
-  logo_url: z.union([z.string().trim().url("Must be a full URL (https://…)"), z.literal("")]),
+  logo_url: z.union([z.string().trim().url("Must be a full URL (https://…)").refine(isHttpUrl, "Must start with http(s)://"), z.literal("")]),
   notes: z.string().trim().max(2000, "Notes are too long"),
 });
 

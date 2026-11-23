@@ -2,8 +2,11 @@ import Link from "next/link";
 import { sql } from "@/lib/db";
 import { createProject } from "../actions";
 import ProjectForm from "../project-form";
+import { requireAdmin } from "@/lib/auth/require-admin";
 
 export default async function NewProjectPage() {
+  await requireAdmin();
+
   const clients = await sql`
     select
       id,
