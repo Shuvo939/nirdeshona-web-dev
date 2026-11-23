@@ -1,6 +1,8 @@
 "use client";
 
 import Link from "next/link";
+
+import { services } from "@/lib/site";
 import {
   ArrowUpRight,
   CheckCircle2,
@@ -144,21 +146,11 @@ export default function Footer() {
           ================================================== */}
 
           <FooterColumn title="Services">
-            <FooterLink href="/services/web-development">
-              Web development
-            </FooterLink>
-
-            <FooterLink href="/services/wordpress">
-              WordPress
-            </FooterLink>
-
-            <FooterLink href="/services/design">
-              UI / UX design
-            </FooterLink>
-
-            <FooterLink href="/services/custom-development">
-              Custom development
-            </FooterLink>
+            {services.map((service) => (
+              <FooterLink key={service.slug} href={`/services/${service.slug}`}>
+                {service.title}
+              </FooterLink>
+            ))}
           </FooterColumn>
 
           {/* =================================================

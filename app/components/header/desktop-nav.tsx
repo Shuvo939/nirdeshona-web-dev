@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { ServiceIcon } from "@/app/components/marketing";
+import { services } from "@/lib/site";
 import {
   ArrowRight,
   ArrowUpRight,
@@ -88,7 +90,7 @@ export default function DesktopNav({ role }: Props) {
               <div
                 className="
                   absolute left-1/2 top-full z-50
-                  mt-3.5 w-[470px]
+                  mt-3.5 w-[640px]
                   -translate-x-1/2
                   overflow-hidden
                   rounded-bl-2xl rounded-br-2xl
@@ -118,38 +120,18 @@ export default function DesktopNav({ role }: Props) {
 
                 <div className="p-2.5">
 
-                  {/* =================================================
-                      WEB DEVELOPMENT
-                  ================================================== */}
-                  <ServiceItem
-                    href="/services/web-development"
-                    icon={<Code2 className="h-5 w-5" />}
-                    title="Web Development"
-                    description="Modern websites, web applications and scalable digital products."
-                    onClick={() => setServicesOpen(false)}
-                  />
-
-                  {/* =================================================
-                      WORDPRESS
-                  ================================================== */}
-                  <ServiceItem
-                    href="/services/wordpress"
-                    icon={<Globe className="h-5 w-5" />}
-                    title="WordPress Solutions"
-                    description="Custom websites, themes, plugins and business-focused WordPress systems."
-                    onClick={() => setServicesOpen(false)}
-                  />
-
-                  {/* =================================================
-                      DESIGN
-                  ================================================== */}
-                  <ServiceItem
-                    href="/services/design"
-                    icon={<Palette className="h-5 w-5" />}
-                    title="UI / UX Design"
-                    description="Clean, intuitive interfaces designed around people and real workflows."
-                    onClick={() => setServicesOpen(false)}
-                  />
+                  <div className="grid grid-cols-2 gap-0.5">
+                    {services.map((service) => (
+                      <ServiceItem
+                        key={service.slug}
+                        href={`/services/${service.slug}`}
+                        icon={<ServiceIcon icon={service.icon} />}
+                        title={service.title}
+                        description={service.short}
+                        onClick={() => setServicesOpen(false)}
+                      />
+                    ))}
+                  </div>
 
                   {/* Divider */}
                   <div className="my-2 border-t border-neutral-100" />

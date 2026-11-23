@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
-import { CornerDownRight, EyeOff, Flag, Link2, Loader2, MoreVertical, Pencil, SendHorizonal, ShieldCheck, Trash2, X } from "lucide-react";
+import { CornerDownRight, EyeOff, Flag, Link2, Loader2, MoreVertical, Pencil, SendHorizonal, ShieldCheck, Trash2 } from "lucide-react";
 
 import ConfirmDialog from "@/app/components/confirm-dialog";
 import type { CommentNode, ReactionType } from "@/lib/comments";
@@ -140,17 +140,6 @@ function Composer({
             aria-label={placeholder}
             className="max-h-60 min-h-[24px] flex-1 resize-none bg-transparent py-0.5 text-sm leading-6 text-neutral-900 outline-none placeholder:text-neutral-500"
           />
-          {onCancel && (
-            <button
-              type="button"
-              onClick={onCancel}
-              aria-label="Cancel"
-              title="Cancel"
-              className="mb-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-neutral-400 transition hover:bg-neutral-200 hover:text-neutral-700"
-            >
-              <X className="h-4 w-4" />
-            </button>
-          )}
           <button
             type="button"
             onClick={submit}

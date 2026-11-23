@@ -57,7 +57,7 @@ export const services: Service[] = [
       { title: "Built to grow", text: "Clean architecture means new features don't require a rewrite." },
       { title: "You stay in control", text: "Edit content yourself through an admin panel designed for your workflow." },
     ],
-    stack: ["Next.js", "React", "TypeScript", "Tailwind CSS", "PostgreSQL", "Supabase", "Vercel", "Cloudflare"],
+    stack: ["Next.js", "React", "TypeScript", "JavaScript", "HTML5", "CSS3", "Tailwind CSS", "shadcn/ui", "PostgreSQL", "Supabase", "Neon", "NextAuth.js", "Vercel", "Cloudflare", "GitHub", "SEO"],
     idealFor: ["Organisations & NGOs", "Startups", "Content & knowledge platforms", "Service businesses"],
     timeline: "3 – 8 weeks",
     startingFrom: "৳25,000",
@@ -86,7 +86,7 @@ export const services: Service[] = [
       { title: "Lean and fast", text: "Custom code instead of heavy builders keeps pages quick." },
       { title: "Safe by default", text: "Hardened setup, updates and backups reduce risk." },
     ],
-    stack: ["WordPress", "PHP", "ACF", "Gutenberg", "WooCommerce", "Cloudflare"],
+    stack: ["WordPress", "PHP", "ACF", "Gutenberg", "WooCommerce", "HTML5", "CSS3", "JavaScript", "Cloudflare", "Bunny.net", "Brevo", "SEO"],
     idealFor: ["NGOs and associations", "Blogs and news sites", "Small businesses", "Schools and institutions"],
     timeline: "2 – 5 weeks",
     startingFrom: "৳15,000",
@@ -115,7 +115,7 @@ export const services: Service[] = [
       { title: "Consistent brand", text: "A reusable design system keeps every page on-brand." },
       { title: "Faster builds", text: "Decisions made in design save time and money in development." },
     ],
-    stack: ["Figma", "Design systems", "Prototyping", "Accessibility (WCAG)"],
+    stack: ["Figma", "Design systems", "Prototyping", "Accessibility (WCAG)", "Tailwind CSS", "shadcn/ui", "HTML5", "CSS3"],
     idealFor: ["New products", "Redesigns", "Dashboards & admin panels", "Mobile-first audiences"],
     timeline: "1 – 4 weeks",
     startingFrom: "৳10,000",
@@ -144,7 +144,7 @@ export const services: Service[] = [
       { title: "One source of truth", text: "All your data in one secure place, not scattered across files." },
       { title: "Fits your process", text: "Software shaped around your workflow — not the other way round." },
     ],
-    stack: ["Next.js", "PostgreSQL", "Row-level security", "Resend", "Cloudflare R2", "REST APIs"],
+    stack: ["Next.js", "TypeScript", "PostgreSQL", "SQL", "SQLite", "Supabase", "Neon", "Firebase", "NextAuth.js", "Payload CMS", "Sanity CMS", "Strapi", "Typesense", "Resend", "Brevo", "Cloudflare R2", "Docker", "Render", "GitHub", "REST APIs"],
     idealFor: ["Membership organisations", "Training centres", "Agencies & studios", "Operations teams"],
     timeline: "4 – 12 weeks",
     startingFrom: "৳40,000",
@@ -173,7 +173,7 @@ export const services: Service[] = [
       { title: "Less manual work", text: "Orders, stock and customers managed in one place." },
       { title: "Trust signals", text: "Clear policies and smooth payments help customers buy." },
     ],
-    stack: ["Next.js", "WooCommerce", "SSLCommerz", "bKash", "PostgreSQL"],
+    stack: ["Next.js", "WordPress", "WooCommerce", "SSLCommerz", "bKash", "Nagad", "PostgreSQL", "Supabase", "Typesense", "Cloudflare", "Bunny.net", "Resend", "Brevo", "SEO"],
     idealFor: ["Retail brands", "Home businesses", "Bookshops", "Digital products"],
     timeline: "3 – 8 weeks",
     startingFrom: "৳35,000",
@@ -202,7 +202,7 @@ export const services: Service[] = [
       { title: "A team on call", text: "Raise a ticket any time and track it to resolution." },
       { title: "Always improving", text: "Small, steady improvements every month." },
     ],
-    stack: ["Client portal", "Uptime monitoring", "Automated backups", "Analytics"],
+    stack: ["Client portal", "Uptime monitoring", "Automated backups", "Analytics", "GitHub", "Docker", "Cloudflare", "Vercel", "Render", "SEO"],
     idealFor: ["Any site we've built", "Existing sites that need a caretaker"],
     timeline: "Monthly plan",
     startingFrom: "৳3,000/mo",
@@ -212,6 +212,18 @@ export const services: Service[] = [
     ],
   },
 ];
+
+// Every technology we work with, grouped. The homepage, About page and
+// service pages all read from here so they stay consistent.
+export const techCategories: { name: string; items: string[] }[] = [
+  { name: "Frontend", items: ["Next.js", "React", "TypeScript", "JavaScript", "HTML5", "CSS3", "Tailwind CSS", "shadcn/ui"] },
+  { name: "Backend & data", items: ["PostgreSQL", "SQL", "SQLite", "Supabase", "Neon", "Firebase", "NextAuth.js", "Typesense"] },
+  { name: "CMS & e-commerce", items: ["WordPress", "WooCommerce", "Sanity CMS", "Payload CMS", "Strapi"] },
+  { name: "Hosting & DevOps", items: ["Vercel", "Cloudflare", "Bunny.net", "Render", "Docker", "GitHub"] },
+  { name: "Email, design & growth", items: ["Resend", "Brevo", "Figma", "SEO"] },
+];
+
+export const allTech = techCategories.flatMap((c) => c.items);
 
 export function getService(slug: string) {
   return services.find((service) => service.slug === slug) ?? null;
@@ -342,4 +354,77 @@ export const faqGroups: { title: string; items: { q: string; a: string }[] }[] =
       { q: "Is my site going to be secure?", a: "We use HTTPS everywhere, secure authentication, row-level database security, spam protection and regular updates." },
     ],
   },
+];
+
+/* ------------------------------------------------------------------ */
+/* Pricing extras — indicative prices, adjust to your current rates.   */
+/* ------------------------------------------------------------------ */
+
+export type AddOn = { id: string; name: string; description: string; price: number; unit?: string };
+
+export const addOns: AddOn[] = [
+  { id: "page", name: "Extra page", description: "Each additional designed page beyond the package.", price: 2000, unit: "per page" },
+  { id: "bilingual", name: "Bengali + English", description: "Full bilingual setup with a language switcher.", price: 8000 },
+  { id: "blog", name: "Blog / news section", description: "Categories, tags, search and comments.", price: 6000 },
+  { id: "auth", name: "User accounts", description: "Sign up, login, profiles and roles.", price: 10000 },
+  { id: "payments", name: "Online payments", description: "bKash, Nagad or SSLCommerz checkout.", price: 12000 },
+  { id: "seo", name: "SEO launch pack", description: "Keyword research, metadata, sitemap, Search Console.", price: 5000 },
+  { id: "copy", name: "Copywriting", description: "We write the text for your main pages.", price: 1500, unit: "per page" },
+  { id: "logo", name: "Logo & brand kit", description: "Logo concepts, colours and typography.", price: 7000 },
+  { id: "migration", name: "Content migration", description: "Move posts and pages from your old site.", price: 6000 },
+];
+
+// What's included in each package (true = included, string = detail, false = not included).
+export const packageMatrix: { feature: string; values: [boolean | string, boolean | string, boolean | string] }[] = [
+  { feature: "Pages", values: ["Up to 5", "Up to 15", "Unlimited"] },
+  { feature: "Mobile-first responsive design", values: [true, true, true] },
+  { feature: "Contact form with email alerts", values: [true, true, true] },
+  { feature: "Admin panel / CMS", values: [false, true, true] },
+  { feature: "Blog with categories & comments", values: [false, true, true] },
+  { feature: "Bengali + English", values: ["Add-on", true, true] },
+  { feature: "SEO setup", values: ["Basic", "Advanced", "Advanced"] },
+  { feature: "Analytics", values: [false, true, true] },
+  { feature: "User accounts & roles", values: [false, "Add-on", true] },
+  { feature: "Payments integration", values: [false, "Add-on", true] },
+  { feature: "Client portal & support tickets", values: [false, true, true] },
+  { feature: "Free support after launch", values: ["1 month", "3 months", "6 months"] },
+  { feature: "Typical timeline", values: ["2–3 weeks", "3–6 weeks", "Scoped"] },
+];
+
+export const paymentTerms = [
+  { title: "50% to start", text: "Work begins after the written scope is agreed and the first half is paid." },
+  { title: "50% at launch", text: "The rest is due when your site is live and you're happy with it." },
+  { title: "Milestones for big projects", text: "Larger projects can be split into 3–4 smaller payments." },
+  { title: "Bank or mobile banking", text: "Bank transfer, bKash or Nagad — whatever's easiest for you." },
+];
+
+/* ------------------------------------------------------------------ */
+/* About                                                               */
+/* ------------------------------------------------------------------ */
+
+// Edit freely — shown on the About page.
+export const milestones = [
+  { year: "2022", title: "Nirdeshona is founded", text: "Started as an initiative to give people and organisations clear direction." },
+  { year: "2023", title: "First major web project", text: "Began building and maintaining the website for INS, a Bangladeshi nonprofit." },
+  { year: "2025", title: "More clients, more platforms", text: "Community platforms, portfolios and knowledge sites for new clients." },
+  { year: "2026", title: "Nirdeshona Web Development", text: "A dedicated studio with a client portal, support tickets and care plans." },
+];
+
+export const team = [
+  {
+    name: "Jahidul Haque Shuvo",
+    role: "Founder & Director",
+    bio: "Founded Nirdeshona in 2022. Leads strategy, design and development, and works directly with every client.",
+    photo: null as string | null,
+  },
+];
+
+export const comparison: { label: string; us: boolean | string; freelancer: boolean | string; agency: boolean | string }[] = [
+  { label: "Written scope & fixed quote", us: true, freelancer: "Sometimes", agency: true },
+  { label: "Talk directly to the person building it", us: true, freelancer: true, agency: false },
+  { label: "Client portal with progress & tickets", us: true, freelancer: false, agency: "Sometimes" },
+  { label: "Mobile-first, Bengali-ready", us: true, freelancer: "Sometimes", agency: "Sometimes" },
+  { label: "You own the code and accounts", us: true, freelancer: "Sometimes", agency: "Sometimes" },
+  { label: "Support after launch", us: true, freelancer: false, agency: true },
+  { label: "Affordable for small organisations", us: true, freelancer: true, agency: false },
 ];
