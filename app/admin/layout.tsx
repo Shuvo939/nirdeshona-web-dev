@@ -11,7 +11,8 @@ export default async function AdminLayout({ children }: { children: ReactNode })
     select
       (select count(*)::int from support_tickets where status in ('OPEN', 'IN_PROGRESS')) as tickets,
       (select count(*)::int from contact_requests where status = 'new') as contacts,
-      (select count(distinct comment_id)::int from comment_reports where resolved_at is null) as reports
+      (select count(distinct comment_id)::int from comment_reports where resolved_at is null) as reports,
+      (select count(*)::int from trash) as bin
   `;
 
   const groups: SideNavGroup[] = [
@@ -38,6 +39,7 @@ export default async function AdminLayout({ children }: { children: ReactNode })
       links: [
         { href: "/admin/users", label: "Users", icon: "users" },
         { href: "/admin/activity", label: "Activity log", icon: "activity" },
+        { href: "/admin/bin", label: "Bin", icon: "trash", badge: counts.bin },
       ],
     },
   ];

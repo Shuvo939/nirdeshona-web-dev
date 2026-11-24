@@ -1,6 +1,7 @@
 "use client";
 
 import ImageUploadField from "@/app/admin/image-upload-field";
+import MarkdownEditor from "@/app/admin/markdown-editor";
 import SubmitButton from "@/app/components/submit-button";
 
 type Category = {
@@ -151,19 +152,8 @@ export default function PostForm({
       </div>
 
       <div>
-        <label className="block text-sm font-medium">Content</label>
-
-        <textarea
-          name="content"
-          defaultValue={v.content ?? ""}
-          required
-          rows={24}
-          className="mt-1 w-full rounded-lg border border-neutral-200 px-3 py-2 font-mono text-sm leading-6 outline-none focus:border-neutral-400"
-        />
-
-        <p className="mt-1 text-xs text-neutral-500">
-          Markdown content.
-        </p>
+        <label htmlFor="content" className="block text-sm font-medium">Content</label>
+        <MarkdownEditor name="content" defaultValue={v.content ?? ""} required rows={22} placeholder="Write your article…" />
       </div>
 
       <div>

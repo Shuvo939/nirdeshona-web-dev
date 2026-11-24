@@ -1,12 +1,13 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, Trash2, UserMinus } from "lucide-react";
+import { ArrowLeft, Trash2, UserMinus, UserPlus } from "lucide-react";
 
 import { PROJECT_STATUS, StatusBadge, TICKET_STATUS, formatDate } from "@/app/components/marketing";
 import ConfirmButton from "@/app/components/confirm-button";
 import { sql } from "@/lib/db";
 
-import { addClientMember, deleteClient, removeClientMember, saveClient } from "../actions";
+import { addClientMember, deleteClient, grantClientAccess, removeClientMember, saveClient } from "../actions";
+import { phoneMatchesForClient, syncClientAccessForClient } from "@/lib/clients/access";
 import AddMemberForm from "../add-member-form";
 import ClientForm from "../client-form";
 import { requireAdmin } from "@/lib/auth/require-admin";
@@ -23,7 +24,10 @@ export default async function AdminClientDetailPage({ params }: { params: Promis
   const [client] = await sql`select * from clients where id = ${id}`;
   if (!client) notFound();
 
-  const [members, projects, tickets] = await Promise.all([
+  // Link anyone whose verified email matches (e.g. they registered after the client was created).
+  await syncClientAccessForClient(id).catch(() => 0);
+
+  const [members, projects, tickets, phoneMatches] = await Promise.all([
     sql`
       select p.id, p.full_name, p.avatar_url, p.role, u.email, cm.created_at
       from client_members cm
@@ -34,6 +38,7 @@ export default async function AdminClientDetailPage({ params }: { params: Promis
     `,
     sql`select id, title, slug, status, progress_percent from projects where client_id = ${id} order by created_at desc`,
     sql`select id, ticket_number, subject, status, updated_at from support_tickets where client_id = ${id} order by updated_at desc limit 10`,
+    phoneMatchesForClient(id),
   ]);
 
   return (
@@ -49,7 +54,7 @@ export default async function AdminClientDetailPage({ params }: { params: Promis
         <ConfirmButton
           action={deleteClient.bind(null, id)}
           title={`Delete ${client.name}?`}
-          description="This removes the client, its portal access and all of its support tickets. Projects stay but become unassigned. This can't be undone."
+          description="The client, its portal access and its support tickets go to the bin; its projects become unassigned. You can restore everything from the bin for 30 days."
           confirmLabel="Delete client"
           className="inline-flex h-10 items-center gap-2 rounded-xl border border-red-200 bg-red-50 px-4 text-sm font-semibold text-red-700 hover:bg-red-100"
         >
@@ -77,7 +82,33 @@ export default async function AdminClientDetailPage({ params }: { params: Promis
         <div className="flex flex-col gap-6">
           <section className="rounded-2xl border border-neutral-200 bg-white p-5">
             <h2 className="text-base font-semibold text-neutral-950">Portal users</h2>
-            <p className="mb-4 mt-1 text-xs text-neutral-500">Users linked here can see this client&apos;s projects and tickets.</p>
+            <p className="mb-4 mt-1 text-xs text-neutral-500">
+              Users linked here can see this client&apos;s projects and tickets. Anyone who registers with the contact email
+              {client.contact_email ? <strong className="font-medium text-neutral-700"> {client.contact_email}</strong> : ""} (and verifies it) is linked automatically.
+            </p>
+            {phoneMatches.length > 0 && (
+              <div className="mb-4 rounded-xl border border-amber-200 bg-amber-50 p-3">
+                <p className="text-xs font-semibold text-amber-800">Accounts with the same phone number</p>
+                <p className="mt-0.5 text-[11px] text-amber-700">Phone numbers aren&apos;t verified, so check before giving access.</p>
+                <ul className="mt-2 flex flex-col gap-2">
+                  {phoneMatches.map((u) => (
+                    <li key={u.id} className="flex items-center gap-3 rounded-lg bg-white px-3 py-2">
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm font-medium text-neutral-900">{u.full_name || u.email}</p>
+                        <p className="truncate text-xs text-neutral-500">
+                          {u.email} · {u.phone}
+                        </p>
+                      </div>
+                      <form action={grantClientAccess.bind(null, id, u.id)}>
+                        <SubmitButton icon={<UserPlus className="h-3.5 w-3.5" />} className="inline-flex h-8 items-center gap-1.5 rounded-lg bg-neutral-950 px-3 text-xs font-semibold text-white hover:bg-neutral-800 disabled:opacity-60">
+                          Give access
+                        </SubmitButton>
+                      </form>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
             <AddMemberForm action={addClientMember.bind(null, id)} />
             <ul className="mt-4 divide-y divide-neutral-100">
               {members.length === 0 && <li className="py-3 text-sm text-neutral-500">No users linked yet.</li>}

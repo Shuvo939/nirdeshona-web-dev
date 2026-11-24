@@ -85,17 +85,17 @@ export default function DeleteProjectButton({
               </h2>
 
               <p className="mt-2 text-sm leading-6 text-neutral-500">
-                You are about to permanently delete{" "}
+                This moves{" "}
                 <span className="font-semibold text-neutral-900">
                   {projectTitle}
-                </span>
-                .
+                </span>{" "}
+                to the bin.
               </p>
 
               <div className="mt-4 rounded-xl border border-red-100 bg-red-50 px-4 py-3">
                 <p className="text-xs leading-5 text-red-700">
-                  This action cannot be undone. The project and its associated
-                  project media will be removed permanently.
+                  You can restore it — with its media and technologies — from
+                  the bin for 30 days. After that it is deleted forever.
                 </p>
               </div>
             </div>

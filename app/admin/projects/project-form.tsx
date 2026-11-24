@@ -5,6 +5,7 @@ import { startTransition, useActionState, useMemo, useState } from "react";
 import { AlertCircle, Check, ChevronDown, Loader2, Plus, Search, X } from "lucide-react";
 
 import ImageUploadField from "@/app/admin/image-upload-field";
+import MarkdownEditor from "@/app/admin/markdown-editor";
 import { PROJECT_CATEGORIES } from "@/lib/projects/categories";
 import { techCategories } from "@/lib/site";
 
@@ -119,8 +120,8 @@ export default function ProjectForm({
           <Field id="short_description" label="Short description" error={e.short_description} hint="One or two sentences shown on project cards.">
             <input id="short_description" name="short_description" defaultValue={v.short_description} maxLength={300} placeholder="A short summary of this project" className={inputClass} />
           </Field>
-          <Field id="description" label="Full description" error={e.description} hint="Markdown supported: ## headings, **bold**, - lists, [links](https://…).">
-            <textarea id="description" name="description" defaultValue={v.description} rows={9} placeholder="Describe the project, its goals, features and outcomes…" className={`${inputClass} resize-y leading-6`} />
+          <Field id="description" label="Full description" error={e.description} hint="Use the toolbar for headings, lists and links — Preview shows how it will look.">
+            <MarkdownEditor name="description" defaultValue={v.description} rows={12} placeholder="Describe the project, its goals, features and outcomes…" />
           </Field>
         </div>
       </Section>

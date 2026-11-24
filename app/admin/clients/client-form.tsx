@@ -83,7 +83,7 @@ export default function ClientForm({
       <div className="flex items-center justify-end gap-3">
         {state.ok && !pending && (
           <span className="flex items-center gap-1.5 text-sm text-emerald-700">
-            <CheckCircle2 className="h-4 w-4" /> Saved
+            <CheckCircle2 className="h-4 w-4" /> Saved{state.linked ? ` · ${state.linked} matching account${state.linked > 1 ? "s" : ""} given portal access` : ""}
           </span>
         )}
         <button type="submit" disabled={pending} className="inline-flex h-11 items-center gap-2 rounded-xl bg-neutral-950 px-5 text-sm font-semibold text-white hover:bg-neutral-800 disabled:opacity-60">

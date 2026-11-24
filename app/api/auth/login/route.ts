@@ -5,6 +5,7 @@ import { friendlyAuthError } from "@/lib/auth/errors";
 import { verifyCaptcha } from "@/lib/captcha";
 import { REMEMBER_COOKIE } from "@/lib/supabase/remember";
 import { createClient } from "@/lib/supabase/server";
+import { syncClientAccessForUser } from "@/lib/clients/access";
 
 export const runtime = "nodejs";
 
@@ -26,8 +27,9 @@ export async function POST(request: Request) {
 
   // Session cookies are written with (or without) a lifetime depending on "Remember me".
   const supabase = await createClient({ persistent: remember });
-  const { error } = await supabase.auth.signInWithPassword({ email, password });
+  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
   if (error) return NextResponse.json({ error: friendlyAuthError(error.message) }, { status: 401 });
+  if (data.user) await syncClientAccessForUser(data.user.id);
 
   const response = NextResponse.json({ ok: true });
   response.cookies.set(REMEMBER_COOKIE, remember ? "1" : "0", {

@@ -456,7 +456,7 @@ function DeleteConfirmationDialog({
                 Delete post?
               </h2>
               <p className="mt-1 text-xs text-neutral-500">
-                This action cannot be undone.
+                You can restore it from the bin for 30 days.
               </p>
             </div>
           </div>
@@ -477,11 +477,11 @@ function DeleteConfirmationDialog({
             id="delete-post-description"
             className="text-sm leading-6 text-neutral-600"
           >
-            Are you sure you want to permanently delete{" "}
+            Move{" "}
             <span className="font-semibold text-neutral-950">
               “{post.title}”
-            </span>
-            ?
+            </span>{" "}
+            and its comments to the bin?
           </p>
 
           <div className="mt-4 rounded-xl border border-neutral-200 bg-neutral-50 px-3.5 py-3">

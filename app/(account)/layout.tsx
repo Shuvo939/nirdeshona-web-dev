@@ -3,6 +3,7 @@ import { LogOut } from "lucide-react";
 
 import SideNav, { type SideNavGroup } from "@/app/components/side-nav";
 import { getClientMemberships, requireUser } from "@/lib/auth/session";
+import { syncClientAccessForUser } from "@/lib/clients/access";
 import { sql } from "@/lib/db";
 import { createClient } from "@/lib/supabase/server";
 import SubmitButton from "@/app/components/submit-button";
@@ -17,6 +18,8 @@ async function signOut() {
 
 export default async function AccountLayout({ children }: { children: ReactNode }) {
   const user = await requireUser("/account");
+  // Give portal access automatically when the verified email matches a client.
+  await syncClientAccessForUser(user.id);
   const [memberships, [counts]] = await Promise.all([
     getClientMemberships(user.id),
     sql`
