@@ -7,6 +7,7 @@ import { redirect } from "next/navigation";
 
 import { requireAdmin } from "@/lib/auth/require-admin";
 import { sql } from "@/lib/db";
+import { moveToTrash } from "@/lib/trash";
 
 const VALID_STATUSES = new Set(["new", "contacted", "closed"]);
 
@@ -34,12 +35,9 @@ export async function updateContactStatus(
 export async function deleteContact(id: string) {
   const { userId: actorId } = await requireAdmin();
 
-  await sql`
-    delete from public.contact_requests
-    where id = ${id}
-  `;
+  await moveToTrash("contact", id, actorId);
 
-  await logActivity(actorId, { action: "contact.delete", entity: "contact", summary: `Deleted a contact request` });
+  await logActivity(actorId, { action: "contact.delete", entity: "contact", summary: `Moved a contact request to the bin` });
   revalidatePath("/admin/contacts");
   redirect("/admin/contacts");
 }

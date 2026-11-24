@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useRef } from "react";
 import {
   Activity,
+  Trash2,
   Bell,
   Building2,
   ClipboardList,
@@ -24,6 +25,7 @@ import {
 // Icons are referenced by name so server layouts can pass plain data.
 const ICONS = {
   activity: Activity,
+  trash: Trash2,
   bell: Bell,
   building: Building2,
   clipboard: ClipboardList,

@@ -13,6 +13,7 @@ import { z } from "zod";
 import { checkImageFile, discardStoredImage, pickImageFile, storeFormImage, type StoredImage } from "@/lib/media-server";
 
 import { isHttpUrl } from "@/lib/safe-url";
+import { moveToTrash } from "@/lib/trash";
 
 const ProjectSchema = z.object({
   title: z
@@ -242,12 +243,9 @@ export async function updateProject(id: string, prev: ProjectFormState, formData
 export async function deleteProject(id: string) {
   const { userId: actorId } = await requireAdmin();
 
-  await sql`
-    delete from projects
-    where id = ${id}
-  `;
+  await moveToTrash("project", id, actorId);
 
-  await logActivity(actorId, { action: "project.delete", entity: "project", summary: `Deleted a project` });
+  await logActivity(actorId, { action: "project.delete", entity: "project", summary: `Moved a project to the bin` });
   revalidatePath("/admin/projects");
   revalidatePath("/projects");
 }

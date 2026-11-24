@@ -6,6 +6,7 @@ import { logActivity } from "@/lib/audit";
 import { getSessionUser } from "@/lib/auth/session";
 import { REACTIONS, getCommentReactionSummary, type CommentNode, type ReactionType } from "@/lib/comments";
 import { sql } from "@/lib/db";
+import { moveToTrash } from "@/lib/trash";
 
 type Result<T = object> = ({ ok: true } & T) | { ok: false; error: string };
 
@@ -113,7 +114,7 @@ export async function deleteComment(commentId: string): Promise<Result> {
   const isAdmin = user.role === "ADMIN";
   if (comment.user_id !== user.id && !isAdmin) return { ok: false, error: "You can't delete this comment." };
 
-  await sql`delete from comments where id = ${commentId}`;
+  await moveToTrash("comment", commentId, user.id);
   if (isAdmin && comment.user_id !== user.id) {
     await logActivity(user.id, {
       action: "comment.delete",

@@ -4,7 +4,7 @@ import { logActivity } from "@/lib/audit";
 
 import { sql } from "@/lib/db";
 import { requireAdmin } from "@/lib/auth/require-admin";
-import { deleteFromR2 } from "@/lib/r2";
+import { moveToTrash } from "@/lib/trash";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
@@ -99,28 +99,11 @@ async function syncTags(postId: string, formData: FormData) {
   }
 }
 
-async function removeOldCover(url: string) {
+/** A replaced cover goes to the bin (restorable for 30 days) instead of being deleted. */
+async function removeOldCover(url: string, actorId: string) {
   if (!url) return;
-
-  const [file] = await sql`
-    select file_key
-    from files
-    where file_url = ${url}
-    limit 1
-  `;
-
-  if (file?.file_key) {
-    try {
-      await deleteFromR2(String(file.file_key));
-    } catch (error) {
-      console.error("Failed to delete old R2 object:", error);
-    }
-
-    await sql`
-      delete from files
-      where file_url = ${url}
-    `;
-  }
+  const [file] = await sql`select id from files where file_url = ${url} limit 1`;
+  if (file?.id) await moveToTrash("file", String(file.id), actorId);
 }
 
 /** Validates the optional new cover, then stores it (call after parseForm succeeded). */
@@ -247,7 +230,7 @@ export async function updatePost(id: string, formData: FormData) {
   await syncTags(id, formData);
 
   if (oldCover && oldCover !== coverUrl) {
-    await removeOldCover(oldCover);
+    await removeOldCover(oldCover, actorId);
   }
 
   await logActivity(actorId, {
@@ -263,25 +246,14 @@ export async function updatePost(id: string, formData: FormData) {
 export async function deletePost(id: string) {
   const { userId: actorId } = await requireAdmin();
 
-  const [post] = await sql`
-    select cover_image_url
-    from posts
-    where id = ${id}
-  `;
-
-  if (post?.cover_image_url) {
-    await removeOldCover(String(post.cover_image_url));
-  }
-
-  await sql`
-    delete from posts
-    where id = ${id}
-  `;
+  // The post (with its comments, reactions and tags) goes to the bin; its
+  // cover stays in the media library.
+  await moveToTrash("post", id, actorId);
 
   await logActivity(actorId, {
     action: "post.delete",
     entity: "post",
-    summary: `Deleted a post`,
+    summary: `Moved a post to the bin`,
   });
   revalidatePath("/admin/posts");
   revalidatePath("/blog");

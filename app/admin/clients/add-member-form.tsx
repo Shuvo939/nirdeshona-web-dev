@@ -17,9 +17,10 @@ export default function AddMemberForm({ action }: { action: (prev: FormState, fo
       <div className="flex flex-col gap-2 sm:flex-row">
         <input
           name="email"
-          type="email"
+          type="text"
+          aria-label="Email or phone of a registered user"
           required
-          placeholder="user@example.com"
+          placeholder="Email or phone of a registered user"
           className="h-10 flex-1 rounded-xl border border-neutral-200 px-3.5 text-sm outline-none focus:border-neutral-950 focus:ring-2 focus:ring-neutral-950/10"
         />
         <button type="submit" disabled={pending} className="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-neutral-950 px-4 text-sm font-semibold text-white hover:bg-neutral-800 disabled:opacity-60">

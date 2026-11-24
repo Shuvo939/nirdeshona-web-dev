@@ -56,7 +56,7 @@ export function DeleteContactButton({ id }: { id: string }) {
                   </h2>
 
                   <p className="mt-1 text-xs leading-5 text-neutral-500">
-                    This action cannot be undone.
+                    You can restore it from the bin for 30 days.
                   </p>
                 </div>
               </div>
@@ -74,8 +74,7 @@ export function DeleteContactButton({ id }: { id: string }) {
 
             <div className="px-5 py-5">
               <p className="text-sm leading-6 text-neutral-600">
-                Are you sure you want to permanently delete this contact
-                request?
+                Move this contact request (and its attachment) to the bin?
               </p>
             </div>
 

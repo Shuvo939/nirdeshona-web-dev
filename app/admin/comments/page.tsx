@@ -131,7 +131,7 @@ export default async function AdminCommentsPage({ searchParams }: { searchParams
                     <ConfirmButton
                       action={deleteCommentAdmin.bind(null, c.id)}
                       title="Delete this comment?"
-                      description="The comment and all of its replies will be deleted permanently."
+                      description="The comment and its replies go to the bin, where you can restore them for 30 days."
                       className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-red-200 bg-red-50 px-3 text-xs font-semibold text-red-700 hover:bg-red-100"
                     >
                       <Trash2 className="h-3.5 w-3.5" /> Delete

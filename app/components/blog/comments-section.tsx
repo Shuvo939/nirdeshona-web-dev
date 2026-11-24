@@ -716,7 +716,7 @@ export default function CommentsSection({
           title={confirm.kind === "delete" ? "Delete comment?" : "Hide comment?"}
           description={
             confirm.kind === "delete"
-              ? "This comment and its replies will be removed permanently."
+              ? "This comment and its replies will be removed."
               : "The comment will be hidden from everyone. You can restore it from the admin panel."
           }
           confirmLabel={confirm.kind === "delete" ? "Delete" : "Hide"}

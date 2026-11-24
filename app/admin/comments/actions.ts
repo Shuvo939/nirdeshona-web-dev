@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { logActivity } from "@/lib/audit";
 import { requireAdmin } from "@/lib/auth/require-admin";
 import { sql } from "@/lib/db";
+import { moveToTrash } from "@/lib/trash";
 
 async function postTitle(commentId: string) {
   const [row] = await sql`select p.title from comments c join posts p on p.id = c.post_id where c.id = ${commentId}`;
@@ -27,8 +28,8 @@ export async function setCommentStatus(commentId: string, status: "visible" | "h
 export async function deleteCommentAdmin(commentId: string) {
   const { userId } = await requireAdmin();
   const title = await postTitle(commentId);
-  await sql`delete from comments where id = ${commentId}`;
-  await logActivity(userId, { action: "comment.delete", entity: "comment", entityId: commentId, summary: `Deleted a comment on “${title}”` });
+  await moveToTrash("comment", commentId, userId);
+  await logActivity(userId, { action: "comment.delete", entity: "comment", entityId: commentId, summary: `Moved a comment on “${title}” to the bin` });
   revalidatePath("/admin/comments");
 }
 
