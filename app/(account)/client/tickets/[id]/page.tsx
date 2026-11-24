@@ -10,6 +10,7 @@ import TicketThread from "@/app/components/tickets/ticket-thread";
 import { requireUser } from "@/lib/auth/session";
 import { sql } from "@/lib/db";
 import { canAccessTicket, getTicket, getTicketMessages } from "@/lib/tickets";
+import SubmitButton from "@/app/components/submit-button";
 
 export const metadata: Metadata = { title: "Support ticket — Nirdeshona Web", robots: { index: false } };
 
@@ -76,13 +77,12 @@ export default async function ClientTicketPage({ params }: { params: Promise<{ i
               </dl>
             </div>
             <form action={toggle}>
-              <button
-                type="submit"
-                className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full border border-neutral-200 bg-white text-sm font-semibold text-neutral-800 transition hover:bg-neutral-100"
+              <SubmitButton
+                icon={closed ? <RotateCcw className="h-4 w-4" /> : <Lock className="h-4 w-4" />}
+                className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full border border-neutral-200 bg-white text-sm font-semibold text-neutral-800 transition hover:bg-neutral-100 disabled:opacity-70"
               >
-                {closed ? <RotateCcw className="h-4 w-4" /> : <Lock className="h-4 w-4" />}
                 {closed ? "Reopen ticket" : "Mark as solved & close"}
-              </button>
+              </SubmitButton>
             </form>
           </aside>
         </div>

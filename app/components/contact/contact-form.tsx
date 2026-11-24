@@ -1,6 +1,7 @@
 "use client";
 
 import Captcha, { type CaptchaValue } from "@/app/components/captcha";
+import { useSmoothProgress } from "@/lib/use-smooth-progress";
 import { compressImage, isCompressibleImage } from "@/lib/image-compress";
 import {
   ArrowRight,
@@ -84,6 +85,10 @@ export default function ContactForm({
 
   const [compacting, setCompacting] =
     useState(false);
+  const [compactProgress, setCompactProgress] = useState<number | null>(null);
+  const [uploadProgress, setUploadProgress] = useState<number | null>(null);
+  const shownCompact = useSmoothProgress(compactProgress);
+  const shownUpload = useSmoothProgress(uploadProgress);
 
   const fileInputRef =
     useRef<HTMLInputElement>(null);
@@ -158,9 +163,11 @@ export default function ContactForm({
       try {
         setCompacting(true);
 
+        setCompactProgress(0);
         const compacted =
           await compressImage(
-            selectedFile
+            selectedFile,
+            { onProgress: setCompactProgress }
           );
 
         setFile(compacted);
@@ -183,6 +190,7 @@ export default function ContactForm({
         }
       } finally {
         setCompacting(false);
+        setCompactProgress(null);
       }
 
       return;
@@ -274,24 +282,20 @@ export default function ContactForm({
        STEP 2 — DIRECT UPLOAD TO R2
     -------------------------------------------------------- */
 
-    const uploadResponse =
-      await fetch(
-        uploadUrl,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type":
-              file.type ||
-              "application/octet-stream",
-          },
-          body: file,
-        }
-      );
-
-    if (!uploadResponse.ok) {
-      throw new Error(
-        "Attachment upload failed. Please try again."
-      );
+    setUploadProgress(0);
+    try {
+      await new Promise<void>((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.open("PUT", uploadUrl);
+        xhr.setRequestHeader("Content-Type", file.type || "application/octet-stream");
+        xhr.upload.onprogress = (e) => e.lengthComputable && setUploadProgress(Math.round((e.loaded / e.total) * 100));
+        xhr.onload = () =>
+          xhr.status >= 200 && xhr.status < 300 ? resolve() : reject(new Error("Attachment upload failed. Please try again."));
+        xhr.onerror = () => reject(new Error("Attachment upload failed. Check your connection."));
+        xhr.send(file);
+      });
+    } finally {
+      setUploadProgress(null);
     }
 
     /*
@@ -314,6 +318,14 @@ export default function ContactForm({
     event.preventDefault();
 
     if (status === "sending") {
+      return;
+    }
+
+    // Check what we can locally first, so the attachment is never uploaded
+    // for a submission that is bound to fail.
+    if (!captcha.answer.trim()) {
+      setStatus("error");
+      setErrorMessage("Please answer the security check.");
       return;
     }
 
@@ -726,9 +738,16 @@ export default function ContactForm({
           </div>
 
           {compacting && (
-            <p className="mt-2 text-xs text-neutral-400">
-              Compacting image...
-            </p>
+            <div className="mt-2 flex items-center gap-2 text-xs text-neutral-500">
+              <span className="h-3 w-3 animate-spin rounded-full border-2 border-neutral-300 border-t-neutral-700" />
+              Optimizing image {shownCompact}%
+              <span className="h-1 w-24 overflow-hidden rounded-full bg-neutral-200">
+                <span className="block h-full bg-neutral-900" style={{ width: `${shownCompact}%` }} />
+              </span>
+            </div>
+          )}
+          {file && !compacting && (
+            <p className="mt-2 text-xs text-neutral-400">Uploaded only when you send the form.</p>
           )}
         </div>
 
@@ -778,7 +797,7 @@ export default function ContactForm({
             {status === "sending" ? (
               <>
                 <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
-                Sending...
+                {uploadProgress !== null ? `Uploading ${shownUpload}%` : "Sending..."}
               </>
             ) : (
               <>

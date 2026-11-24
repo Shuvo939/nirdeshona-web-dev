@@ -12,6 +12,7 @@ import type { FormState } from "@/app/(account)/client/actions";
 import { requireAdmin } from "@/lib/auth/require-admin";
 import { sql } from "@/lib/db";
 import { sendEmail } from "@/lib/email";
+import { checkImageFile, discardStoredImage, pickImageFile, storeFormImage, type StoredImage } from "@/lib/media-server";
 import { site } from "@/lib/site";
 
 const ClientSchema = z.object({
@@ -44,7 +45,9 @@ function errorsOf(error: z.ZodError) {
   return out;
 }
 
-export async function saveClient(clientId: string | null, _prev: FormState, formData: FormData): Promise<FormState> {
+export type ClientFormState = FormState & { logoUrl?: string | null; savedAt?: number };
+
+export async function saveClient(clientId: string | null, _prev: ClientFormState, formData: FormData): Promise<ClientFormState> {
   const { userId: actorId } = await requireAdmin();
   const parsed = parse(formData);
   if (!parsed.success) return { fieldErrors: errorsOf(parsed.error) };
@@ -55,28 +58,45 @@ export async function saveClient(clientId: string | null, _prev: FormState, form
   `;
   if (dupe) return { fieldErrors: { slug: "Another client already uses this slug" } };
 
+  const logoFile = pickImageFile(formData, "logo_url_file");
+  if (logoFile) {
+    const problem = checkImageFile(logoFile);
+    if (problem) return { fieldErrors: { logo_url: problem } };
+  }
+
+  // Everything is valid — only now store the new logo (removed again if the save fails).
+  let stored: StoredImage | null = null;
   let id = clientId;
-  if (clientId) {
-    await sql`
-      update clients set name = ${v.name}, slug = ${v.slug}, contact_email = ${v.contact_email || null},
-        contact_phone = ${v.contact_phone || null}, logo_url = ${v.logo_url || null}, notes = ${v.notes || null},
-        updated_at = now()
-      where id = ${clientId}
-    `;
-  } else {
-    const [row] = await sql`
-      insert into clients (name, slug, contact_email, contact_phone, logo_url, notes)
-      values (${v.name}, ${v.slug}, ${v.contact_email || null}, ${v.contact_phone || null}, ${v.logo_url || null}, ${v.notes || null})
-      returning id
-    `;
-    id = row.id;
+  let logo: string | null = v.logo_url || null;
+  try {
+    if (logoFile) stored = await storeFormImage(logoFile, actorId, `${v.slug}-logo`);
+    logo = stored?.url ?? logo;
+    if (clientId) {
+      await sql`
+        update clients set name = ${v.name}, slug = ${v.slug}, contact_email = ${v.contact_email || null},
+          contact_phone = ${v.contact_phone || null}, logo_url = ${logo}, notes = ${v.notes || null},
+          updated_at = now()
+        where id = ${clientId}
+      `;
+    } else {
+      const [row] = await sql`
+        insert into clients (name, slug, contact_email, contact_phone, logo_url, notes)
+        values (${v.name}, ${v.slug}, ${v.contact_email || null}, ${v.contact_phone || null}, ${logo}, ${v.notes || null})
+        returning id
+      `;
+      id = row.id;
+    }
+  } catch (error) {
+    await discardStoredImage(stored);
+    console.error("saveClient failed", error);
+    return { error: error instanceof Error && logoFile && !stored ? error.message : "Couldn't save the client. Please try again." };
   }
 
   await logActivity(actorId, { action: "client.save", entity: "client", summary: `Saved client “${String(formData.get("name") ?? "").trim()}”` });
   revalidatePath("/admin/clients");
   revalidatePath("/clients");
   if (!clientId) redirect(`/admin/clients/${id}`);
-  return { ok: true };
+  return { ok: true, logoUrl: logo, savedAt: Date.now() };
 }
 
 export async function deleteClient(clientId: string) {

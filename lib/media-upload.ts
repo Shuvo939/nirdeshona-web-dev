@@ -11,7 +11,8 @@ export type UploadedMedia = { id: string; file_url: string; file_name: string; f
  */
 export async function uploadMedia(original: File, onProgress?: (percent: number) => void): Promise<UploadedMedia & { key: string }> {
   if (!(original.type in MEDIA_TYPES)) throw new Error("Unsupported file type");
-  const file = await compressImage(original);
+  // Progress: optimizing 0–30 %, uploading 30–100 %.
+  const file = await compressImage(original, { onProgress: (p) => onProgress?.(Math.round(p * 0.3)) });
   if (file.size > maxSizeFor(file.type)) {
     throw new Error(file.type.startsWith("image/") ? "Image is still larger than 5 MB" : `File is larger than ${MEDIA_MAX_SIZE / 1024 / 1024} MB`);
   }
@@ -28,7 +29,7 @@ export async function uploadMedia(original: File, onProgress?: (percent: number)
     const xhr = new XMLHttpRequest();
     xhr.open("PUT", json.uploadUrl);
     xhr.setRequestHeader("Content-Type", file.type);
-    xhr.upload.onprogress = (e) => e.lengthComputable && onProgress?.(Math.round((e.loaded / e.total) * 100));
+    xhr.upload.onprogress = (e) => e.lengthComputable && onProgress?.(30 + Math.round((e.loaded / e.total) * 70));
     xhr.onload = () => (xhr.status < 300 ? resolve() : reject(new Error("Upload to storage failed")));
     xhr.onerror = () => reject(new Error("Network error — check the R2 CORS policy"));
     xhr.send(file);

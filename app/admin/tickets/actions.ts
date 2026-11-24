@@ -11,7 +11,7 @@ import { getSessionUser } from "@/lib/auth/session";
 import { sql } from "@/lib/db";
 import { getTicket, notifyTicketActivity } from "@/lib/tickets";
 import { parseAttachmentField } from "@/lib/tickets/attachments";
-import { insertAttachments, verifyAttachments } from "@/lib/tickets/save-attachments";
+import { discardUnsentAttachments, insertAttachments, verifyAttachments } from "@/lib/tickets/save-attachments";
 
 const STATUSES = ["OPEN", "IN_PROGRESS", "WAITING_FOR_CLIENT", "RESOLVED", "CLOSED"] as const;
 const PRIORITIES = ["LOW", "NORMAL", "HIGH", "URGENT"] as const;
@@ -24,7 +24,16 @@ const STATUS_LABELS: Record<string, string> = {
   CLOSED: "Closed",
 };
 
-export async function replyToTicket(ticketId: string, _prev: FormState, formData: FormData): Promise<FormState> {
+export async function replyToTicket(ticketId: string, prev: FormState, formData: FormData): Promise<FormState> {
+  const result = await replyToTicketInner(ticketId, prev, formData);
+  if (result.error || result.fieldErrors) {
+    const user = await getSessionUser();
+    if (user) await discardUnsentAttachments(formData.get("attachments"), ticketId, user.id);
+  }
+  return result;
+}
+
+async function replyToTicketInner(ticketId: string, _prev: FormState, formData: FormData): Promise<FormState> {
   const { userId: actorId } = await requireAdmin();
   const user = (await getSessionUser())!;
   const ticket = await getTicket(ticketId);

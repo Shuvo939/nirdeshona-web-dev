@@ -9,6 +9,7 @@ import { AdminHeader, Avatar, Empty, FilterTabs, Pager, SearchBox, pageParam, ti
 import { setUserBanned, setUserRole } from "./actions";
 import RoleSelect from "./role-select";
 import { requireAdmin } from "@/lib/auth/require-admin";
+import SubmitButton from "@/app/components/submit-button";
 
 export const dynamic = "force-dynamic";
 const PER_PAGE = 25;
@@ -110,9 +111,9 @@ export default async function AdminUsersPage({ searchParams }: { searchParams: P
                     {!self && u.role !== "ADMIN" &&
                       (u.is_banned ? (
                         <form action={setUserBanned.bind(null, u.id, false)}>
-                          <button type="submit" className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-neutral-200 px-3 text-xs font-semibold text-neutral-700 hover:bg-neutral-50">
-                            <RotateCcw className="h-3.5 w-3.5" /> Reinstate
-                          </button>
+                          <SubmitButton icon={<RotateCcw className="h-3.5 w-3.5" />} className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-neutral-200 px-3 text-xs font-semibold text-neutral-700 hover:bg-neutral-50 disabled:opacity-60">
+                            Reinstate
+                          </SubmitButton>
                         </form>
                       ) : (
                         <ConfirmButton

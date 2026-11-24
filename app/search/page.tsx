@@ -8,6 +8,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import { sql } from "@/lib/db";
+import NavSubmitButton from "@/app/components/nav-submit-button";
 
 type SearchPageProps = {
   searchParams: Promise<{ q?: string }>;
@@ -158,22 +159,18 @@ export default async function SearchPage({
               className="min-w-0 flex-1 bg-transparent px-1 text-sm text-neutral-950 outline-none placeholder:text-neutral-400 sm:text-base"
             />
 
-            <button
-              type="submit"
-              className="hidden h-12 shrink-0 items-center gap-2 rounded-xl bg-neutral-950 px-5 text-sm font-semibold text-white transition hover:bg-neutral-800 sm:inline-flex"
-            >
+            <NavSubmitButton className="hidden h-12 shrink-0 items-center gap-2 rounded-xl bg-neutral-950 px-5 text-sm font-semibold text-white transition hover:bg-neutral-800 sm:inline-flex">
               Search
               <ArrowRight className="h-4 w-4" />
-            </button>
+            </NavSubmitButton>
           </div>
 
-          <button
-            type="submit"
+          <NavSubmitButton
+            icon={<Search className="h-4 w-4" />}
             className="mt-3 flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-neutral-950 text-sm font-semibold text-white transition hover:bg-neutral-800 sm:hidden"
           >
-            <Search className="h-4 w-4" />
             Search
-          </button>
+          </NavSubmitButton>
         </form>
 
         {query ? (

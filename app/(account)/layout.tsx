@@ -5,6 +5,7 @@ import SideNav, { type SideNavGroup } from "@/app/components/side-nav";
 import { getClientMemberships, requireUser } from "@/lib/auth/session";
 import { sql } from "@/lib/db";
 import { createClient } from "@/lib/supabase/server";
+import SubmitButton from "@/app/components/submit-button";
 
 async function signOut() {
   "use server";
@@ -58,9 +59,9 @@ export default async function AccountLayout({ children }: { children: ReactNode 
           <div className="sticky top-[70px] flex max-h-[calc(100vh-70px)] flex-col gap-6 overflow-y-auto py-8">
             <SideNav groups={groups} label="Account navigation" />
             <form action={signOut} className="border-t border-neutral-200 pt-4">
-              <button type="submit" className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium text-red-600 transition hover:bg-red-50">
-                <LogOut className="h-[18px] w-[18px]" strokeWidth={1.8} /> Log out
-              </button>
+              <SubmitButton pendingText="Logging out…" icon={<LogOut className="h-[18px] w-[18px]" strokeWidth={1.8} />} className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium text-red-600 transition hover:bg-red-50 disabled:opacity-70">
+                Log out
+              </SubmitButton>
             </form>
           </div>
         </aside>

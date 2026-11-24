@@ -7,6 +7,7 @@ import { sql } from "@/lib/db";
 import { AdminHeader, Avatar, Empty, FilterTabs, Pager, SearchBox, pageParam, timeAgo } from "../admin-ui";
 import { deleteCommentAdmin, dismissReports, setCommentStatus } from "./actions";
 import { requireAdmin } from "@/lib/auth/require-admin";
+import SubmitButton from "@/app/components/submit-button";
 
 export const dynamic = "force-dynamic";
 const PER_PAGE = 20;
@@ -156,9 +157,8 @@ export default async function AdminCommentsPage({ searchParams }: { searchParams
 
 function Btn({ icon, children }: { icon: React.ReactNode; children: React.ReactNode }) {
   return (
-    <button type="submit" className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-neutral-200 bg-white px-3 text-xs font-semibold text-neutral-700 hover:bg-neutral-50">
-      {icon}
+    <SubmitButton icon={icon} className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-neutral-200 bg-white px-3 text-xs font-semibold text-neutral-700 hover:bg-neutral-50 disabled:opacity-60">
       {children}
-    </button>
+    </SubmitButton>
   );
 }

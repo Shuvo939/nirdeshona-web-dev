@@ -7,7 +7,7 @@ import { z } from "zod";
 import { verifyCaptcha } from "@/lib/captcha";
 import { sql } from "@/lib/db";
 import { sendEmail } from "@/lib/email";
-import { headPrivateObject, hasR2 } from "@/lib/r2";
+import { deletePrivateObject, headPrivateObject, hasR2 } from "@/lib/r2";
 import { site } from "@/lib/site";
 
 export const runtime = "nodejs";
@@ -86,6 +86,26 @@ function ipHash(request: Request) {
 ============================================================ */
 
 export async function POST(request: Request) {
+  const raw = (await request.clone().json().catch(() => null)) as { attachmentKey?: unknown; website?: unknown } | null;
+  const response = await handleContact(request);
+  // The attachment is uploaded right before submitting. If the message was
+  // rejected (or caught by the honeypot), delete the upload so nothing is left behind.
+  const key = typeof raw?.attachmentKey === "string" ? raw.attachmentKey : null;
+  if (key && (response.status !== 200 || raw?.website)) await discardContactUpload(key);
+  return response;
+}
+
+async function discardContactUpload(key: string) {
+  try {
+    if (!hasR2() || !/^contact-attachments\/\d{4}\/\d{2}\/[0-9a-f-]{36}-[\w.-]{1,120}$/.test(key)) return;
+    const [used] = await sql`select 1 from public.contact_requests where attachment_url = ${`private:${key}`} limit 1`;
+    if (!used) await deletePrivateObject(key);
+  } catch (error) {
+    console.error("discardContactUpload failed", error);
+  }
+}
+
+async function handleContact(request: Request) {
   try {
     /* --------------------------------------------------------
        ORIGIN

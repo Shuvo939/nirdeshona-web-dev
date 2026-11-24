@@ -1,36 +1,26 @@
+"use client";
+
 import Link from "next/link";
+import { startTransition, useActionState, useMemo, useState } from "react";
+import { AlertCircle, Check, ChevronDown, Loader2, Plus, Search, X } from "lucide-react";
+
 import ImageUploadField from "@/app/admin/image-upload-field";
 import { PROJECT_CATEGORIES } from "@/lib/projects/categories";
+import { techCategories } from "@/lib/site";
+
+import type { ProjectFormState } from "./actions";
 
 const STATUSES = [
-  {
-    value: "PLANNED",
-    label: "Planned",
-  },
-  {
-    value: "IN_PROGRESS",
-    label: "In Progress",
-  },
-  {
-    value: "REVIEW",
-    label: "Review",
-  },
-  {
-    value: "COMPLETED",
-    label: "Completed",
-  },
-  {
-    value: "ON_HOLD",
-    label: "On Hold",
-  },
+  { value: "PLANNED", label: "Planned" },
+  { value: "IN_PROGRESS", label: "In Progress" },
+  { value: "REVIEW", label: "Review" },
+  { value: "COMPLETED", label: "Completed" },
+  { value: "ON_HOLD", label: "On Hold" },
 ] as const;
 
-type ClientOption = {
-  id: string;
-  name: string;
-};
+type ClientOption = { id: string; name: string };
 
-type ProjectFormValues = {
+export type ProjectFormValues = {
   title?: string;
   slug?: string;
   short_description?: string;
@@ -45,501 +35,413 @@ type ProjectFormValues = {
   repository_url?: string;
   started_at?: string;
   completed_at?: string;
+  technologies?: string[];
 };
 
-type ProjectFormProps = {
-  action: (formData: FormData) => void | Promise<void>;
-  defaultValues?: ProjectFormValues;
-  clients?: ClientOption[];
-};
+const inputClass =
+  "mt-2 w-full rounded-xl border border-neutral-200 bg-white px-4 py-3 text-sm outline-none transition placeholder:text-neutral-400 focus:border-neutral-400 focus:ring-4 focus:ring-neutral-100 disabled:bg-neutral-50 disabled:text-neutral-400";
+
+function slugify(value: string) {
+  return value.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+}
 
 export default function ProjectForm({
   action,
   defaultValues,
   clients = [],
-}: ProjectFormProps) {
+  knownTechnologies = [],
+  submitLabel = "Save project",
+}: {
+  action: (prev: ProjectFormState, formData: FormData) => Promise<ProjectFormState>;
+  defaultValues?: ProjectFormValues;
+  clients?: ClientOption[];
+  knownTechnologies?: string[];
+  submitLabel?: string;
+}) {
   const v = defaultValues ?? {};
+  const editing = Boolean(v.slug);
+  const [state, formAction, pending] = useActionState(action, {});
+  const e = state.fieldErrors ?? {};
+
+  const [slug, setSlug] = useState(v.slug ?? "");
+  const [slugTouched, setSlugTouched] = useState(editing);
+  const [status, setStatus] = useState(v.status ?? "PLANNED");
+  const [progress, setProgress] = useState(v.progress_percent ?? 0);
+  const [noRepo, setNoRepo] = useState(editing && !v.repository_url && v.category === "WordPress");
+  const [repoTouched, setRepoTouched] = useState(false);
 
   return (
-    <form action={action} className="space-y-8">
-      {/* =====================================================
-          BASIC INFORMATION
-      ====================================================== */}
-
-      <section className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
-        <div className="mb-6">
-          <h2 className="text-base font-semibold text-neutral-950">
-            Basic Information
-          </h2>
-
-          <p className="mt-1 text-sm text-neutral-500">
-            Define the project&apos;s basic identity and description.
-          </p>
+    <form
+      noValidate={false}
+      onSubmit={(ev) => {
+        // Submitting through a transition (instead of <form action>) keeps
+        // every field as typed if the server reports an error.
+        ev.preventDefault();
+        const data = new FormData(ev.currentTarget);
+        startTransition(() => formAction(data));
+      }}
+      className="space-y-8"
+    >
+      {state.error && (
+        <div className="flex items-start gap-2 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700" role="alert">
+          <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" /> {state.error}
         </div>
+      )}
 
+      <Section title="Basic Information" description="Define the project's basic identity and description.">
         <div className="space-y-5">
-          {/* Title */}
-
-          <div>
-            <label
-              htmlFor="title"
-              className="block text-sm font-medium text-neutral-900"
-            >
-              Project title
-            </label>
-
+          <Field id="title" label="Project title" error={e.title}>
             <input
               id="title"
               name="title"
-              type="text"
               defaultValue={v.title}
               required
               placeholder="e.g. Nirdeshona Website"
-              className="mt-2 w-full rounded-xl border border-neutral-200 bg-white px-4 py-3 text-sm outline-none transition placeholder:text-neutral-400 focus:border-neutral-400 focus:ring-4 focus:ring-neutral-100"
+              onChange={(ev) => !slugTouched && setSlug(slugify(ev.target.value))}
+              className={inputClass}
             />
-          </div>
-
-          {/* Slug */}
-
-          <div>
-            <label
-              htmlFor="slug"
-              className="block text-sm font-medium text-neutral-900"
-            >
-              Slug
-            </label>
-
+          </Field>
+          <Field id="slug" label="Slug" error={e.slug} hint="Lowercase letters, numbers and hyphens. Fills in from the title.">
             <input
               id="slug"
               name="slug"
-              type="text"
-              defaultValue={v.slug}
               required
+              value={slug}
+              onChange={(ev) => {
+                setSlugTouched(true);
+                setSlug(ev.target.value);
+              }}
+              pattern="[a-z0-9]+(-[a-z0-9]+)*"
               placeholder="nirdeshona-website"
-              className="mt-2 w-full rounded-xl border border-neutral-200 bg-white px-4 py-3 font-mono text-sm outline-none transition placeholder:text-neutral-400 focus:border-neutral-400 focus:ring-4 focus:ring-neutral-100"
+              className={`${inputClass} font-mono`}
             />
-
-            <p className="mt-2 text-xs text-neutral-400">
-              Use lowercase letters, numbers, and hyphens only.
-            </p>
-          </div>
-
-          {/* Short Description */}
-
-          <div>
-            <label
-              htmlFor="short_description"
-              className="block text-sm font-medium text-neutral-900"
-            >
-              Short description
-            </label>
-
-            <input
-              id="short_description"
-              name="short_description"
-              type="text"
-              defaultValue={v.short_description}
-              placeholder="A short summary of this project"
-              className="mt-2 w-full rounded-xl border border-neutral-200 bg-white px-4 py-3 text-sm outline-none transition placeholder:text-neutral-400 focus:border-neutral-400 focus:ring-4 focus:ring-neutral-100"
-            />
-          </div>
-
-          {/* Description */}
-
-          <div>
-            <label
-              htmlFor="description"
-              className="block text-sm font-medium text-neutral-900"
-            >
-              Full description
-            </label>
-
-            <textarea
-              id="description"
-              name="description"
-              defaultValue={v.description}
-              rows={7}
-              placeholder="Describe the project, its goals, features, technologies, and outcomes..."
-              className="mt-2 w-full resize-y rounded-xl border border-neutral-200 bg-white px-4 py-3 text-sm leading-6 outline-none transition placeholder:text-neutral-400 focus:border-neutral-400 focus:ring-4 focus:ring-neutral-100"
-            />
-          </div>
+          </Field>
+          <Field id="short_description" label="Short description" error={e.short_description} hint="One or two sentences shown on project cards.">
+            <input id="short_description" name="short_description" defaultValue={v.short_description} maxLength={300} placeholder="A short summary of this project" className={inputClass} />
+          </Field>
+          <Field id="description" label="Full description" error={e.description} hint="Markdown supported: ## headings, **bold**, - lists, [links](https://…).">
+            <textarea id="description" name="description" defaultValue={v.description} rows={9} placeholder="Describe the project, its goals, features and outcomes…" className={`${inputClass} resize-y leading-6`} />
+          </Field>
         </div>
-      </section>
+      </Section>
 
-      {/* =====================================================
-          CLIENT ASSIGNMENT
-      ====================================================== */}
-
-      <section className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
-        <div className="mb-6">
-          <h2 className="text-base font-semibold text-neutral-950">
-            Client Assignment
-          </h2>
-
-          <p className="mt-1 text-sm text-neutral-500">
-            Assign this project to a client. You can leave it unassigned if
-            this is a personal or internal project.
-          </p>
-        </div>
-
-        <div>
-          <label
-            htmlFor="client_id"
-            className="block text-sm font-medium text-neutral-900"
-          >
-            Client
-          </label>
-
-          <div className="relative mt-2">
-            <select
-              id="client_id"
-              name="client_id"
-              defaultValue={v.client_id ?? ""}
-              className="w-full appearance-none rounded-xl border border-neutral-200 bg-white px-4 py-3 pr-10 text-sm outline-none transition focus:border-neutral-400 focus:ring-4 focus:ring-neutral-100"
-            >
+      <Section title="Client Assignment" description="Assign this project to a client, or leave it unassigned for personal or internal work.">
+        <Field id="client_id" label="Client" error={e.client_id} hint={clients.length ? `${clients.length} client${clients.length === 1 ? "" : "s"} available.` : "No clients have been created yet."}>
+          <SelectWrap>
+            <select id="client_id" name="client_id" defaultValue={v.client_id ?? ""} className={`${inputClass} appearance-none pr-10`}>
               <option value="">No client</option>
-
               {clients.map((client) => (
                 <option key={client.id} value={client.id}>
                   {client.name}
                 </option>
               ))}
             </select>
+          </SelectWrap>
+        </Field>
+      </Section>
 
-            <div className="pointer-events-none absolute inset-y-0 right-4 flex items-center text-neutral-400">
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-              >
-                <path d="m6 9 6 6 6-6" />
-              </svg>
-            </div>
-          </div>
-
-          <p className="mt-2 text-xs text-neutral-400">
-            {clients.length > 0
-              ? `${clients.length} client${
-                  clients.length === 1 ? "" : "s"
-                } available.`
-              : "No clients have been created yet."}
-          </p>
-        </div>
-      </section>
-
-      {/* =====================================================
-          COVER IMAGE
-      ====================================================== */}
-
-      <section className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
-        <div className="mb-6">
-          <h2 className="text-base font-semibold text-neutral-950">
-            Cover Image
-          </h2>
-
-          <p className="mt-1 text-sm text-neutral-500">
-            Set the primary image used when this project is displayed.
-          </p>
-        </div>
-
+      <Section title="Cover Image" description="The main image shown on project cards and at the top of the project page.">
         <ImageUploadField
           name="cover_image_url"
           label="Cover image"
           initial={v.cover_image_url}
           variant="cover"
-          hint="Shown on project cards and at the top of the project page. A 16:10 desktop screenshot (about 1600×1000) looks best — large files are compressed automatically."
+          error={e.cover_image_url}
+          hint="A 16:10 desktop screenshot (about 1600×1000) looks best. Images are compressed automatically and uploaded only when you save."
         />
-      </section>
+      </Section>
 
-      {/* =====================================================
-          PROJECT CLASSIFICATION
-      ====================================================== */}
-
-      <section className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
-        <div className="mb-6">
-          <h2 className="text-base font-semibold text-neutral-950">
-            Classification
-          </h2>
-
-          <p className="mt-1 text-sm text-neutral-500">
-            Categorize the project so it can be filtered and displayed
-            consistently.
-          </p>
-        </div>
-
-        <div>
-          <label
-            htmlFor="category"
-            className="block text-sm font-medium text-neutral-900"
-          >
-            Project category
-          </label>
-
-          <div className="relative mt-2">
+      <Section title="Classification" description="Categorize the project so it can be filtered and displayed consistently.">
+        <Field id="category" label="Project category" error={e.category}>
+          <SelectWrap>
             <select
               id="category"
               name="category"
               defaultValue={v.category ?? ""}
-              className="w-full appearance-none rounded-xl border border-neutral-200 bg-white px-4 py-3 pr-10 text-sm outline-none transition focus:border-neutral-400 focus:ring-4 focus:ring-neutral-100"
+              onChange={(ev) => {
+                if (!repoTouched) setNoRepo(ev.target.value === "WordPress");
+              }}
+              className={`${inputClass} appearance-none pr-10`}
             >
               <option value="">Select a category</option>
-
               {PROJECT_CATEGORIES.map((category) => (
                 <option key={category} value={category}>
                   {category}
                 </option>
               ))}
             </select>
+          </SelectWrap>
+        </Field>
+      </Section>
 
-            <div className="pointer-events-none absolute inset-y-0 right-4 flex items-center text-neutral-400">
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-              >
-                <path d="m6 9 6 6 6-6" />
-              </svg>
-            </div>
-          </div>
+      <Section title="Built with" description="Pick every technology used. They appear on the project page and power the technology filter.">
+        <TechPicker initial={v.technologies ?? []} known={knownTechnologies} />
+      </Section>
 
-          <p className="mt-2 text-xs text-neutral-400">
-            Choose one of the predefined Nirdeshona project categories.
-          </p>
-        </div>
-      </section>
-
-      {/* =====================================================
-          STATUS & PROGRESS
-      ====================================================== */}
-
-      <section className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
-        <div className="mb-6">
-          <h2 className="text-base font-semibold text-neutral-950">
-            Project Status
-          </h2>
-
-          <p className="mt-1 text-sm text-neutral-500">
-            Track the current state and completion of the project.
-          </p>
-        </div>
-
+      <Section title="Project Status" description="Track the current state and completion of the project.">
         <div className="grid gap-5 sm:grid-cols-2">
-          {/* Status */}
-
-          <div>
-            <label
-              htmlFor="status"
-              className="block text-sm font-medium text-neutral-900"
-            >
-              Status
-            </label>
-
-            <select
-              id="status"
-              name="status"
-              defaultValue={v.status ?? "PLANNED"}
-              className="mt-2 w-full rounded-xl border border-neutral-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-neutral-400 focus:ring-4 focus:ring-neutral-100"
-            >
-              {STATUSES.map((status) => (
-                <option key={status.value} value={status.value}>
-                  {status.label}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Progress */}
-
-          <div>
-            <label
-              htmlFor="progress_percent"
-              className="block text-sm font-medium text-neutral-900"
-            >
-              Progress
-            </label>
-
-            <div className="relative mt-2">
+          <Field id="status" label="Status" error={e.status}>
+            <SelectWrap>
+              <select
+                id="status"
+                name="status"
+                value={status}
+                onChange={(ev) => {
+                  setStatus(ev.target.value);
+                  if (ev.target.value === "COMPLETED") setProgress(100);
+                }}
+                className={`${inputClass} appearance-none pr-10`}
+              >
+                {STATUSES.map((s) => (
+                  <option key={s.value} value={s.value}>
+                    {s.label}
+                  </option>
+                ))}
+              </select>
+            </SelectWrap>
+          </Field>
+          <Field id="progress_percent" label={`Progress — ${progress}%`} error={e.progress_percent}>
+            <div className="mt-2 flex h-[46px] items-center gap-3">
+              <input
+                type="range"
+                min={0}
+                max={100}
+                step={5}
+                value={progress}
+                onChange={(ev) => setProgress(Number(ev.target.value))}
+                aria-label="Progress"
+                className="min-w-0 flex-1 accent-neutral-950"
+              />
               <input
                 id="progress_percent"
                 name="progress_percent"
                 type="number"
                 min={0}
                 max={100}
-                defaultValue={v.progress_percent ?? 0}
-                className="w-full rounded-xl border border-neutral-200 bg-white px-4 py-3 pr-12 text-sm outline-none transition focus:border-neutral-400 focus:ring-4 focus:ring-neutral-100"
+                value={progress}
+                onChange={(ev) => setProgress(Math.max(0, Math.min(100, Number(ev.target.value) || 0)))}
+                className="h-10 w-20 rounded-xl border border-neutral-200 px-3 text-sm outline-none focus:border-neutral-400"
               />
-
-              <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-sm text-neutral-400">
-                %
-              </span>
             </div>
-          </div>
+          </Field>
         </div>
+        <label htmlFor="featured" className="mt-6 flex cursor-pointer items-start gap-3 rounded-xl border border-neutral-200 bg-neutral-50 p-4">
+          <input id="featured" name="featured" type="checkbox" defaultChecked={v.featured} className="mt-0.5 h-4 w-4 rounded border-neutral-300 accent-neutral-950" />
+          <span>
+            <span className="block text-sm font-medium text-neutral-900">Feature this project</span>
+            <span className="mt-1 block text-xs leading-5 text-neutral-500">Featured projects appear first on the portfolio and on the homepage.</span>
+          </span>
+        </label>
+      </Section>
 
-        {/* Featured */}
-
-        <div className="mt-6 rounded-xl border border-neutral-200 bg-neutral-50 p-4">
-          <label
-            htmlFor="featured"
-            className="flex cursor-pointer items-start gap-3"
-          >
-            <input
-              id="featured"
-              name="featured"
-              type="checkbox"
-              defaultChecked={v.featured}
-              className="mt-0.5 h-4 w-4 rounded border-neutral-300"
-            />
-
-            <span>
-              <span className="block text-sm font-medium text-neutral-900">
-                Feature this project
-              </span>
-
-              <span className="mt-1 block text-xs leading-5 text-neutral-500">
-                Featured projects can appear prominently on the public
-                portfolio and homepage.
-              </span>
-            </span>
-          </label>
-        </div>
-      </section>
-
-      {/* =====================================================
-          PROJECT TIMELINE
-      ====================================================== */}
-
-      <section className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
-        <div className="mb-6">
-          <h2 className="text-base font-semibold text-neutral-950">
-            Project Timeline
-          </h2>
-
-          <p className="mt-1 text-sm text-neutral-500">
-            Record when the project started and when it was completed.
-          </p>
-        </div>
-
+      <Section title="Project Timeline" description="When the project started and when it was completed.">
         <div className="grid gap-5 sm:grid-cols-2">
-          <div>
-            <label
-              htmlFor="started_at"
-              className="block text-sm font-medium text-neutral-900"
-            >
-              Started date
-            </label>
-
-            <input
-              id="started_at"
-              name="started_at"
-              type="date"
-              defaultValue={v.started_at}
-              className="mt-2 w-full rounded-xl border border-neutral-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-neutral-400 focus:ring-4 focus:ring-neutral-100"
-            />
-          </div>
-
-          <div>
-            <label
-              htmlFor="completed_at"
-              className="block text-sm font-medium text-neutral-900"
-            >
-              Completed date
-            </label>
-
-            <input
-              id="completed_at"
-              name="completed_at"
-              type="date"
-              defaultValue={v.completed_at}
-              className="mt-2 w-full rounded-xl border border-neutral-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-neutral-400 focus:ring-4 focus:ring-neutral-100"
-            />
-          </div>
+          <Field id="started_at" label="Started date" error={e.started_at}>
+            <input id="started_at" name="started_at" type="date" defaultValue={v.started_at} className={inputClass} />
+          </Field>
+          <Field id="completed_at" label="Completed date" error={e.completed_at} hint={status !== "COMPLETED" ? "Usually set when the status is Completed." : undefined}>
+            <input id="completed_at" name="completed_at" type="date" defaultValue={v.completed_at} className={inputClass} />
+          </Field>
         </div>
-      </section>
+      </Section>
 
-      {/* =====================================================
-          LINKS
-      ====================================================== */}
-
-      <section className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
-        <div className="mb-6">
-          <h2 className="text-base font-semibold text-neutral-950">
-            Project Links
-          </h2>
-
-          <p className="mt-1 text-sm text-neutral-500">
-            Add links to the live project and source repository.
-          </p>
-        </div>
-
+      <Section title="Project Links" description="Links to the live project and, if there is one, the source repository.">
         <div className="space-y-5">
-          {/* Live URL */}
-
+          <Field id="live_url" label="Live project URL" error={e.live_url}>
+            <input id="live_url" name="live_url" type="url" defaultValue={v.live_url} placeholder="https://example.com" className={inputClass} />
+          </Field>
           <div>
-            <label
-              htmlFor="live_url"
-              className="block text-sm font-medium text-neutral-900"
-            >
-              Live project URL
+            <Field id="repository_url" label="Repository URL" error={noRepo ? undefined : e.repository_url}>
+              <input
+                id="repository_url"
+                name="repository_url"
+                type="url"
+                defaultValue={v.repository_url}
+                disabled={noRepo}
+                placeholder={noRepo ? "Not applicable" : "https://github.com/username/project"}
+                className={inputClass}
+              />
+            </Field>
+            <label className="mt-3 flex cursor-pointer items-center gap-2.5 text-sm text-neutral-700">
+              <input
+                type="checkbox"
+                name="no_repository"
+                checked={noRepo}
+                onChange={(ev) => {
+                  setRepoTouched(true);
+                  setNoRepo(ev.target.checked);
+                }}
+                className="h-4 w-4 rounded border-neutral-300 accent-neutral-950"
+              />
+              No code repository for this project
+              <span className="text-xs text-neutral-400">(e.g. WordPress, Webflow)</span>
             </label>
-
-            <input
-              id="live_url"
-              name="live_url"
-              type="url"
-              defaultValue={v.live_url}
-              placeholder="https://example.com"
-              className="mt-2 w-full rounded-xl border border-neutral-200 bg-white px-4 py-3 text-sm outline-none transition placeholder:text-neutral-400 focus:border-neutral-400 focus:ring-4 focus:ring-neutral-100"
-            />
-          </div>
-
-          {/* Repository URL */}
-
-          <div>
-            <label
-              htmlFor="repository_url"
-              className="block text-sm font-medium text-neutral-900"
-            >
-              Repository URL
-            </label>
-
-            <input
-              id="repository_url"
-              name="repository_url"
-              type="url"
-              defaultValue={v.repository_url}
-              placeholder="https://github.com/username/project"
-              className="mt-2 w-full rounded-xl border border-neutral-200 bg-white px-4 py-3 text-sm outline-none transition placeholder:text-neutral-400 focus:border-neutral-400 focus:ring-4 focus:ring-neutral-100"
-            />
           </div>
         </div>
-      </section>
+      </Section>
 
-      {/* =====================================================
-          ACTIONS
-      ====================================================== */}
-
-      <div className="flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-end">
+      <div className="sticky bottom-0 z-10 -mx-1 flex flex-col-reverse gap-3 border-t border-neutral-200 bg-white/90 px-1 py-4 backdrop-blur sm:flex-row sm:items-center sm:justify-end">
         <Link
           href="/admin/projects"
           className="inline-flex h-11 items-center justify-center rounded-xl border border-neutral-200 bg-white px-5 text-sm font-medium text-neutral-700 transition hover:bg-neutral-50 hover:text-neutral-950"
         >
           Cancel
         </Link>
-
         <button
           type="submit"
-          className="inline-flex h-11 items-center justify-center rounded-xl bg-black px-6 text-sm font-medium text-white shadow-sm transition hover:bg-neutral-800"
+          disabled={pending}
+          aria-busy={pending}
+          className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-neutral-950 px-6 text-sm font-semibold text-white shadow-sm transition hover:bg-neutral-800 disabled:opacity-70"
         >
-          Save project
+          {pending && <Loader2 className="h-4 w-4 animate-spin" />}
+          {pending ? "Saving…" : submitLabel}
         </button>
       </div>
     </form>
+  );
+}
+
+function Section({ title, description, children }: { title: string; description: string; children: React.ReactNode }) {
+  return (
+    <section className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
+      <div className="mb-6">
+        <h2 className="text-base font-semibold text-neutral-950">{title}</h2>
+        <p className="mt-1 text-sm text-neutral-500">{description}</p>
+      </div>
+      {children}
+    </section>
+  );
+}
+
+function Field({ id, label, hint, error, children }: { id: string; label: string; hint?: string; error?: string; children: React.ReactNode }) {
+  return (
+    <div>
+      <label htmlFor={id} className="block text-sm font-medium text-neutral-900">
+        {label}
+      </label>
+      {children}
+      {error ? <p className="mt-1.5 text-xs text-red-600">{error}</p> : hint ? <p className="mt-2 text-xs text-neutral-400">{hint}</p> : null}
+    </div>
+  );
+}
+
+function SelectWrap({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="relative">
+      {children}
+      <ChevronDown className="pointer-events-none absolute right-4 top-1/2 mt-1 h-4 w-4 -translate-y-1/2 text-neutral-400" />
+    </div>
+  );
+}
+
+/* ============================================================
+   BUILT WITH — searchable multi-select
+============================================================ */
+
+function TechPicker({ initial, known }: { initial: string[]; known: string[] }) {
+  const [selected, setSelected] = useState<string[]>(initial);
+  const [query, setQuery] = useState("");
+
+  const groups = useMemo(() => {
+    const listed = new Set(techCategories.flatMap((c) => c.items).map((t) => t.toLowerCase()));
+    const extra = [...new Set([...known, ...initial])].filter((t) => !listed.has(t.toLowerCase())).sort();
+    return extra.length ? [...techCategories, { name: "Other", items: extra }] : techCategories;
+  }, [known, initial]);
+
+  const q = query.trim().toLowerCase();
+  const all = groups.flatMap((g) => g.items);
+  const exists = all.some((t) => t.toLowerCase() === q) || selected.some((t) => t.toLowerCase() === q);
+  const toggle = (t: string) => setSelected((prev) => (prev.includes(t) ? prev.filter((x) => x !== t) : [...prev, t]));
+
+  return (
+    <div>
+      {selected.map((t) => (
+        <input key={t} type="hidden" name="technologies" value={t} />
+      ))}
+
+      <div className="flex min-h-12 flex-wrap items-center gap-1.5 rounded-xl border border-neutral-200 bg-neutral-50 p-2">
+        {selected.length === 0 ? (
+          <span className="px-2 text-sm text-neutral-400">Nothing selected yet</span>
+        ) : (
+          selected.map((t) => (
+            <span key={t} className="inline-flex items-center gap-1 rounded-lg bg-neutral-950 py-1 pl-2.5 pr-1 text-xs font-medium text-white">
+              {t}
+              <button type="button" onClick={() => toggle(t)} aria-label={`Remove ${t}`} className="rounded p-0.5 hover:bg-white/20">
+                <X className="h-3 w-3" />
+              </button>
+            </span>
+          ))
+        )}
+        {selected.length > 0 && (
+          <button type="button" onClick={() => setSelected([])} className="ml-auto px-2 text-xs font-medium text-neutral-500 hover:text-neutral-950">
+            Clear
+          </button>
+        )}
+      </div>
+
+      <div className="relative mt-3">
+        <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-400" />
+        <input
+          type="search"
+          value={query}
+          onChange={(ev) => setQuery(ev.target.value)}
+          onKeyDown={(ev) => {
+            if (ev.key === "Enter") {
+              ev.preventDefault();
+              const match = all.find((t) => t.toLowerCase() === q) ?? all.find((t) => t.toLowerCase().includes(q));
+              if (match && q) toggle(match);
+              else if (q && !exists) toggle(query.trim());
+              setQuery("");
+            }
+          }}
+          placeholder="Search or add a technology…"
+          aria-label="Search technologies"
+          className="h-10 w-full rounded-xl border border-neutral-200 bg-white pl-10 pr-4 text-sm outline-none focus:border-neutral-400 focus:ring-4 focus:ring-neutral-100"
+        />
+      </div>
+
+      <div className="mt-4 flex flex-col gap-4">
+        {groups.map((group) => {
+          const items = group.items.filter((t) => !q || t.toLowerCase().includes(q));
+          if (items.length === 0) return null;
+          return (
+            <div key={group.name}>
+              <p className="text-[11px] font-semibold uppercase tracking-wider text-neutral-400">{group.name}</p>
+              <div className="mt-2 flex flex-wrap gap-1.5">
+                {items.map((t) => {
+                  const on = selected.includes(t);
+                  return (
+                    <button
+                      key={t}
+                      type="button"
+                      onClick={() => toggle(t)}
+                      aria-pressed={on}
+                      className={`inline-flex items-center gap-1 rounded-lg border px-2.5 py-1.5 text-xs font-medium transition ${
+                        on ? "border-neutral-950 bg-neutral-950 text-white" : "border-neutral-200 bg-white text-neutral-700 hover:border-neutral-400"
+                      }`}
+                    >
+                      {on && <Check className="h-3 w-3" />}
+                      {t}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })}
+        {q && !exists && (
+          <button
+            type="button"
+            onClick={() => {
+              toggle(query.trim());
+              setQuery("");
+            }}
+            className="inline-flex w-fit items-center gap-1.5 rounded-lg border border-dashed border-neutral-300 px-3 py-1.5 text-xs font-medium text-neutral-700 hover:border-neutral-950"
+          >
+            <Plus className="h-3.5 w-3.5" /> Add “{query.trim()}”
+          </button>
+        )}
+      </div>
+    </div>
   );
 }

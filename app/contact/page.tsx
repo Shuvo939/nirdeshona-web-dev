@@ -100,7 +100,7 @@ export default async function ContactPage({
       ====================================================== */}
 
       <section className="mx-auto max-w-7xl px-6 py-12 sm:px-8 lg:px-8 lg:py-16">
-        <div className="grid gap-8 lg:grid-cols-[0.72fr_1.28fr]">
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-[0.72fr_1.28fr]">
           {/* =================================================
               LEFT
           ================================================== */}

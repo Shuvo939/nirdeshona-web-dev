@@ -3,6 +3,7 @@ import { Search } from "lucide-react";
 
 import PostListing, { parseSort } from "@/app/components/blog/post-listing";
 import { PageHero } from "@/app/components/marketing";
+import NavSubmitButton from "@/app/components/nav-submit-button";
 
 export const metadata: Metadata = {
   title: "Blog — Nirdeshona Web",
@@ -38,9 +39,9 @@ export default async function BlogPage({
             aria-label="Search articles"
             className="h-9 min-w-0 flex-1 bg-transparent text-sm outline-none"
           />
-          <button type="submit" className="h-9 shrink-0 rounded-full bg-neutral-950 px-4 text-sm font-semibold text-white hover:bg-neutral-800">
+          <NavSubmitButton className="inline-flex h-9 shrink-0 items-center gap-2 rounded-full bg-neutral-950 px-4 text-sm font-semibold text-white hover:bg-neutral-800">
             Search
-          </button>
+          </NavSubmitButton>
         </form>
       </PageHero>
       <PostListing basePath="/blog" page={page} q={q} sort={sort} />

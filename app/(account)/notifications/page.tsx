@@ -7,6 +7,7 @@ import AccountHeader from "@/app/components/account-header";
 import { formatDate } from "@/app/components/marketing";
 import { requireUser } from "@/lib/auth/session";
 import { sql } from "@/lib/db";
+import SubmitButton from "@/app/components/submit-button";
 
 export const metadata: Metadata = { title: "Notifications — Nirdeshona Web", robots: { index: false } };
 
@@ -29,9 +30,9 @@ export default async function NotificationsPage() {
           <p className="text-sm text-neutral-500">{unread} unread</p>
           {unread > 0 && (
             <form action={markNotificationsRead}>
-              <button type="submit" className="inline-flex items-center gap-1.5 rounded-full border border-neutral-200 bg-white px-4 py-2 text-xs font-semibold text-neutral-700 hover:bg-neutral-50">
-                <CheckCheck className="h-3.5 w-3.5" /> Mark all as read
-              </button>
+              <SubmitButton icon={<CheckCheck className="h-3.5 w-3.5" />} className="inline-flex items-center gap-1.5 rounded-full border border-neutral-200 bg-white px-4 py-2 text-xs font-semibold text-neutral-700 hover:bg-neutral-50 disabled:opacity-70">
+                Mark all as read
+              </SubmitButton>
             </form>
           )}
         </div>
