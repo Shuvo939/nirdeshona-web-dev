@@ -6,6 +6,7 @@ import { Loader2, UploadCloud } from "lucide-react";
 
 import { MEDIA_TYPES } from "@/lib/media";
 import { uploadMedia } from "@/lib/media-upload";
+import { useSmoothProgress } from "@/lib/use-smooth-progress";
 
 type Job = { id: string; name: string; progress: number; error?: string; done?: boolean };
 
@@ -56,7 +57,7 @@ export default function MediaUploader() {
       >
         <UploadCloud className="h-8 w-8 text-neutral-400" />
         <span className="text-sm font-semibold text-neutral-900">Drop files here or click to upload</span>
-        <span className="text-xs text-neutral-500">Images of any size (compressed to under 5 MB, keeping quality) · PDF & MP4 up to 25 MB · 20 at a time</span>
+        <span className="text-xs text-neutral-500">Images of any size (optimized like WhatsApp, usually under 400 KB) · PDF & MP4 up to 25 MB · 20 at a time</span>
       </button>
       <input ref={input} type="file" multiple accept={Object.keys(MEDIA_TYPES).join(",")} className="hidden" onChange={(e) => { void handle(e.target.files); e.target.value = ""; }} />
       {jobs.length > 0 && (
@@ -65,11 +66,25 @@ export default function MediaUploader() {
             <li key={j.id} className="flex items-center gap-3 rounded-xl border border-neutral-200 bg-white px-3 py-2 text-xs">
               {!j.done && !j.error && <Loader2 className="h-3.5 w-3.5 animate-spin text-neutral-400" />}
               <span className="min-w-0 flex-1 truncate font-medium">{j.name}</span>
-              <span className={j.error ? "text-red-600" : j.done ? "text-emerald-600" : "text-neutral-500"}>{j.error ?? (j.done ? "Uploaded" : `${j.progress}%`)}</span>
+              <JobStatus job={j} />
             </li>
           ))}
         </ul>
       )}
     </div>
+  );
+}
+
+function JobStatus({ job }: { job: Job }) {
+  const shown = useSmoothProgress(job.done || job.error ? null : job.progress);
+  if (job.error) return <span className="text-red-600">{job.error}</span>;
+  if (job.done) return <span className="text-emerald-600">Uploaded</span>;
+  return (
+    <span className="flex items-center gap-2 text-neutral-500">
+      <span className="h-1 w-20 overflow-hidden rounded-full bg-neutral-200">
+        <span className="block h-full bg-neutral-900" style={{ width: `${shown}%` }} />
+      </span>
+      <span className="w-14 tabular-nums">{shown < 30 ? "Optimizing" : `${shown}%`}</span>
+    </span>
   );
 }

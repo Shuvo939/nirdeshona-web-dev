@@ -41,7 +41,7 @@ export default function ProfileForm({
     setUploading(true);
     try {
       // Shrink huge photos first so the editor stays smooth on phones.
-      const file = await compressImage(original, { maxBytes: 4 * 1024 * 1024, maxEdge: 2000 });
+      const file = await compressImage(original, { maxEdge: 2000, targetBytes: 1.5 * 1024 * 1024 });
       setCropSrc(URL.createObjectURL(file));
     } catch (e) {
       setAvatarError(e instanceof Error ? e.message : "Couldn't open that image.");

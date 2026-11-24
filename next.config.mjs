@@ -16,6 +16,11 @@ const securityHeaders = [
 
 const nextConfig = {
   poweredByHeader: false,
+  // Admin forms send compressed images (~400 KB) with the form itself, so
+  // nothing is uploaded unless the save succeeds. Vercel caps bodies at 4.5 MB.
+  experimental: {
+    serverActions: { bodySizeLimit: "4mb" },
+  },
   images: {
     remotePatterns: [
       {

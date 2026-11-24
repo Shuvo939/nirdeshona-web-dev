@@ -7,6 +7,7 @@ import { formatDate } from "@/app/components/marketing";
 import { requireUser } from "@/lib/auth/session";
 
 import { EmailForm, PasswordForm } from "./security-forms";
+import SubmitButton from "@/app/components/submit-button";
 
 export const metadata: Metadata = { title: "Settings — Nirdeshona Web", robots: { index: false } };
 
@@ -54,9 +55,9 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
 
         <Card icon={<LogOut className="h-5 w-5" />} title="Sessions" description="Signed in on a shared or lost device? Sign out everywhere.">
           <form action={signOutEverywhere}>
-            <button type="submit" className="inline-flex h-11 items-center gap-2 rounded-full border border-red-200 bg-red-50 px-5 text-sm font-semibold text-red-700 hover:bg-red-100">
-              <LogOut className="h-4 w-4" /> Sign out of all devices
-            </button>
+            <SubmitButton pendingText="Signing out…" icon={<LogOut className="h-4 w-4" />} className="inline-flex h-11 items-center gap-2 rounded-full border border-red-200 bg-red-50 px-5 text-sm font-semibold text-red-700 hover:bg-red-100 disabled:opacity-70">
+              Sign out of all devices
+            </SubmitButton>
           </form>
         </Card>
       </section>

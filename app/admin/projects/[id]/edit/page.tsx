@@ -30,7 +30,7 @@ export default async function EditProjectPage({
 
   const { id } = await params;
 
-  const [projectResult, clients] = await Promise.all([
+  const [projectResult, clients, technologies, known] = await Promise.all([
     sql`
       select
         id,
@@ -60,6 +60,11 @@ export default async function EditProjectPage({
       from clients
       order by name asc
     `,
+    sql`
+      select t.name from project_technologies pt join technologies t on t.id = pt.technology_id
+      where pt.project_id = ${id} order by t.name
+    `,
+    sql`select name from technologies order by name`,
   ]);
 
   const project = projectResult[0];
@@ -68,11 +73,6 @@ export default async function EditProjectPage({
     notFound();
   }
 
-  async function handleUpdate(formData: FormData) {
-    "use server";
-
-    await updateProject(id, formData);
-  }
 
   return (
     <div className="mx-auto w-full max-w-4xl">
@@ -106,7 +106,9 @@ export default async function EditProjectPage({
       </div>
 
       <ProjectForm
-        action={handleUpdate}
+        action={updateProject.bind(null, id)}
+        knownTechnologies={known.map((t) => String(t.name))}
+        submitLabel="Save changes"
         clients={clients.map((client) => ({
           id: client.id,
           name: client.name,
@@ -138,6 +140,7 @@ export default async function EditProjectPage({
             formatDate(project.started_at),
           completed_at:
             formatDate(project.completed_at),
+          technologies: technologies.map((t) => String(t.name)),
         }}
       />
     </div>

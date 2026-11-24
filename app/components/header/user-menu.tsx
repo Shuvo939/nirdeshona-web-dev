@@ -1,5 +1,6 @@
 "use client";
 
+import SubmitButton from "@/app/components/submit-button";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import {
@@ -252,24 +253,14 @@ export default function UserMenu({
           {/* Logout */}
           <div className="border-t border-neutral-100 pt-2">
             <form action={signOut}>
-              <button
-                type="submit"
-                className="
-                  flex w-full items-center gap-3
-                  rounded-xl px-3 py-2.5
-                  text-left text-sm font-medium
-                  text-red-600 transition
-                  hover:bg-red-50
-                "
+              <SubmitButton
+                icon={<LogOut className="h-4 w-4" />}
+                pendingText={<span className="flex-1">Logging out…</span>}
+                className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-medium text-red-600 transition hover:bg-red-50 disabled:opacity-70"
               >
-                <LogOut className="h-4 w-4" />
-
                 <span className="flex-1">Log out</span>
-
-                <span className="text-[10px] text-red-300">
-                  Sign out
-                </span>
-              </button>
+                <span className="text-[10px] text-red-300">Sign out</span>
+              </SubmitButton>
             </form>
           </div>
         </div>

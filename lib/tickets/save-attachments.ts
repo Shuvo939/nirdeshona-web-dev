@@ -1,8 +1,9 @@
 import type { TransactionSql } from "postgres";
 
-import { headPrivateObject, hasR2 } from "@/lib/r2";
+import { sql } from "@/lib/db";
+import { deletePrivateObject, headPrivateObject, hasR2 } from "@/lib/r2";
 
-import { ATTACHMENT_TYPES, MAX_ATTACHMENT_SIZE, allowedAttachmentKey, type UploadedAttachment } from "./attachments";
+import { ATTACHMENT_TYPES, MAX_ATTACHMENT_SIZE, allowedAttachmentKey, parseAttachmentField, type UploadedAttachment } from "./attachments";
 
 // Verifies each uploaded object really exists in R2 (HEAD) and records it.
 // Size and type come from R2, not from the browser.
@@ -36,5 +37,21 @@ export async function insertAttachments(
     `;
     // file_url points at the access-checked download route, never at R2 directly.
     await tx`update ticket_attachments set file_url = ${`/api/attachments/${row.id}`} where id = ${row.id}`;
+  }
+}
+
+/**
+ * Deletes files uploaded for a message that was then rejected (validation,
+ * rate limit, closed ticket…), so a failed send never leaves files in R2.
+ * Only keys this user may use and that aren't attached anywhere are removed.
+ */
+export async function discardUnsentAttachments(raw: FormDataEntryValue | null, ticketId: string, userId: string) {
+  const parsed = parseAttachmentField(raw);
+  if ("error" in parsed || parsed.length === 0 || !hasR2()) return;
+  for (const file of parsed) {
+    if (!allowedAttachmentKey(file.key, ticketId, userId)) continue;
+    const [used] = await sql`select 1 from ticket_attachments where file_key = ${file.key} limit 1`;
+    if (used) continue;
+    await deletePrivateObject(file.key).catch(() => {});
   }
 }

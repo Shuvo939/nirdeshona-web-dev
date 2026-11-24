@@ -10,6 +10,13 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 
 import { isHttpUrl } from "@/lib/safe-url";
+import {
+  checkImageFile,
+  discardStoredImage,
+  pickImageFile,
+  storeFormImage,
+  type StoredImage,
+} from "@/lib/media-server";
 
 const PostSchema = z.object({
   title: z.string().trim().min(1, "Title is required."),
@@ -20,7 +27,12 @@ const PostSchema = z.object({
   status: z.enum(["draft", "published", "archived"]),
   seo_title: z.string().trim().optional(),
   seo_description: z.string().trim().optional(),
-  cover_image_url: z.string().url().refine(isHttpUrl, "Must be an http(s) URL").optional().or(z.literal("")),
+  cover_image_url: z
+    .string()
+    .url()
+    .refine(isHttpUrl, "Must be an http(s) URL")
+    .optional()
+    .or(z.literal("")),
   cover_image_key: z.string().trim().optional(),
   existing_cover_image_url: z.string().url().optional().or(z.literal("")),
   remove_cover: z.enum(["true", "false"]).default("false"),
@@ -52,10 +64,7 @@ function parseForm(formData: FormData) {
 }
 
 async function syncTags(postId: string, formData: FormData) {
-  const selectedIds = formData
-    .getAll("tag_ids")
-    .map(String)
-    .filter(Boolean);
+  const selectedIds = formData.getAll("tag_ids").map(String).filter(Boolean);
 
   const newTags = String(formData.get("new_tags") || "")
     .split(",")
@@ -114,11 +123,32 @@ async function removeOldCover(url: string) {
   }
 }
 
+/** Validates the optional new cover, then stores it (call after parseForm succeeded). */
+async function takeCover(
+  formData: FormData,
+  ownerId: string,
+  slug: string,
+): Promise<StoredImage | null> {
+  const file = pickImageFile(formData, "cover_image_url_file");
+  if (!file) return null;
+  const problem = checkImageFile(file);
+  if (problem) throw new Error(problem);
+  return storeFormImage(file, ownerId, `${slug}-cover`);
+}
+
 export async function createPost(formData: FormData) {
   const { userId } = await requireAdmin();
   const data = parseForm(formData);
+  const [taken] =
+    await sql`select 1 from posts where slug = ${data.slug} limit 1`;
+  if (taken) throw new Error("Another post already uses this slug.");
 
-  const [post] = await sql`
+  const stored = await takeCover(formData, userId, data.slug);
+  if (stored) data.cover_image_url = stored.url;
+
+  let post;
+  try {
+    [post] = await sql`
     insert into posts (
       author_id,
       category_id,
@@ -147,10 +177,18 @@ export async function createPost(formData: FormData) {
     )
     returning id
   `;
+  } catch (error) {
+    await discardStoredImage(stored);
+    throw error;
+  }
 
   await syncTags(String(post.id), formData);
 
-  await logActivity(userId, { action: "post.create", entity: "post", summary: `Created post “${String(formData.get("title") ?? "").trim()}”` });
+  await logActivity(userId, {
+    action: "post.create",
+    entity: "post",
+    summary: `Created post “${String(formData.get("title") ?? "").trim()}”`,
+  });
   revalidatePath("/admin/posts");
   revalidatePath("/blog");
   redirect("/admin/posts");
@@ -171,13 +209,14 @@ export async function updatePost(id: string, formData: FormData) {
     ? String(oldPost.cover_image_url)
     : "";
 
-  let coverUrl = data.cover_image_url || "";
+  const [taken] = await sql`select 1 from posts where slug = ${data.slug} and id <> ${id} limit 1`;
+  if (taken) throw new Error("Another post already uses this slug.");
 
-  if (data.remove_cover === "true") {
-    coverUrl = "";
-  }
+  const stored = await takeCover(formData, actorId, data.slug);
+  const coverUrl = stored?.url ?? (data.cover_image_url || "");
 
-  await sql`
+  try {
+    await sql`
     update posts
     set
       category_id = ${data.category_id || null},
@@ -200,6 +239,10 @@ export async function updatePost(id: string, formData: FormData) {
       updated_at = now()
     where id = ${id}
   `;
+  } catch (error) {
+    await discardStoredImage(stored);
+    throw error;
+  }
 
   await syncTags(id, formData);
 
@@ -207,7 +250,11 @@ export async function updatePost(id: string, formData: FormData) {
     await removeOldCover(oldCover);
   }
 
-  await logActivity(actorId, { action: "post.update", entity: "post", summary: `Updated post “${String(formData.get("title") ?? "").trim()}”` });
+  await logActivity(actorId, {
+    action: "post.update",
+    entity: "post",
+    summary: `Updated post “${String(formData.get("title") ?? "").trim()}”`,
+  });
   revalidatePath("/admin/posts");
   revalidatePath("/blog");
   redirect("/admin/posts");
@@ -231,7 +278,11 @@ export async function deletePost(id: string) {
     where id = ${id}
   `;
 
-  await logActivity(actorId, { action: "post.delete", entity: "post", summary: `Deleted a post` });
+  await logActivity(actorId, {
+    action: "post.delete",
+    entity: "post",
+    summary: `Deleted a post`,
+  });
   revalidatePath("/admin/posts");
   revalidatePath("/blog");
 }

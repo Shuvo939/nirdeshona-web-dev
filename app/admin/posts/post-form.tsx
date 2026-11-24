@@ -1,8 +1,7 @@
 "use client";
 
-import { uploadMedia } from "@/lib/media-upload";
-import { useState } from "react";
-import Image from "next/image";
+import ImageUploadField from "@/app/admin/image-upload-field";
+import SubmitButton from "@/app/components/submit-button";
 
 type Category = {
   id: string;
@@ -41,53 +40,9 @@ export default function PostForm({
 }: PostFormProps) {
   const v = defaultValues ?? {};
 
-  const [coverUrl, setCoverUrl] = useState(v.cover_image_url ?? "");
-  const [coverKey, setCoverKey] = useState("");
-  const [uploading, setUploading] = useState(false);
-  const [uploadError, setUploadError] = useState<string | null>(null);
-  const [removeCover, setRemoveCover] = useState(false);
-
-  async function handleCoverUpload(
-    event: React.ChangeEvent<HTMLInputElement>
-  ) {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    setUploading(true);
-
-    setUploadError(null);
-    try {
-      const uploaded = await uploadMedia(file);
-      setCoverUrl(uploaded.file_url);
-      setCoverKey(uploaded.key);
-      setRemoveCover(false);
-    } catch (error) {
-      setUploadError(error instanceof Error ? error.message : "Failed to upload cover image.");
-    } finally {
-      setUploading(false);
-    }
-  }
-
-  function removeCoverImage() {
-    setCoverUrl("");
-    setCoverKey("");
-    setRemoveCover(true);
-  }
-
   return (
     <form action={action} className="max-w-4xl space-y-6">
-      <input type="hidden" name="cover_image_url" value={coverUrl} />
-      <input type="hidden" name="cover_image_key" value={coverKey} />
-      <input
-        type="hidden"
-        name="existing_cover_image_url"
-        value={v.cover_image_url ?? ""}
-      />
-      <input
-        type="hidden"
-        name="remove_cover"
-        value={removeCover ? "true" : "false"}
-      />
+      <input type="hidden" name="existing_cover_image_url" value={v.cover_image_url ?? ""} />
 
       <div>
         <label className="block text-sm font-medium">Title</label>
@@ -123,57 +78,13 @@ export default function PostForm({
       </div>
 
       {/* Cover image */}
-      <div>
-        <label className="block text-sm font-medium">Cover Image</label>
-
-        {coverUrl ? (
-          <div className="mt-2 overflow-hidden rounded-xl border border-neutral-200">
-            <div className="relative aspect-[16/9] w-full bg-neutral-100">
-              <Image
-                src={coverUrl}
-                alt="Post cover"
-                fill
-                unoptimized
-                className="object-cover"
-              />
-            </div>
-
-            <div className="flex items-center justify-between border-t border-neutral-200 bg-white p-3">
-              <span className="truncate text-xs text-neutral-500">
-                Cover image uploaded
-              </span>
-
-              <button
-                type="button"
-                onClick={removeCoverImage}
-                className="text-xs font-medium text-red-600 hover:underline"
-              >
-                Remove
-              </button>
-            </div>
-          </div>
-        ) : (
-          <label className="mt-2 flex cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed border-neutral-300 bg-neutral-50 px-6 py-12 text-center transition hover:border-neutral-400 hover:bg-neutral-100">
-            <span className="text-sm font-medium text-neutral-700">
-              {uploading ? "Uploading..." : "Upload cover image"}
-            </span>
-
-            <span className="mt-1 text-xs text-neutral-500">
-              JPG, PNG, WEBP, GIF or AVIF · large photos are compressed automatically
-            </span>
-
-            {uploadError && <span className="mt-2 text-xs font-medium text-red-600">{uploadError}</span>}
-
-            <input
-              type="file"
-              accept="image/jpeg,image/png,image/webp,image/gif,image/avif"
-              onChange={handleCoverUpload}
-              disabled={uploading}
-              className="hidden"
-            />
-          </label>
-        )}
-      </div>
+      <ImageUploadField
+        name="cover_image_url"
+        label="Cover image"
+        initial={v.cover_image_url}
+        variant="cover"
+        hint="Shown on the blog list and at the top of the article. Compressed automatically and uploaded only when you save."
+      />
 
       <div>
         <label className="block text-sm font-medium">Category</label>
@@ -300,13 +211,12 @@ export default function PostForm({
         </div>
       </div>
 
-      <button
-        type="submit"
-        disabled={uploading}
-        className="rounded-lg bg-black px-5 py-2.5 text-sm font-medium text-white transition hover:bg-neutral-800 disabled:cursor-not-allowed disabled:opacity-50"
+      <SubmitButton
+        pendingText="Saving…"
+        className="inline-flex items-center gap-2 rounded-lg bg-black px-5 py-2.5 text-sm font-medium text-white transition hover:bg-neutral-800 disabled:cursor-not-allowed disabled:opacity-60"
       >
-        {uploading ? "Uploading..." : "Save Post"}
-      </button>
+        Save post
+      </SubmitButton>
     </form>
   );
 }

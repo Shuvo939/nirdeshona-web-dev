@@ -11,6 +11,7 @@ import { getTicket, getTicketMessages } from "@/lib/tickets";
 import { replyToTicket, updateTicketMeta } from "../actions";
 import AdminReplyForm from "./admin-reply-form";
 import { requireAdmin } from "@/lib/auth/require-admin";
+import SubmitButton from "@/app/components/submit-button";
 
 export const dynamic = "force-dynamic";
 
@@ -79,9 +80,9 @@ export default async function AdminTicketDetailPage({ params }: { params: Promis
                 ))}
               </select>
             </label>
-            <button type="submit" className="mt-1 h-10 rounded-xl bg-neutral-950 text-sm font-semibold text-white hover:bg-neutral-800">
+            <SubmitButton pendingText="Updating…" className="mt-1 inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-neutral-950 text-sm font-semibold text-white hover:bg-neutral-800 disabled:opacity-70">
               Update ticket
-            </button>
+            </SubmitButton>
           </form>
           <div className="rounded-2xl border border-neutral-200 bg-white p-5 text-sm">
             <dl className="flex flex-col gap-3">

@@ -75,8 +75,8 @@ export default function ReplyForm({
           disabled={pending || uploading}
           className="inline-flex h-10 items-center gap-2 rounded-full bg-neutral-950 px-5 text-sm font-semibold text-white transition hover:bg-neutral-800 disabled:opacity-60"
         >
-          {pending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-          Send
+          {pending || uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+          {uploading ? "Uploading…" : pending ? "Sending…" : "Send"}
         </button>
       </div>
     </form>

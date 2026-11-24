@@ -7,13 +7,10 @@ import { requireAdmin } from "@/lib/auth/require-admin";
 export default async function NewProjectPage() {
   await requireAdmin();
 
-  const clients = await sql`
-    select
-      id,
-      name
-    from clients
-    order by name asc
-  `;
+  const [clients, known] = await Promise.all([
+    sql`select id, name from clients order by name asc`,
+    sql`select name from technologies order by name`,
+  ]);
 
   return (
     <div className="mx-auto w-full max-w-4xl">
@@ -40,6 +37,8 @@ export default async function NewProjectPage() {
 
       <ProjectForm
         action={createProject}
+        knownTechnologies={known.map((t) => String(t.name))}
+        submitLabel="Create project"
         clients={clients.map((client) => ({
           id: client.id,
           name: client.name,

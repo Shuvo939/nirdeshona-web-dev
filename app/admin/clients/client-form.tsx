@@ -1,11 +1,11 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { startTransition, useActionState, useState } from "react";
 import { CheckCircle2, Loader2 } from "lucide-react";
 
 import ImageUploadField from "@/app/admin/image-upload-field";
 
-import type { FormState } from "@/app/(account)/client/actions";
+import type { ClientFormState } from "./actions";
 
 const inputClass =
   "h-11 w-full rounded-xl border border-neutral-200 bg-white px-3.5 text-sm outline-none transition focus:border-neutral-950 focus:ring-2 focus:ring-neutral-950/10";
@@ -21,17 +21,24 @@ export default function ClientForm({
   initial,
   submitLabel,
 }: {
-  action: (prev: FormState, formData: FormData) => Promise<FormState>;
+  action: (prev: ClientFormState, formData: FormData) => Promise<ClientFormState>;
   initial?: Partial<Values>;
   submitLabel: string;
 }) {
-  const [state, formAction, pending] = useActionState(action, {});
+  const [state, formAction, pending] = useActionState(action, {} as ClientFormState);
   const [slug, setSlug] = useState(initial?.slug ?? "");
   const [slugTouched, setSlugTouched] = useState(Boolean(initial?.slug));
   const e = state.fieldErrors ?? {};
 
   return (
-    <form action={formAction} className="flex flex-col gap-5">
+    <form
+      onSubmit={(ev) => {
+        ev.preventDefault();
+        const data = new FormData(ev.currentTarget);
+        startTransition(() => formAction(data));
+      }}
+      className="flex flex-col gap-5"
+    >
       {state.error && <p className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">{state.error}</p>}
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
         <F label="Client name" error={e.name}>
@@ -63,11 +70,12 @@ export default function ClientForm({
         </F>
       </div>
       <ImageUploadField
+        key={state.savedAt ?? "initial"}
         name="logo_url"
         label="Client logo"
-        initial={initial?.logo_url}
+        initial={state.savedAt ? state.logoUrl : initial?.logo_url}
         error={e.logo_url}
-        hint="PNG or SVG with a transparent background works best. Drag a file here or choose one."
+        hint="PNG or SVG with a transparent background works best. Uploaded only when you save."
       />
       <F label="Internal notes" error={e.notes}>
         <textarea name="notes" rows={4} defaultValue={initial?.notes} className={`${inputClass} h-auto py-3`} />

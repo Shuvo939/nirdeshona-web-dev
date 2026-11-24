@@ -10,6 +10,7 @@ import { addClientMember, deleteClient, removeClientMember, saveClient } from ".
 import AddMemberForm from "../add-member-form";
 import ClientForm from "../client-form";
 import { requireAdmin } from "@/lib/auth/require-admin";
+import SubmitButton from "@/app/components/submit-button";
 
 export const dynamic = "force-dynamic";
 
@@ -95,9 +96,7 @@ export default async function AdminClientDetailPage({ params }: { params: Promis
                     <p className="truncate text-xs text-neutral-500">{m.email}</p>
                   </div>
                   <form action={removeClientMember.bind(null, id, m.id)}>
-                    <button type="submit" title="Remove access" className="rounded-lg p-2 text-neutral-400 hover:bg-red-50 hover:text-red-600">
-                      <UserMinus className="h-4 w-4" />
-                    </button>
+                    <SubmitButton title="Remove access" aria-label="Remove access" icon={<UserMinus className="h-4 w-4" />} className="rounded-lg p-2 text-neutral-400 hover:bg-red-50 hover:text-red-600 disabled:opacity-60" />
                   </form>
                 </li>
               ))}

@@ -8,7 +8,7 @@ import { getSessionUser } from "@/lib/auth/session";
 import { sql } from "@/lib/db";
 import { canAccessTicket, getTicket, notifyTicketActivity } from "@/lib/tickets";
 import { parseAttachmentField } from "@/lib/tickets/attachments";
-import { insertAttachments, verifyAttachments } from "@/lib/tickets/save-attachments";
+import { discardUnsentAttachments, insertAttachments, verifyAttachments } from "@/lib/tickets/save-attachments";
 
 export type FormState = {
   error?: string;
@@ -33,7 +33,16 @@ function fieldErrors(error: z.ZodError) {
   return out;
 }
 
-export async function createTicket(_prev: FormState, formData: FormData): Promise<FormState> {
+export async function createTicket(prev: FormState, formData: FormData): Promise<FormState> {
+  const result = await createTicketInner(prev, formData);
+  if (result.error || result.fieldErrors) {
+    const user = await getSessionUser();
+    if (user) await discardUnsentAttachments(formData.get("attachments"), "00000000-0000-0000-0000-000000000000", user.id);
+  }
+  return result;
+}
+
+async function createTicketInner(_prev: FormState, formData: FormData): Promise<FormState> {
   const user = await getSessionUser();
   if (!user) return { error: "Please sign in again." };
 
@@ -101,7 +110,16 @@ const ReplySchema = z.object({
   message: z.string().trim().min(1, "Write a message first").max(5000, "Message is too long"),
 });
 
-export async function replyToTicketAsClient(ticketId: string, _prev: FormState, formData: FormData): Promise<FormState> {
+export async function replyToTicketAsClient(ticketId: string, prev: FormState, formData: FormData): Promise<FormState> {
+  const result = await replyAsClientInner(ticketId, prev, formData);
+  if (result.error || result.fieldErrors) {
+    const user = await getSessionUser();
+    if (user) await discardUnsentAttachments(formData.get("attachments"), ticketId, user.id);
+  }
+  return result;
+}
+
+async function replyAsClientInner(ticketId: string, _prev: FormState, formData: FormData): Promise<FormState> {
   const user = await getSessionUser();
   if (!user) return { error: "Please sign in again." };
 
