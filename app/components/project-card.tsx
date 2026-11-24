@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowUpRight, Layers3 } from "lucide-react";
+import { ArrowUpRight, Layers3, Star } from "lucide-react";
 
 import { PROJECT_STATUS, StatusBadge } from "@/app/components/marketing";
 
@@ -13,6 +13,8 @@ export type ProjectCardData = {
   progress_percent: number;
   cover_image_url: string | null;
   client_name?: string | null;
+  technologies?: string[] | null;
+  featured?: boolean;
 };
 
 export default function ProjectCard({ project }: { project: ProjectCardData }) {
@@ -36,7 +38,14 @@ export default function ProjectCard({ project }: { project: ProjectCardData }) {
           </div>
         )}
         <div className="absolute inset-x-0 top-0 flex items-start justify-between p-4">
-          <StatusBadge map={PROJECT_STATUS} value={project.status} />
+          <div className="flex flex-wrap gap-1.5">
+            <StatusBadge map={PROJECT_STATUS} value={project.status} />
+            {project.featured && (
+              <span className="inline-flex items-center gap-1 rounded-full bg-neutral-950/85 px-2.5 py-1 text-[11px] font-semibold text-white backdrop-blur">
+                <Star className="h-3 w-3 fill-amber-300 text-amber-300" /> Featured
+              </span>
+            )}
+          </div>
           <span className="flex h-8 w-8 items-center justify-center rounded-full bg-white/90 text-neutral-600 opacity-0 shadow-sm transition group-hover:opacity-100">
             <ArrowUpRight className="h-4 w-4" />
           </span>
@@ -47,6 +56,16 @@ export default function ProjectCard({ project }: { project: ProjectCardData }) {
         {project.client_name && <p className="mt-1 text-xs text-neutral-400">{project.client_name}</p>}
         {project.short_description && (
           <p className="mt-3 line-clamp-2 flex-1 text-sm leading-6 text-neutral-500">{project.short_description}</p>
+        )}
+        {project.technologies && project.technologies.length > 0 && (
+          <div className="mt-4 flex flex-wrap gap-1.5">
+            {project.technologies.slice(0, 4).map((t) => (
+              <span key={t} className="rounded-md border border-neutral-200 px-2 py-0.5 text-[11px] text-neutral-500">
+                {t}
+              </span>
+            ))}
+            {project.technologies.length > 4 && <span className="px-1 py-0.5 text-[11px] text-neutral-400">+{project.technologies.length - 4}</span>}
+          </div>
         )}
         <div className="mt-5 flex items-center justify-between gap-3">
           {project.category ? (

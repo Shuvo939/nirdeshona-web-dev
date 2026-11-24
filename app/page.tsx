@@ -16,8 +16,10 @@ import {
   Rocket,
   Smartphone,
   Sparkles,
+  Users,
 } from "lucide-react";
 
+import CountUp from "@/app/components/home/count-up";
 import HeroSearch from "@/app/components/home/hero-search";
 import { FaqList, ServiceCard } from "@/app/components/marketing";
 import ProjectCard, { type ProjectCardData } from "@/app/components/project-card";
@@ -162,11 +164,24 @@ export default async function HomePage() {
           </div>
 
           {/* Stats */}
-          <div className="mt-16 grid grid-cols-2 gap-y-6 border-y border-neutral-200 py-7 sm:mt-20 sm:grid-cols-4 sm:divide-x sm:divide-neutral-200">
-            <Stat value={`${stats.total}+`} label="Projects delivered & active" />
-            <Stat value={String(stats.clients)} label="Clients served" />
-            <Stat value={`${years}+ yrs`} label="Of Nirdeshona" />
-            <Stat value="< 24h" label="Typical support reply" />
+          <div className="mt-16 grid grid-cols-2 gap-3 sm:mt-20 lg:grid-cols-4">
+            <StatCard icon={<FolderKanban className="h-5 w-5" />} value={<CountUp value={stats.total} suffix="+" />} label="Projects">
+              <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-neutral-100">
+                <div className="h-full rounded-full bg-emerald-500" style={{ width: `${stats.total ? Math.round((stats.completed / stats.total) * 100) : 0}%` }} />
+              </div>
+              <p className="mt-2 text-[11px] text-neutral-500">
+                {stats.completed} launched · {stats.active} in progress
+              </p>
+            </StatCard>
+            <StatCard icon={<Users className="h-5 w-5" />} value={<CountUp value={stats.clients} />} label="Clients served">
+              <p className="mt-3 text-[11px] text-neutral-500">Organisations, businesses &amp; individuals</p>
+            </StatCard>
+            <StatCard icon={<Layers3 className="h-5 w-5" />} value={<CountUp value={allTech.length} suffix="+" />} label="Technologies">
+              <p className="mt-3 text-[11px] text-neutral-500">Next.js, WordPress, Supabase &amp; more</p>
+            </StatCard>
+            <StatCard icon={<Clock className="h-5 w-5" />} value={<span>&lt; 24h</span>} label="Support reply" dark>
+              <p className="mt-3 text-[11px] text-neutral-400">Since 2022 · {years}+ years of Nirdeshona</p>
+            </StatCard>
           </div>
         </div>
       </section>
@@ -448,11 +463,29 @@ function Heading({
   );
 }
 
-function Stat({ value, label }: { value: string; label: string }) {
+function StatCard({
+  icon,
+  value,
+  label,
+  dark = false,
+  children,
+}: {
+  icon: React.ReactNode;
+  value: React.ReactNode;
+  label: string;
+  dark?: boolean;
+  children?: React.ReactNode;
+}) {
   return (
-    <div className="px-2 text-center sm:px-6">
-      <p className="text-3xl font-bold tracking-[-0.04em] sm:text-4xl">{value}</p>
-      <p className="mt-1 text-xs text-neutral-500 sm:text-sm">{label}</p>
+    <div
+      className={`flex flex-col rounded-3xl border p-4 transition hover:-translate-y-0.5 sm:p-5 ${
+        dark ? "border-neutral-950 bg-neutral-950 text-white" : "border-neutral-200 bg-white hover:shadow-[0_16px_40px_rgba(0,0,0,0.06)]"
+      }`}
+    >
+      <span className={`flex h-9 w-9 items-center justify-center rounded-xl ${dark ? "bg-white/10 text-emerald-300" : "bg-neutral-100 text-neutral-800"}`}>{icon}</span>
+      <p className="mt-4 text-3xl font-bold tracking-[-0.04em] sm:text-4xl">{value}</p>
+      <p className={`mt-0.5 text-sm font-medium ${dark ? "text-neutral-300" : "text-neutral-700"}`}>{label}</p>
+      <div className="mt-auto">{children}</div>
     </div>
   );
 }
