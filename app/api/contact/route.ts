@@ -1,5 +1,7 @@
 import crypto from "node:crypto";
 import { NextResponse } from "next/server";
+
+import { isAllowedOrigin } from "@/lib/same-origin";
 import { z } from "zod";
 
 import { verifyCaptcha } from "@/lib/captcha";
@@ -49,27 +51,6 @@ const ContactSchema = z.object({
    ORIGIN CHECK
 ============================================================ */
 
-function isAllowedOrigin(request: Request) {
-  const origin = request.headers.get("origin");
-
-  if (!origin) {
-    return true;
-  }
-
-  const allowedOrigins = new Set(
-    [
-      process.env.NEXT_PUBLIC_SITE_URL,
-      "https://nirdeshona.com",
-      "https://www.nirdeshona.com",
-      "http://localhost:3000",
-      "http://127.0.0.1:3000",
-    ]
-      .filter(Boolean)
-      .map((value) => value!.replace(/\/+$/, ""))
-  );
-
-  return allowedOrigins.has(origin.replace(/\/+$/, ""));
-}
 
 /* ============================================================
    ATTACHMENT VERIFICATION
