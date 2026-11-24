@@ -1,4 +1,5 @@
 import Link from "next/link";
+import ImageUploadField from "@/app/admin/image-upload-field";
 import { PROJECT_CATEGORIES } from "@/lib/projects/categories";
 
 const STATUSES = [
@@ -244,27 +245,13 @@ export default function ProjectForm({
           </p>
         </div>
 
-        <div>
-          <label
-            htmlFor="cover_image_url"
-            className="block text-sm font-medium text-neutral-900"
-          >
-            Cover image URL
-          </label>
-
-          <input
-            id="cover_image_url"
-            name="cover_image_url"
-            type="url"
-            defaultValue={v.cover_image_url}
-            placeholder="https://..."
-            className="mt-2 w-full rounded-xl border border-neutral-200 bg-white px-4 py-3 text-sm outline-none transition placeholder:text-neutral-400 focus:border-neutral-400 focus:ring-4 focus:ring-neutral-100"
-          />
-
-          <p className="mt-2 text-xs text-neutral-400">
-            The primary image for this project.
-          </p>
-        </div>
+        <ImageUploadField
+          name="cover_image_url"
+          label="Cover image"
+          initial={v.cover_image_url}
+          variant="cover"
+          hint="Shown on project cards and at the top of the project page. A 16:10 desktop screenshot (about 1600×1000) looks best — large files are compressed automatically."
+        />
       </section>
 
       {/* =====================================================
