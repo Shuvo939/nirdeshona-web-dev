@@ -33,7 +33,7 @@ export async function POST(request: Request) {
     // Square-crop, resize and re-encode: strips metadata and keeps avatars small.
     body = await sharp(Buffer.from(await file.arrayBuffer()))
       .rotate()
-      .resize(320, 320, { fit: "cover", position: "attention" })
+      .resize(400, 400, { fit: "cover", position: "attention" })
       .webp({ quality: 82 })
       .toBuffer();
   } catch {

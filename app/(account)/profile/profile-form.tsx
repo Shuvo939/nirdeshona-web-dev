@@ -1,10 +1,11 @@
 "use client";
 
 import { compressImage } from "@/lib/image-compress";
-import { useActionState, useRef, useState } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Camera, CheckCircle2, Loader2, Trash2 } from "lucide-react";
 
+import AvatarCropper from "@/app/components/avatar-cropper";
 import { updateProfile } from "@/app/account-actions";
 import type { FormState } from "@/app/(account)/client/actions";
 
@@ -24,31 +25,45 @@ export default function ProfileForm({
   const [uploading, setUploading] = useState(false);
   const [avatarError, setAvatarError] = useState<string | null>(null);
   const [bioLength, setBioLength] = useState(initial.bio.length);
+  const [cropSrc, setCropSrc] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
-  const errors = state.fieldErrors ?? {};
 
-  async function upload(original: File) {
+  useEffect(() => () => {
+    if (cropSrc) URL.revokeObjectURL(cropSrc);
+  }, [cropSrc]);
+
+  async function pick(original: File) {
     setAvatarError(null);
-    setUploading(true);
-    let file = original;
-    try {
-      // Any size is fine: shrink in the browser first (avatars end up 320 px anyway).
-      file = await compressImage(original, { maxBytes: 3 * 1024 * 1024, maxEdge: 1200 });
-    } catch (e) {
-      setUploading(false);
-      setAvatarError(e instanceof Error ? e.message : "Couldn't process that image.");
+    if (!original.type.startsWith("image/")) {
+      setAvatarError("Please choose an image file.");
       return;
     }
+    setUploading(true);
+    try {
+      // Shrink huge photos first so the editor stays smooth on phones.
+      const file = await compressImage(original, { maxBytes: 4 * 1024 * 1024, maxEdge: 2000 });
+      setCropSrc(URL.createObjectURL(file));
+    } catch (e) {
+      setAvatarError(e instanceof Error ? e.message : "Couldn't open that image.");
+    } finally {
+      setUploading(false);
+    }
+  }
+  const errors = state.fieldErrors ?? {};
+
+  async function upload(file: File) {
+    setAvatarError(null);
+    setUploading(true);
     const data = new FormData();
     data.append("file", file);
     const res = await fetch("/api/account/avatar", { method: "POST", body: data });
     const json = await res.json().catch(() => ({}));
     setUploading(false);
     if (!res.ok) {
-      setAvatarError(json.error ?? "Upload failed. Please try again.");
-      return;
+      throw new Error(json.error ?? "Upload failed. Please try again.");
     }
     setAvatar(json.url);
+    setCropSrc(null);
     router.refresh();
   }
 
@@ -65,7 +80,13 @@ export default function ProfileForm({
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-col items-start gap-5 rounded-3xl border border-neutral-200 bg-white p-5 sm:flex-row sm:items-center sm:p-6">
-        <div className="relative">
+        <button
+          type="button"
+          onClick={() => fileRef.current?.click()}
+          disabled={uploading}
+          aria-label={avatar ? "Change profile photo" : "Upload profile photo"}
+          className="group relative rounded-full"
+        >
           <div className="flex h-24 w-24 items-center justify-center overflow-hidden rounded-full bg-neutral-100 text-3xl font-semibold text-neutral-600 ring-4 ring-white shadow">
             {avatar ? (
               // eslint-disable-next-line @next/next/no-img-element
@@ -74,15 +95,19 @@ export default function ProfileForm({
               initials
             )}
           </div>
-          {uploading && (
+          {uploading ? (
             <div className="absolute inset-0 flex items-center justify-center rounded-full bg-white/70">
               <Loader2 className="h-6 w-6 animate-spin" />
             </div>
+          ) : (
+            <span className="absolute bottom-0 right-0 flex h-8 w-8 items-center justify-center rounded-full border-2 border-white bg-neutral-950 text-white shadow transition group-hover:scale-110">
+              <Camera className="h-3.5 w-3.5" />
+            </span>
           )}
-        </div>
+        </button>
         <div>
           <p className="text-sm font-semibold text-neutral-950">Profile photo</p>
-          <p className="mt-1 text-xs text-neutral-500">JPG, PNG or WebP — any size, we compress it for you. It will be cropped to a square.</p>
+          <p className="mt-1 text-xs text-neutral-500">JPG, PNG or WebP — any size. Crop, zoom, rotate and flip before saving.</p>
           <div className="mt-3 flex gap-2">
             <button
               type="button"
@@ -111,12 +136,14 @@ export default function ProfileForm({
             className="hidden"
             onChange={(e) => {
               const file = e.target.files?.[0];
-              if (file) upload(file);
+              if (file) pick(file);
               e.target.value = "";
             }}
           />
         </div>
       </div>
+
+      {cropSrc && <AvatarCropper src={cropSrc} onCancel={() => setCropSrc(null)} onSave={upload} />}
 
       {between}
 
