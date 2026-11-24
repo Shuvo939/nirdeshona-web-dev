@@ -1,541 +1,448 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { sql } from "@/lib/db";
+import { cache } from "react";
 import {
+  ArrowLeft,
+  ArrowRight,
   ArrowUpRight,
+  Building2,
   CalendarDays,
-  CheckCircle2,
-  Clock3,
-  ExternalLink,
-  PauseCircle,
-  RefreshCw,
-  Eye,
+  ChevronRight,
   Code2,
-  FolderKanban,
+  Globe,
+  Layers3,
+  MessageSquare,
+  Star,
+  Timer,
 } from "lucide-react";
 
-type Props = {
-  params: Promise<{
-    slug: string;
-  }>;
+import { renderMarkdown } from "@/app/components/blog/markdown";
+import { PROJECT_STATUS, StatusBadge } from "@/app/components/marketing";
+import ProjectCard, { type ProjectCardData } from "@/app/components/project-card";
+import ProjectGallery from "@/app/components/projects/project-gallery";
+import ShareButton from "@/app/components/projects/share-button";
+import { sql } from "@/lib/db";
+import { jsonLd } from "@/lib/json-ld";
+import { isHttpUrl } from "@/lib/safe-url";
+import { services, site } from "@/lib/site";
+
+type Props = { params: Promise<{ slug: string }> };
+
+type Project = {
+  id: string;
+  slug: string;
+  title: string;
+  short_description: string | null;
+  description: string | null;
+  category: string | null;
+  status: string;
+  progress_percent: number;
+  featured: boolean;
+  cover_image_url: string | null;
+  live_url: string | null;
+  repository_url: string | null;
+  started_at: string | null;
+  completed_at: string | null;
+  updated_at: string;
+  client_name: string | null;
+  client_logo: string | null;
 };
 
-const STATUS_CONFIG: Record<
-  string,
-  {
-    label: string;
-    icon: typeof Clock3;
-    className: string;
-  }
-> = {
-  PLANNED: {
-    label: "Planned",
-    icon: Clock3,
-    className: "bg-neutral-100 text-neutral-700",
-  },
-  IN_PROGRESS: {
-    label: "In Progress",
-    icon: RefreshCw,
-    className: "bg-blue-50 text-blue-700",
-  },
-  REVIEW: {
-    label: "Review",
-    icon: Eye,
-    className: "bg-amber-50 text-amber-700",
-  },
-  COMPLETED: {
-    label: "Completed",
-    icon: CheckCircle2,
-    className: "bg-emerald-50 text-emerald-700",
-  },
-  ON_HOLD: {
-    label: "On Hold",
-    icon: PauseCircle,
-    className: "bg-orange-50 text-orange-700",
-  },
-};
-
-export async function generateMetadata({ params }: Props) {
-  const { slug } = await params;
-
-  const result = await sql`
-    select
-      title,
-      short_description
-    from projects
-    where slug = ${slug}
+const getProject = cache(async (slug: string) => {
+  const [project] = (await sql`
+    select p.id, p.slug, p.title, p.short_description, p.description, p.category, p.status::text as status,
+           p.progress_percent, p.featured, p.cover_image_url, p.live_url, p.repository_url,
+           p.started_at::text as started_at, p.completed_at::text as completed_at, p.updated_at,
+           c.name as client_name, c.logo_url as client_logo
+    from projects p left join clients c on c.id = p.client_id
+    where p.slug = ${slug}
     limit 1
-  `;
+  `) as unknown as Project[];
+  return project ?? null;
+});
 
-  const project = result[0];
-
-  if (!project) {
-    return {
-      title: "Project Not Found | Nirdeshona",
-    };
-  }
-
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { slug } = await params;
+  const project = await getProject(slug);
+  if (!project) return { title: "Project not found — Nirdeshona Web" };
+  const description = project.short_description || `${project.title} — a project by Nirdeshona Web Development.`;
   return {
-    title: `${project.title} | Nirdeshona`,
-    description:
-      project.short_description ||
-      `View ${project.title} — a project by Nirdeshona.`,
+    title: `${project.title} — Nirdeshona Web`,
+    description,
+    alternates: { canonical: `/projects/${project.slug}` },
+    openGraph: {
+      title: project.title,
+      description,
+      type: "article",
+      images: project.cover_image_url ? [{ url: project.cover_image_url }] : undefined,
+    },
   };
 }
 
-export default async function ProjectDetailsPage({
-  params,
-}: Props) {
-  const { slug } = await params;
+const fmt = (value: string | null) =>
+  value ? new Intl.DateTimeFormat("en-GB", { month: "short", year: "numeric", timeZone: "Asia/Dhaka" }).format(new Date(value)) : null;
 
-  const projectResult = await sql`
-    select
-      p.id,
-      p.client_id,
-      p.slug,
-      p.title,
-      p.short_description,
-      p.description,
-      p.category,
-      p.status,
-      p.progress_percent,
-      p.featured,
-      p.cover_image_url,
-      p.live_url,
-      p.repository_url,
-      p.started_at,
-      p.completed_at,
-      p.created_at,
-      p.updated_at,
-      c.name as client_name
-    from projects p
-    left join clients c
-      on c.id = p.client_id
-    where p.slug = ${slug}
-    limit 1
-  `;
+function duration(start: string | null, end: string | null) {
+  if (!start) return null;
+  const from = new Date(start);
+  const to = end ? new Date(end) : new Date();
+  const days = Math.max(1, Math.round((to.getTime() - from.getTime()) / 86_400_000));
+  if (days < 14) return `${days} day${days > 1 ? "s" : ""}`;
+  if (days < 60) return `${Math.round(days / 7)} weeks`;
+  const months = Math.round(days / 30.4);
+  return `${months} month${months > 1 ? "s" : ""}`;
+}
 
-  const project = projectResult[0];
-
-  if (!project) {
-    notFound();
+function hostOf(url: string | null) {
+  if (!url) return null;
+  try {
+    return new URL(url).host.replace(/^www\./, "");
+  } catch {
+    return null;
   }
+}
 
-  const media = await sql`
-    select
-      id,
-      file_url,
-      file_key,
-      caption,
-      sort_order
-    from project_media
-    where project_id = ${project.id}
-    order by sort_order asc, created_at asc
-  `;
+export default async function ProjectDetailsPage({ params }: Props) {
+  const { slug } = await params;
+  const project = await getProject(slug);
+  if (!project) notFound();
 
-  const technologies = await sql`
-    select
-      t.id,
-      t.name
-    from project_technologies pt
-    inner join technologies t
-      on t.id = pt.technology_id
-    where pt.project_id = ${project.id}
-    order by t.name asc
-  `;
+  const [media, technologies, related, siblings] = await Promise.all([
+    sql`
+      select id, file_url, caption from project_media
+      where project_id = ${project.id}
+      order by sort_order asc, created_at asc
+    ` as unknown as Promise<{ id: string; file_url: string; caption: string | null }[]>,
+    sql`
+      select t.name from project_technologies pt join technologies t on t.id = pt.technology_id
+      where pt.project_id = ${project.id} order by t.name asc
+    ` as unknown as Promise<{ name: string }[]>,
+    sql`
+      select p.id, p.slug, p.title, p.short_description, p.category, p.status::text as status, p.progress_percent,
+             p.cover_image_url, p.featured, c.name as client_name
+      from projects p left join clients c on c.id = p.client_id
+      where p.id <> ${project.id}
+      order by (p.category is not distinct from ${project.category}) desc, p.featured desc,
+               coalesce(p.completed_at, p.started_at, p.created_at::date) desc
+      limit 3
+    ` as unknown as Promise<ProjectCardData[]>,
+    sql`
+      select slug, title from projects
+      order by featured desc, coalesce(completed_at, started_at, created_at::date) desc, id
+    ` as unknown as Promise<{ slug: string; title: string }[]>,
+  ]);
 
-  const status =
-    STATUS_CONFIG[project.status] ??
-    STATUS_CONFIG.PLANNED;
+  const index = siblings.findIndex((s) => s.slug === project.slug);
+  const prev = index > 0 ? siblings[index - 1] : null;
+  const next = index >= 0 && index < siblings.length - 1 ? siblings[index + 1] : null;
 
-  const StatusIcon = status.icon;
+  const tech = technologies.map((t) => t.name);
+  const liveUrl = project.live_url && isHttpUrl(project.live_url) ? project.live_url : null;
+  const repoUrl = project.repository_url && isHttpUrl(project.repository_url) ? project.repository_url : null;
+  const host = hostOf(liveUrl);
+  const completed = project.status === "COMPLETED";
+  const timeTaken = duration(project.started_at, project.completed_at);
+  const matchedService = services.find(
+    (s) => project.category && (s.title.toLowerCase().includes(project.category.toLowerCase()) || project.category.toLowerCase().includes(s.title.split(" ")[0].toLowerCase())),
+  );
 
-  const formatDate = (value: string | Date | null) => {
-    if (!value) return null;
+  const facts = [
+    project.client_name && { icon: Building2, label: "Client", value: project.client_name },
+    project.category && { icon: Layers3, label: "Category", value: project.category },
+    (project.started_at || project.completed_at) && {
+      icon: CalendarDays,
+      label: completed ? "Launched" : "Started",
+      value: fmt(completed ? project.completed_at ?? project.started_at : project.started_at) ?? "—",
+    },
+    timeTaken && { icon: Timer, label: completed ? "Delivered in" : "Running for", value: timeTaken },
+  ].filter(Boolean) as { icon: typeof Building2; label: string; value: string }[];
 
-    return new Intl.DateTimeFormat("en-US", {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-    }).format(new Date(value));
+  const schema = {
+    "@context": "https://schema.org",
+    "@type": "CreativeWork",
+    name: project.title,
+    description: project.short_description ?? undefined,
+    url: `${site.url.replace(/\/$/, "")}/projects/${project.slug}`,
+    image: project.cover_image_url ?? undefined,
+    dateCreated: project.started_at ?? undefined,
+    datePublished: project.completed_at ?? undefined,
+    creator: { "@type": "Organization", name: site.legalName ?? site.name, url: site.url },
+    keywords: tech.join(", ") || undefined,
   };
 
   return (
-    <main className="min-h-screen bg-neutral-50">
-      {/* =====================================================
-          HERO
-      ====================================================== */}
+    <main className="bg-white">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(schema) }} />
 
-      <section className="border-b border-neutral-200 bg-white">
-        <div className="mx-auto w-full max-w-6xl px-4 py-12 sm:px-6 sm:py-16 lg:py-20">
-          <div className="max-w-3xl">
-            {/* Status / Category */}
+      {/* Hero */}
+      <section className="relative overflow-hidden border-b border-neutral-200 bg-neutral-50">
+        <div aria-hidden className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_0%,rgba(16,185,129,0.08),transparent_45%),radial-gradient(circle_at_90%_10%,rgba(0,0,0,0.05),transparent_40%)]" />
+        <div className="relative mx-auto max-w-7xl px-4 pb-12 pt-8 sm:px-6 sm:pt-10 lg:px-8">
+          <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-xs text-neutral-500">
+            <Link href="/" className="hover:text-neutral-950">Home</Link>
+            <ChevronRight className="h-3 w-3" />
+            <Link href="/projects" className="hover:text-neutral-950">Our work</Link>
+            <ChevronRight className="h-3 w-3" />
+            <span className="truncate text-neutral-800">{project.title}</span>
+          </nav>
 
-            <div className="flex flex-wrap items-center gap-2">
-              {project.category && (
-                <span className="rounded-full bg-neutral-100 px-3 py-1.5 text-xs font-medium text-neutral-700">
-                  {project.category}
-                </span>
+          <div className="mt-8 grid grid-cols-1 gap-10 lg:grid-cols-[1.05fr_1fr] lg:items-center">
+            <div className="min-w-0">
+              <div className="flex flex-wrap items-center gap-2">
+                <StatusBadge map={PROJECT_STATUS} value={project.status} />
+                {project.category && (
+                  <Link href={`/projects?category=${encodeURIComponent(project.category)}`} className="rounded-full border border-neutral-200 bg-white px-3 py-1 text-xs font-medium text-neutral-700 hover:border-neutral-300">
+                    {project.category}
+                  </Link>
+                )}
+                {project.featured && (
+                  <span className="inline-flex items-center gap-1 rounded-full bg-neutral-950 px-3 py-1 text-xs font-semibold text-white">
+                    <Star className="h-3 w-3 fill-amber-300 text-amber-300" /> Featured
+                  </span>
+                )}
+              </div>
+
+              <h1 className="mt-5 text-4xl font-bold tracking-[-0.04em] text-neutral-950 sm:text-5xl">{project.title}</h1>
+              {project.client_name && (
+                <p className="mt-3 flex items-center gap-2 text-sm text-neutral-500">
+                  <ClientMark name={project.client_name} logo={project.client_logo} />
+                  for <span className="font-medium text-neutral-800">{project.client_name}</span>
+                </p>
+              )}
+              {project.short_description && <p className="mt-5 max-w-xl text-lg leading-8 text-neutral-600">{project.short_description}</p>}
+
+              {!completed && (
+                <div className="mt-6 max-w-sm">
+                  <div className="flex items-center justify-between text-xs font-medium text-neutral-600">
+                    <span>Progress</span>
+                    <span>{project.progress_percent}%</span>
+                  </div>
+                  <div className="mt-2 h-2 overflow-hidden rounded-full bg-neutral-200">
+                    <div className="h-full rounded-full bg-gradient-to-r from-neutral-800 to-emerald-500" style={{ width: `${project.progress_percent}%` }} />
+                  </div>
+                </div>
               )}
 
-              <span
-                className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium ${status.className}`}
-              >
-                <StatusIcon className="h-3.5 w-3.5" />
-                {status.label}
-              </span>
-
-              {project.featured && (
-                <span className="rounded-full bg-black px-3 py-1.5 text-xs font-medium text-white">
-                  Featured
-                </span>
-              )}
+              <div className="mt-8 flex flex-wrap gap-3">
+                {liveUrl && (
+                  <a href={liveUrl} target="_blank" rel="noopener noreferrer" className="inline-flex h-11 items-center gap-2 rounded-full bg-neutral-950 px-5 text-sm font-semibold text-white transition hover:bg-neutral-800">
+                    <Globe className="h-4 w-4" /> Visit website <ArrowUpRight className="h-4 w-4" />
+                  </a>
+                )}
+                {repoUrl && (
+                  <a href={repoUrl} target="_blank" rel="noopener noreferrer" className="inline-flex h-11 items-center gap-2 rounded-full border border-neutral-200 bg-white px-5 text-sm font-semibold text-neutral-800 hover:border-neutral-300">
+                    <Code2 className="h-4 w-4" /> Source
+                  </a>
+                )}
+                <ShareButton
+                  title={project.title}
+                  className="inline-flex h-11 items-center gap-2 rounded-full border border-neutral-200 bg-white px-5 text-sm font-semibold text-neutral-800 hover:border-neutral-300"
+                />
+              </div>
             </div>
 
-            {/* Title */}
-
-            <h1 className="mt-6 text-4xl font-bold tracking-tight text-neutral-950 sm:text-5xl lg:text-6xl">
-              {project.title}
-            </h1>
-
-            {/* Short description */}
-
-            {project.short_description && (
-              <p className="mt-6 max-w-2xl text-lg leading-8 text-neutral-600 sm:text-xl">
-                {project.short_description}
-              </p>
-            )}
-
-            {/* Actions */}
-
-            <div className="mt-8 flex flex-wrap gap-3">
-              {project.live_url && (
-                <a
-                  href={project.live_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex h-11 items-center gap-2 rounded-xl bg-black px-5 text-sm font-medium text-white transition hover:bg-neutral-800"
-                >
-                  Visit project
-                  <ArrowUpRight className="h-4 w-4" />
-                </a>
-              )}
-
-              {project.repository_url && (
-                <a
-                  href={project.repository_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex h-11 items-center gap-2 rounded-xl border border-neutral-200 bg-white px-5 text-sm font-medium text-neutral-700 transition hover:bg-neutral-50 hover:text-neutral-950"
-                >
-                  <Code2 className="h-4 w-4" />
-                  Repository
-                </a>
-              )}
+            {/* Browser frame */}
+            <div className="min-w-0">
+              <div className="overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-[0_30px_80px_rgba(0,0,0,0.12)]">
+                <div className="flex items-center gap-3 border-b border-neutral-200 bg-neutral-50 px-4 py-2.5">
+                  <span className="flex gap-1.5">
+                    <span className="h-2.5 w-2.5 rounded-full bg-red-400" />
+                    <span className="h-2.5 w-2.5 rounded-full bg-amber-400" />
+                    <span className="h-2.5 w-2.5 rounded-full bg-emerald-400" />
+                  </span>
+                  <span className="min-w-0 flex-1 truncate rounded-md bg-white px-3 py-1 text-center text-[11px] text-neutral-500">{host ?? project.slug}</span>
+                </div>
+                <div className="aspect-[16/10] bg-neutral-100">
+                  {project.cover_image_url ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={project.cover_image_url} alt={project.title} className="h-full w-full object-cover object-top" />
+                  ) : (
+                    <div className="flex h-full items-center justify-center">
+                      <Layers3 className="h-12 w-12 text-neutral-300" />
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
+
+          {facts.length > 0 && (
+            <dl className="mt-12 grid grid-cols-2 gap-3 lg:grid-cols-4">
+              {facts.map((f) => (
+                <div key={f.label} className="rounded-2xl border border-neutral-200 bg-white p-4">
+                  <dt className="flex items-center gap-1.5 text-xs text-neutral-500">
+                    <f.icon className="h-3.5 w-3.5" /> {f.label}
+                  </dt>
+                  <dd className="mt-1.5 truncate text-sm font-semibold text-neutral-950">{f.value}</dd>
+                </div>
+              ))}
+            </dl>
+          )}
         </div>
       </section>
 
-      {/* =====================================================
-          COVER IMAGE
-      ====================================================== */}
+      {/* Body */}
+      <section className="mx-auto grid max-w-7xl grid-cols-1 gap-10 px-4 py-14 sm:px-6 lg:grid-cols-[minmax(0,1fr)_320px] lg:px-8">
+        <div className="flex min-w-0 flex-col gap-12">
+          <div>
+            <h2 className="text-xs font-semibold uppercase tracking-[0.16em] text-neutral-400">Overview</h2>
+            {project.description ? (
+              <div className="mt-4 text-[15px] leading-7 text-neutral-700 sm:text-base" dangerouslySetInnerHTML={{ __html: renderMarkdown(project.description) }} />
+            ) : (
+              <p className="mt-4 text-neutral-600">{project.short_description ?? "Details for this project are coming soon."}</p>
+            )}
+          </div>
 
-      {project.cover_image_url && (
-        <section className="border-b border-neutral-200 bg-neutral-50">
-          <div className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 sm:py-12">
-            <div className="overflow-hidden rounded-3xl border border-neutral-200 bg-white shadow-sm">
-              <img
-                src={project.cover_image_url}
-                alt={project.title}
-                className="block aspect-[16/8] w-full object-cover object-top"
-              />
+          {media.length > 0 && (
+            <div>
+              <div className="flex items-end justify-between gap-3">
+                <h2 className="text-xs font-semibold uppercase tracking-[0.16em] text-neutral-400">Gallery</h2>
+                <span className="text-xs text-neutral-400">
+                  {media.length} image{media.length > 1 ? "s" : ""} · click to enlarge
+                </span>
+              </div>
+              <div className="mt-4">
+                <ProjectGallery items={media} title={project.title} />
+              </div>
             </div>
+          )}
+
+          {tech.length > 0 && (
+            <div>
+              <h2 className="text-xs font-semibold uppercase tracking-[0.16em] text-neutral-400">Built with</h2>
+              <div className="mt-4 flex flex-wrap gap-2">
+                {tech.map((t) => (
+                  <Link
+                    key={t}
+                    href={`/projects?tech=${encodeURIComponent(t)}`}
+                    className="rounded-full border border-neutral-200 bg-white px-3.5 py-1.5 text-sm text-neutral-700 transition hover:border-neutral-950 hover:text-neutral-950"
+                    title={`More projects built with ${t}`}
+                  >
+                    {t}
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+
+        <aside className="flex flex-col gap-4 lg:sticky lg:top-24 lg:self-start">
+          <div className="rounded-3xl border border-neutral-200 bg-white p-5">
+            <h3 className="text-sm font-semibold text-neutral-950">Project details</h3>
+            <dl className="mt-4 flex flex-col divide-y divide-neutral-100 text-sm">
+              <Row label="Status">
+                <StatusBadge map={PROJECT_STATUS} value={project.status} />
+              </Row>
+              {project.started_at && <Row label="Started">{fmt(project.started_at)}</Row>}
+              {project.completed_at && <Row label="Completed">{fmt(project.completed_at)}</Row>}
+              {timeTaken && <Row label="Duration">{timeTaken}</Row>}
+              {tech.length > 0 && <Row label="Technologies">{tech.length}</Row>}
+              <Row label="Last updated">{fmt(project.updated_at)}</Row>
+            </dl>
+            {(liveUrl || repoUrl) && (
+              <div className="mt-4 flex flex-col gap-2">
+                {liveUrl && (
+                  <a href={liveUrl} target="_blank" rel="noopener noreferrer" className="flex items-center justify-between rounded-xl bg-neutral-50 px-3.5 py-2.5 text-sm font-medium text-neutral-800 hover:bg-neutral-100">
+                    <span className="truncate">{host}</span>
+                    <ArrowUpRight className="h-4 w-4 shrink-0" />
+                  </a>
+                )}
+                {repoUrl && (
+                  <a href={repoUrl} target="_blank" rel="noopener noreferrer" className="flex items-center justify-between rounded-xl bg-neutral-50 px-3.5 py-2.5 text-sm font-medium text-neutral-800 hover:bg-neutral-100">
+                    <span>Repository</span>
+                    <Code2 className="h-4 w-4 shrink-0" />
+                  </a>
+                )}
+              </div>
+            )}
+          </div>
+
+          <div className="rounded-3xl bg-neutral-950 p-6 text-white">
+            <MessageSquare className="h-6 w-6 text-emerald-300" />
+            <h3 className="mt-4 text-lg font-semibold">Want something similar?</h3>
+            <p className="mt-2 text-sm leading-6 text-neutral-400">Tell us about your idea — we&apos;ll reply within a working day with honest advice and a quote.</p>
+            <Link
+              href={`/contact${matchedService ? `?service=${encodeURIComponent(matchedService.title)}` : ""}`}
+              className="mt-5 inline-flex h-10 items-center gap-2 rounded-full bg-white px-4 text-sm font-semibold text-neutral-950 hover:bg-neutral-200"
+            >
+              Start a project <ArrowRight className="h-4 w-4" />
+            </Link>
+            {matchedService && (
+              <Link href={`/services/${matchedService.slug}`} className="mt-3 block text-xs text-neutral-400 hover:text-white">
+                About our {matchedService.title.toLowerCase()} service →
+              </Link>
+            )}
+          </div>
+        </aside>
+      </section>
+
+      {/* Prev / next */}
+      {(prev || next) && (
+        <nav aria-label="More projects" className="border-y border-neutral-200 bg-neutral-50">
+          <div className="mx-auto grid max-w-7xl grid-cols-2 divide-x divide-neutral-200 px-0 sm:px-6 lg:px-8">
+            {prev ? (
+              <Link href={`/projects/${prev.slug}`} className="group flex flex-col gap-1 px-4 py-6 sm:px-0 sm:pr-6">
+                <span className="flex items-center gap-1 text-xs text-neutral-500">
+                  <ArrowLeft className="h-3.5 w-3.5 transition group-hover:-translate-x-0.5" /> Previous
+                </span>
+                <span className="truncate font-semibold text-neutral-950">{prev.title}</span>
+              </Link>
+            ) : (
+              <span />
+            )}
+            {next ? (
+              <Link href={`/projects/${next.slug}`} className="group flex flex-col items-end gap-1 px-4 py-6 text-right sm:px-0 sm:pl-6">
+                <span className="flex items-center gap-1 text-xs text-neutral-500">
+                  Next <ArrowRight className="h-3.5 w-3.5 transition group-hover:translate-x-0.5" />
+                </span>
+                <span className="max-w-full truncate font-semibold text-neutral-950">{next.title}</span>
+              </Link>
+            ) : (
+              <span />
+            )}
+          </div>
+        </nav>
+      )}
+
+      {/* Related */}
+      {related.length > 0 && (
+        <section className="mx-auto max-w-7xl px-4 pb-20 pt-16 sm:px-6 lg:px-8">
+          <div className="flex items-end justify-between gap-4">
+            <h2 className="text-2xl font-bold tracking-[-0.03em] text-neutral-950">More of our work</h2>
+            <Link href="/projects" className="text-sm font-semibold text-neutral-950 hover:underline">
+              All projects →
+            </Link>
+          </div>
+          <div className="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {related.map((p) => (
+              <ProjectCard key={p.id} project={p} />
+            ))}
           </div>
         </section>
       )}
-
-      {/* =====================================================
-          MAIN CONTENT
-      ====================================================== */}
-
-      <section className="mx-auto w-full max-w-6xl px-4 py-12 sm:px-6 sm:py-16 lg:py-20">
-        <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_320px]">
-          {/* =================================================
-              MAIN COLUMN
-          ================================================== */}
-
-          <div className="space-y-10">
-            {/* Description */}
-
-            {project.description && (
-              <article className="rounded-3xl border border-neutral-200 bg-white p-6 shadow-sm sm:p-8">
-                <div className="mb-6">
-                  <h2 className="text-xl font-semibold tracking-tight text-neutral-950">
-                    About this project
-                  </h2>
-                </div>
-
-                <div className="whitespace-pre-line text-sm leading-7 text-neutral-600 sm:text-base sm:leading-8">
-                  {project.description}
-                </div>
-              </article>
-            )}
-
-            {/* Technologies */}
-
-            {technologies.length > 0 && (
-              <section className="rounded-3xl border border-neutral-200 bg-white p-6 shadow-sm sm:p-8">
-                <h2 className="text-xl font-semibold tracking-tight text-neutral-950">
-                  Technologies
-                </h2>
-
-                <div className="mt-6 flex flex-wrap gap-2.5">
-                  {technologies.map((technology) => (
-                    <span
-                      key={technology.id}
-                      className="rounded-xl border border-neutral-200 bg-neutral-50 px-3.5 py-2 text-sm font-medium text-neutral-700"
-                    >
-                      {technology.name}
-                    </span>
-                  ))}
-                </div>
-              </section>
-            )}
-
-            {/* Media Gallery */}
-
-            {media.length > 0 && (
-              <section>
-                <div className="mb-6">
-                  <h2 className="text-xl font-semibold tracking-tight text-neutral-950">
-                    Project Gallery
-                  </h2>
-
-                  <p className="mt-1 text-sm text-neutral-500">
-                    Screenshots and media from this project.
-                  </p>
-                </div>
-
-                <div className="grid gap-5 sm:grid-cols-2">
-                  {media.map((item) => (
-                    <figure
-                      key={item.id}
-                      className="overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm"
-                    >
-                      <img
-                        src={item.file_url}
-                        alt={
-                          item.caption ||
-                          `${project.title} project image`
-                        }
-                        className="aspect-video w-full object-cover object-top transition duration-300 hover:scale-[1.02]"
-                      />
-
-                      {item.caption && (
-                        <figcaption className="border-t border-neutral-100 px-4 py-3 text-sm text-neutral-500">
-                          {item.caption}
-                        </figcaption>
-                      )}
-                    </figure>
-                  ))}
-                </div>
-              </section>
-            )}
-          </div>
-
-          {/* =================================================
-              SIDEBAR
-          ================================================== */}
-
-          <aside className="space-y-5">
-            {/* Project Information */}
-
-            <div className="rounded-3xl border border-neutral-200 bg-white p-6 shadow-sm">
-              <h2 className="text-base font-semibold text-neutral-950">
-                Project Information
-              </h2>
-
-              <div className="mt-6 divide-y divide-neutral-100">
-                {project.client_name && (
-                  <div className="py-4 first:pt-0">
-                    <p className="text-xs font-medium uppercase tracking-wide text-neutral-400">
-                      Client
-                    </p>
-
-                    <p className="mt-1.5 text-sm font-medium text-neutral-900">
-                      {project.client_name}
-                    </p>
-                  </div>
-                )}
-
-                {project.category && (
-                  <div className="py-4">
-                    <p className="text-xs font-medium uppercase tracking-wide text-neutral-400">
-                      Category
-                    </p>
-
-                    <p className="mt-1.5 text-sm font-medium text-neutral-900">
-                      {project.category}
-                    </p>
-                  </div>
-                )}
-
-                <div className="py-4">
-                  <p className="text-xs font-medium uppercase tracking-wide text-neutral-400">
-                    Status
-                  </p>
-
-                  <span
-                    className={`mt-2 inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium ${status.className}`}
-                  >
-                    <StatusIcon className="h-3.5 w-3.5" />
-                    {status.label}
-                  </span>
-                </div>
-
-                <div className="py-4 last:pb-0">
-                  <p className="text-xs font-medium uppercase tracking-wide text-neutral-400">
-                    Progress
-                  </p>
-
-                  <div className="mt-3">
-                    <div className="flex items-center justify-between text-xs">
-                      <span className="text-neutral-500">
-                        Completion
-                      </span>
-
-                      <span className="font-semibold text-neutral-900">
-                        {project.progress_percent}%
-                      </span>
-                    </div>
-
-                    <div className="mt-2 h-2 overflow-hidden rounded-full bg-neutral-100">
-                      <div
-                        className="h-full rounded-full bg-black transition-all"
-                        style={{
-                          width: `${project.progress_percent}%`,
-                        }}
-                      />
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Timeline */}
-
-            {(project.started_at || project.completed_at) && (
-              <div className="rounded-3xl border border-neutral-200 bg-white p-6 shadow-sm">
-                <div className="flex items-center gap-2">
-                  <CalendarDays className="h-4 w-4 text-neutral-500" />
-
-                  <h2 className="text-base font-semibold text-neutral-950">
-                    Timeline
-                  </h2>
-                </div>
-
-                <div className="mt-5 space-y-5">
-                  {project.started_at && (
-                    <div>
-                      <p className="text-xs font-medium uppercase tracking-wide text-neutral-400">
-                        Started
-                      </p>
-
-                      <p className="mt-1.5 text-sm font-medium text-neutral-900">
-                        {formatDate(project.started_at)}
-                      </p>
-                    </div>
-                  )}
-
-                  {project.completed_at && (
-                    <div>
-                      <p className="text-xs font-medium uppercase tracking-wide text-neutral-400">
-                        Completed
-                      </p>
-
-                      <p className="mt-1.5 text-sm font-medium text-neutral-900">
-                        {formatDate(project.completed_at)}
-                      </p>
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
-
-            {/* External Links */}
-
-            {(project.live_url || project.repository_url) && (
-              <div className="rounded-3xl border border-neutral-200 bg-white p-6 shadow-sm">
-                <h2 className="text-base font-semibold text-neutral-950">
-                  Links
-                </h2>
-
-                <div className="mt-4 space-y-2">
-                  {project.live_url && (
-                    <a
-                      href={project.live_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center justify-between rounded-xl border border-neutral-200 px-4 py-3 text-sm font-medium text-neutral-700 transition hover:bg-neutral-50 hover:text-neutral-950"
-                    >
-                      <span className="flex items-center gap-2">
-                        <ExternalLink className="h-4 w-4" />
-                        Live project
-                      </span>
-
-                      <ArrowUpRight className="h-4 w-4 text-neutral-400" />
-                    </a>
-                  )}
-
-                  {project.repository_url && (
-                    <a
-                      href={project.repository_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center justify-between rounded-xl border border-neutral-200 px-4 py-3 text-sm font-medium text-neutral-700 transition hover:bg-neutral-50 hover:text-neutral-950"
-                    >
-                      <span className="flex items-center gap-2">
-                        <Code2 className="h-4 w-4" />
-                        Source repository
-                      </span>
-
-                      <ArrowUpRight className="h-4 w-4 text-neutral-400" />
-                    </a>
-                  )}
-                </div>
-              </div>
-            )}
-          </aside>
-        </div>
-      </section>
-
-      {/* =====================================================
-          PROJECT CTA
-      ====================================================== */}
-
-      <section className="border-t border-neutral-200 bg-white">
-        <div className="mx-auto max-w-6xl px-4 py-14 text-center sm:px-6 sm:py-16">
-          <FolderKanban className="mx-auto h-7 w-7 text-neutral-400" />
-
-          <h2 className="mt-4 text-2xl font-semibold tracking-tight text-neutral-950">
-            Explore more projects
-          </h2>
-
-          <p className="mx-auto mt-2 max-w-lg text-sm leading-6 text-neutral-500">
-            Discover more websites, digital products, and solutions built by
-            Nirdeshona.
-          </p>
-
-          <Link
-            href="/"
-            className="mt-6 inline-flex h-11 items-center gap-2 rounded-xl bg-black px-5 text-sm font-medium text-white transition hover:bg-neutral-800"
-          >
-            Back to portfolio
-            <ArrowUpRight className="h-4 w-4" />
-          </Link>
-        </div>
-      </section>
     </main>
+  );
+}
+
+function Row({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div className="flex items-center justify-between gap-3 py-2.5">
+      <dt className="text-neutral-500">{label}</dt>
+      <dd className="text-right font-medium text-neutral-900">{children}</dd>
+    </div>
+  );
+}
+
+function ClientMark({ name, logo }: { name: string; logo: string | null }) {
+  return (
+    <span className="flex h-6 w-6 items-center justify-center overflow-hidden rounded-md border border-neutral-200 bg-white text-[10px] font-bold text-neutral-700">
+      {logo ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={logo} alt="" className="h-full w-full object-contain p-0.5" />
+      ) : (
+        name.charAt(0)
+      )}
+    </span>
   );
 }
