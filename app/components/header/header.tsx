@@ -4,7 +4,8 @@ import { ArrowUpRight, Sparkles } from "lucide-react";
 
 import { LanguageSwitcher } from "@/app/components/language-switcher";
 import { sql } from "@/lib/db";
-import { getI18n } from "@/lib/i18n/server";
+import { localizePath } from "@/lib/i18n/config";
+import { getI18n, getLocale } from "@/lib/i18n/server";
 import { createClient } from "@/lib/supabase/server";
 
 import DesktopNav from "./desktop-nav";
@@ -14,7 +15,7 @@ import NotificationBell from "./notification-bell";
 import UserMenu from "./user-menu";
 
 export default async function Header() {
-  const { L, lp } = await getI18n();
+  const { L } = await getI18n();
   const supabase = await createClient();
 
   const {
@@ -56,7 +57,9 @@ export default async function Header() {
 
     await supabase.auth.signOut();
 
-    redirect(lp("/login"));
+    // Server actions can't close over functions from the render, so the
+    // locale is read again here instead of using lp().
+    redirect(localizePath(await getLocale(), "/login"));
   }
 
   const userData = user
