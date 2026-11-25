@@ -1,3 +1,5 @@
+import T from "@/app/components/t";
+
 /**
  * Route skeletons. Each loading.tsx renders one of these so a click on a link
  * switches to the new page immediately and shows its shape while the data loads,
@@ -11,8 +13,6 @@ function Bar({ className = "" }: { className?: string }) {
 function Block({ className = "" }: { className?: string }) {
   return <div className={`animate-pulse rounded-2xl bg-neutral-200/70 ${className}`} />;
 }
-
-import T from "@/app/components/t";
 
 function Shell({ children }: { children: React.ReactNode }) {
   return (
