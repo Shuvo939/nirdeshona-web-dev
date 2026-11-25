@@ -1,20 +1,11 @@
-import Link from "next/link";
+import Link from "@/app/components/locale-link";
+import { getI18n } from "@/lib/i18n/server";
 import { ChevronRight } from "lucide-react";
 
 import type {
   Post,
   Tag,
 } from "./types";
-
-function formatDate(date: string | null) {
-  if (!date) return "";
-
-  return new Intl.DateTimeFormat("en-US", {
-    month: "long",
-    day: "numeric",
-    year: "numeric",
-  }).format(new Date(date));
-}
 
 function initials(name: string | null) {
   if (!name) return "U";
@@ -29,7 +20,7 @@ function initials(name: string | null) {
     .join("");
 }
 
-export default function PostSidebar({
+export default async function PostSidebar({
   post,
   tags,
   commentCount,
@@ -38,18 +29,20 @@ export default function PostSidebar({
   tags: Tag[];
   commentCount: number;
 }) {
+  const { L, num, date } = await getI18n();
+  const formatDate = (value: string | null) => date(value, { day: "numeric", month: "long", year: "numeric" });
   return (
     <aside className="hidden lg:block">
       <div className="sticky top-24 space-y-5">
         <div className="rounded-3xl border border-neutral-200 bg-neutral-50 p-5">
           <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-neutral-400">
-            Article
+            {L("Article", "লেখা")}
           </p>
 
           <div className="mt-5 space-y-4">
             <div className="flex items-center justify-between gap-4">
               <span className="text-xs text-neutral-500">
-                Published
+                {L("Published", "প্রকাশিত")}
               </span>
 
               <span className="text-xs font-medium text-neutral-800">
@@ -62,23 +55,21 @@ export default function PostSidebar({
 
             <div className="flex items-center justify-between gap-4">
               <span className="text-xs text-neutral-500">
-                Views
+                {L("Views", "পঠিত")}
               </span>
 
               <span className="text-xs font-medium text-neutral-800">
-                {Number(
-                  post.views_count
-                ).toLocaleString()}
+                {num(Number(post.views_count))}
               </span>
             </div>
 
             <div className="flex items-center justify-between gap-4">
               <span className="text-xs text-neutral-500">
-                Comments
+                {L("Comments", "কমেন্ট")}
               </span>
 
               <span className="text-xs font-medium text-neutral-800">
-                {commentCount}
+                {num(commentCount)}
               </span>
             </div>
           </div>
@@ -86,7 +77,7 @@ export default function PostSidebar({
 
         <div className="rounded-3xl border border-neutral-200 bg-white p-5">
           <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-neutral-400">
-            Written by
+            {L("Written by", "লিখেছেন")}
           </p>
 
           <div className="mt-4 flex items-center gap-3">
@@ -95,7 +86,7 @@ export default function PostSidebar({
                 src={post.author_avatar}
                 alt={
                   post.author_name ||
-                  "Author"
+                  L("Author", "লেখক")
                 }
                 className="h-10 w-10 rounded-full object-cover"
               />
@@ -110,11 +101,11 @@ export default function PostSidebar({
             <div className="min-w-0">
               <p className="truncate text-sm font-semibold text-neutral-900">
                 {post.author_name ||
-                  "Nirdeshona"}
+                  L("Nirdeshona", "নির্দেশনা")}
               </p>
 
               <p className="mt-0.5 text-xs text-neutral-500">
-                Author
+                {L("Author", "লেখক")}
               </p>
             </div>
           </div>
@@ -123,7 +114,7 @@ export default function PostSidebar({
         {tags.length > 0 && (
           <div className="rounded-3xl border border-neutral-200 bg-white p-5">
             <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-neutral-400">
-              Topics
+              {L("Topics", "বিষয়")}
             </p>
 
             <div className="mt-4 flex flex-wrap gap-2">
@@ -146,11 +137,11 @@ export default function PostSidebar({
         >
           <div>
             <p className="text-sm font-semibold">
-              Join the discussion
+              {L("Join the discussion", "আলোচনায় যোগ দিন")}
             </p>
 
             <p className="mt-1 text-xs text-neutral-400">
-              {commentCount} comments
+              {L(`${commentCount} comments`, `${num(commentCount)}টি কমেন্ট`)}
             </p>
           </div>
 

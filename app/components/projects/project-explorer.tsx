@@ -1,11 +1,13 @@
 "use client";
 
-import Link from "next/link";
+import Link from "@/app/components/locale-link";
 import { useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 import { ArrowUpRight, ExternalLink, LayoutGrid, Layers3, List, Search, SlidersHorizontal, Star, X } from "lucide-react";
 
 import { PROJECT_STATUS, StatusBadge } from "@/app/components/marketing";
 import ProjectCard from "@/app/components/project-card";
+import { useI18n } from "@/lib/i18n/client";
+import { categoryLabel } from "@/lib/projects/categories";
 
 export type ExplorerProject = {
   id: string;
@@ -28,18 +30,18 @@ type StatusKey = "" | "COMPLETED" | "ACTIVE" | "PLANNED";
 type SortKey = "featured" | "newest" | "oldest" | "az";
 type View = "grid" | "list";
 
-const STATUS_TABS: { key: StatusKey; label: string; match: (s: string) => boolean }[] = [
-  { key: "", label: "All", match: () => true },
-  { key: "COMPLETED", label: "Completed", match: (s) => s === "COMPLETED" },
-  { key: "ACTIVE", label: "In progress", match: (s) => s === "IN_PROGRESS" || s === "REVIEW" },
-  { key: "PLANNED", label: "Upcoming", match: (s) => s === "PLANNED" || s === "ON_HOLD" },
+const STATUS_TABS: { key: StatusKey; label: [string, string]; match: (s: string) => boolean }[] = [
+  { key: "", label: ["All", "সব"], match: () => true },
+  { key: "COMPLETED", label: ["Completed", "সম্পন্ন"], match: (s) => s === "COMPLETED" },
+  { key: "ACTIVE", label: ["In progress", "চলমান"], match: (s) => s === "IN_PROGRESS" || s === "REVIEW" },
+  { key: "PLANNED", label: ["Upcoming", "আসন্ন"], match: (s) => s === "PLANNED" || s === "ON_HOLD" },
 ];
 
-const SORTS: { key: SortKey; label: string }[] = [
-  { key: "featured", label: "Featured first" },
-  { key: "newest", label: "Newest" },
-  { key: "oldest", label: "Oldest" },
-  { key: "az", label: "A → Z" },
+const SORTS: { key: SortKey; label: [string, string] }[] = [
+  { key: "featured", label: ["Featured first", "ফিচার্ড আগে"] },
+  { key: "newest", label: ["Newest", "নতুন আগে"] },
+  { key: "oldest", label: ["Oldest", "পুরোনো আগে"] },
+  { key: "az", label: ["A → Z", "নাম অনুযায়ী"] },
 ];
 
 const norm = (v: string) => v.toLowerCase().normalize("NFKD");
@@ -51,6 +53,7 @@ export default function ProjectExplorer({
   projects: ExplorerProject[];
   initial: { q: string; category: string; status: string; tech: string; sort: string; view: string };
 }) {
+  const { L, locale, num, lp } = useI18n();
   const [q, setQ] = useState(initial.q);
   const [category, setCategory] = useState(initial.category);
   const [status, setStatus] = useState<StatusKey>(STATUS_TABS.some((t) => t.key === initial.status) ? (initial.status as StatusKey) : "");
@@ -70,9 +73,9 @@ export default function ProjectExplorer({
     if (tech) params.set("tech", tech);
     if (sort !== "featured") params.set("sort", sort);
     if (view !== "grid") params.set("view", view);
-    const next = params.toString() ? `/projects?${params}` : "/projects";
+    const next = params.toString() ? `${lp("/projects")}?${params}` : lp("/projects");
     if (next !== window.location.pathname + window.location.search) window.history.replaceState(null, "", next);
-  }, [q, category, status, tech, sort, view]);
+  }, [q, category, status, tech, sort, view, lp]);
 
   // "/" focuses search, like the site-wide search.
   useEffect(() => {
@@ -91,7 +94,7 @@ export default function ProjectExplorer({
     () =>
       projects.map((p) => ({
         p,
-        haystack: norm([p.title, p.short_description, p.category, p.client_name, ...p.technologies].filter(Boolean).join(" ")),
+        haystack: norm([p.title, p.short_description, p.category, categoryLabel(p.category, "bn"), p.client_name, ...p.technologies].filter(Boolean).join(" ")),
       })),
     [projects],
   );
@@ -169,14 +172,14 @@ export default function ProjectExplorer({
               type="search"
               value={q}
               onChange={(e) => setQ(e.target.value)}
-              placeholder="Search by name, client or technology…"
-              aria-label="Search projects"
+              placeholder={L("Search by name, client or technology…", "নাম, ক্লায়েন্ট বা প্রযুক্তি দিয়ে খুঁজুন…")}
+              aria-label={L("Search projects", "প্রজেক্ট খুঁজুন")}
               className="h-11 w-full rounded-full border border-neutral-200 bg-white pl-10 pr-12 text-sm outline-none transition focus:border-neutral-950 focus:ring-2 focus:ring-neutral-950/10"
             />
             <kbd className="pointer-events-none absolute right-3.5 top-1/2 hidden -translate-y-1/2 rounded-md border border-neutral-200 px-1.5 text-[11px] text-neutral-400 sm:block">/</kbd>
           </div>
           <div className="flex items-center gap-2">
-            <div className="flex min-w-0 flex-1 overflow-x-auto rounded-full border border-neutral-200 bg-white p-1 [scrollbar-width:none] md:flex-none" role="tablist" aria-label="Status">
+            <div className="flex min-w-0 flex-1 overflow-x-auto rounded-full border border-neutral-200 bg-white p-1 [scrollbar-width:none] md:flex-none" role="tablist" aria-label={L("Status", "অবস্থা")}>
               {STATUS_TABS.map((t) => (
                 <button
                   key={t.key || "all"}
@@ -188,7 +191,7 @@ export default function ProjectExplorer({
                     status === t.key ? "bg-neutral-950 text-white" : "text-neutral-600 hover:text-neutral-950"
                   }`}
                 >
-                  {t.label} <span className="opacity-60">{statusCounts[t.key]}</span>
+                  {L(t.label[0], t.label[1])} <span className="opacity-60">{num(statusCounts[t.key])}</span>
                 </button>
               ))}
             </div>
@@ -198,11 +201,11 @@ export default function ProjectExplorer({
         <div className="flex items-center gap-2">
           <div className="-mx-1 flex min-w-0 flex-1 gap-2 overflow-x-auto px-1 [scrollbar-width:none]">
             <Pill active={!category} onClick={() => setCategory("")}>
-              All categories
+              {L("All categories", "সব ক্যাটাগরি")}
             </Pill>
             {allCategories.map((c) => (
               <Pill key={c} active={category === c} onClick={() => setCategory(category === c ? "" : c)} disabled={!categoryCounts.get(c) && category !== c}>
-                {c} <span className="ml-1 text-[10px] opacity-60">{categoryCounts.get(c) ?? 0}</span>
+                {categoryLabel(c, locale)} <span className="ml-1 text-[10px] opacity-60">{num(categoryCounts.get(c) ?? 0)}</span>
               </Pill>
             ))}
           </div>
@@ -215,7 +218,7 @@ export default function ProjectExplorer({
                 showTech || tech ? "border-neutral-950 bg-neutral-950 text-white" : "border-neutral-200 text-neutral-600 hover:border-neutral-300"
               }`}
             >
-              <SlidersHorizontal className="h-3.5 w-3.5" /> <span className="hidden sm:inline">Tech</span>
+              <SlidersHorizontal className="h-3.5 w-3.5" /> <span className="hidden sm:inline">{L("Tech", "প্রযুক্তি")}</span>
               {tech && <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />}
             </button>
           )}
@@ -232,7 +235,7 @@ export default function ProjectExplorer({
                   tech === t ? "border-neutral-950 bg-neutral-950 text-white" : "border-neutral-200 bg-white text-neutral-600 hover:border-neutral-300"
                 }`}
               >
-                {t} <span className="opacity-60">{n}</span>
+                {t} <span className="opacity-60">{num(n)}</span>
               </button>
             ))}
           </div>
@@ -242,10 +245,17 @@ export default function ProjectExplorer({
       {/* Result bar */}
       <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
         <p className="text-sm text-neutral-500" aria-live="polite">
-          <span className="font-semibold text-neutral-950">{results.length}</span> of {projects.length} projects
+          {L(
+            <>
+              <span className="font-semibold text-neutral-950">{results.length}</span> of {projects.length} projects
+            </>,
+            <>
+              {num(projects.length)}টির মধ্যে <span className="font-semibold text-neutral-950">{num(results.length)}</span>টি প্রজেক্ট
+            </>,
+          )}
           {activeFilters > 0 && (
             <button type="button" onClick={clearAll} className="ml-3 inline-flex items-center gap-1 font-medium text-neutral-950 underline-offset-2 hover:underline">
-              <X className="h-3.5 w-3.5" /> Clear filters
+              <X className="h-3.5 w-3.5" /> {L("Clear filters", "ফিল্টার মুছুন")}
             </button>
           )}
         </p>
@@ -253,20 +263,20 @@ export default function ProjectExplorer({
           <select
             value={sort}
             onChange={(e) => setSort(e.target.value as SortKey)}
-            aria-label="Sort projects"
+            aria-label={L("Sort projects", "প্রজেক্ট সাজান")}
             className="h-9 rounded-full border border-neutral-200 bg-white px-3 text-xs font-medium text-neutral-700 outline-none focus:border-neutral-950"
           >
             {SORTS.map((s) => (
               <option key={s.key} value={s.key}>
-                {s.label}
+                {L(s.label[0], s.label[1])}
               </option>
             ))}
           </select>
           <div className="flex rounded-full border border-neutral-200 bg-white p-1">
             {(
               [
-                ["grid", LayoutGrid, "Grid view"],
-                ["list", List, "List view"],
+                ["grid", LayoutGrid, L("Grid view", "গ্রিড ভিউ")],
+                ["list", List, L("List view", "তালিকা ভিউ")],
               ] as const
             ).map(([key, Icon, label]) => (
               <button
@@ -290,10 +300,10 @@ export default function ProjectExplorer({
           <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-neutral-100">
             <Layers3 className="h-5 w-5 text-neutral-500" />
           </div>
-          <h2 className="mt-5 text-lg font-semibold">No projects match</h2>
-          <p className="mx-auto mt-2 max-w-md text-sm text-neutral-500">Try a different search or remove a filter.</p>
+          <h2 className="mt-5 text-lg font-semibold">{L("No projects match", "কোনো প্রজেক্ট মেলেনি")}</h2>
+          <p className="mx-auto mt-2 max-w-md text-sm text-neutral-500">{L("Try a different search or remove a filter.", "অন্যভাবে খুঁজুন বা কোনো ফিল্টার সরান।")}</p>
           <button type="button" onClick={clearAll} className="mt-6 inline-flex text-sm font-semibold underline">
-            Clear filters
+            {L("Clear filters", "ফিল্টার মুছুন")}
           </button>
         </div>
       ) : view === "grid" ? (
@@ -332,6 +342,7 @@ function Pill({ active, disabled, onClick, children }: { active: boolean; disabl
 }
 
 function ListRow({ project: p }: { project: ExplorerProject }) {
+  const { L, locale, num } = useI18n();
   return (
     <div className="group relative flex gap-4 rounded-3xl border border-neutral-200 bg-white p-3 transition hover:shadow-[0_12px_32px_rgba(0,0,0,0.06)] sm:p-4">
       <div className="relative aspect-[4/3] w-28 shrink-0 overflow-hidden rounded-2xl bg-neutral-100 sm:w-44">
@@ -349,15 +360,15 @@ function ListRow({ project: p }: { project: ExplorerProject }) {
           <StatusBadge map={PROJECT_STATUS} value={p.status} />
           {p.featured && (
             <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-700">
-              <Star className="h-3 w-3 fill-amber-400 text-amber-400" /> Featured
+              <Star className="h-3 w-3 fill-amber-400 text-amber-400" /> {L("Featured", "ফিচার্ড")}
             </span>
           )}
-          {p.year && <span className="text-[11px] text-neutral-400">{p.year}</span>}
+          {p.year && <span className="text-[11px] text-neutral-400">{num(p.year).replace(/[,٬]/g, "")}</span>}
         </div>
         <Link href={`/projects/${p.slug}`} className="mt-1.5 font-semibold tracking-tight text-neutral-950 after:absolute after:inset-0 after:rounded-3xl">
           {p.title}
         </Link>
-        <p className="text-xs text-neutral-400">{[p.client_name, p.category].filter(Boolean).join(" · ")}</p>
+        <p className="text-xs text-neutral-400">{[p.client_name, categoryLabel(p.category, locale)].filter(Boolean).join(" · ")}</p>
         {p.short_description && <p className="mt-2 line-clamp-2 hidden text-sm leading-6 text-neutral-500 sm:block">{p.short_description}</p>}
         <div className="mt-auto flex flex-wrap items-center gap-1.5 pt-2">
           {p.technologies.slice(0, 5).map((t) => (
@@ -370,7 +381,7 @@ function ListRow({ project: p }: { project: ExplorerProject }) {
               <span className="h-1.5 w-14 overflow-hidden rounded-full bg-neutral-100">
                 <span className="block h-full rounded-full bg-neutral-950" style={{ width: `${p.progress_percent}%` }} />
               </span>
-              {p.progress_percent}%
+              {num(p.progress_percent)}%
             </span>
           )}
         </div>
@@ -384,7 +395,7 @@ function ListRow({ project: p }: { project: ExplorerProject }) {
             rel="noopener noreferrer"
             className="inline-flex items-center gap-1 rounded-full border border-neutral-200 px-3 py-1.5 text-xs font-medium text-neutral-700 hover:bg-neutral-50"
           >
-            Visit <ExternalLink className="h-3 w-3" />
+            {L("Visit", "দেখুন")} <ExternalLink className="h-3 w-3" />
           </a>
         )}
       </div>

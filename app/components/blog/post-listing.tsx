@@ -1,7 +1,9 @@
-import Link from "next/link";
+import Link from "@/app/components/locale-link";
 import { ChevronLeft, ChevronRight, Clock, Eye, Flame, Heart, MessageCircle, Newspaper, Rss, Sparkles, TrendingUp } from "lucide-react";
 
-import { formatDate } from "@/app/components/marketing";
+import type { Locale } from "@/lib/i18n/config";
+import { getI18n, getLocale } from "@/lib/i18n/server";
+import { tcol } from "@/lib/i18n/sql";
 import { sql } from "@/lib/db";
 
 const PAGE_SIZE = 9;
@@ -35,16 +37,17 @@ function readingTime(content: string) {
 }
 
 export async function getBlogSidebarData() {
+  const locale = await getLocale();
   const [categories, tags, popular, [stats]] = await Promise.all([
     sql`
-      select pc.name, pc.slug, count(p.id)::int as total
+      select ${tcol(locale, "pc.name")} as name, pc.slug, count(p.id)::int as total
       from post_categories pc
       join posts p on p.category_id = pc.id and p.status = 'published'
       group by pc.id
       order by total desc, pc.name asc
     `,
     sql`
-      select t.name, t.slug, count(p.id)::int as total
+      select ${tcol(locale, "t.name")} as name, t.slug, count(p.id)::int as total
       from tags t
       join post_tags pt on pt.tag_id = t.id
       join posts p on p.id = pt.post_id and p.status = 'published'
@@ -53,7 +56,7 @@ export async function getBlogSidebarData() {
       limit 20
     `,
     sql`
-      select slug, title, views_count::int as views_count, published_at
+      select slug, ${tcol(locale, "title")} as title, views_count::int as views_count, published_at
       from posts where status = 'published'
       order by views_count desc, published_at desc nulls last
       limit 5
@@ -86,12 +89,14 @@ export default async function PostListing({
 }) {
   const offset = (page - 1) * PAGE_SIZE;
   const pattern = q ? `%${q}%` : null;
+  const { L, locale, num } = await getI18n();
 
   const [posts, [{ total }], sidebar] = await Promise.all([
     sql`
-      select p.id, p.slug, p.title, p.excerpt, p.content, p.cover_image_url, p.published_at,
+      select p.id, p.slug, ${tcol(locale, "p.title")} as title, ${tcol(locale, "p.excerpt")} as excerpt,
+             ${tcol(locale, "p.content")} as content, p.cover_image_url, p.published_at,
              p.views_count::int as views_count,
-             pr.full_name as author_name, pr.avatar_url as author_avatar, pc.name as category_name, pc.slug as category_slug,
+             pr.full_name as author_name, pr.avatar_url as author_avatar, ${tcol(locale, "pc.name")} as category_name, pc.slug as category_slug,
              (select count(*)::int from comments c where c.post_id = p.id and c.status = 'visible') as comment_count,
              (select count(*)::int from post_reactions r where r.post_id = p.id) as reaction_count
       from posts p
@@ -102,7 +107,8 @@ export default async function PostListing({
         and (${tagSlug}::text is null or exists (
           select 1 from post_tags pt join tags t on t.id = pt.tag_id
           where pt.post_id = p.id and t.slug = ${tagSlug}))
-        and (${pattern}::text is null or p.title ilike ${pattern} or p.excerpt ilike ${pattern})
+        and (${pattern}::text is null or p.title ilike ${pattern} or p.excerpt ilike ${pattern}
+             or p.title_bn ilike ${pattern} or p.excerpt_bn ilike ${pattern})
       order by
         case when ${sort}::text = 'popular' then p.views_count else 0 end desc,
         case when ${sort}::text = 'discussed' then (select count(*) from comments c where c.post_id = p.id and c.status = 'visible') else 0 end desc,
@@ -118,7 +124,8 @@ export default async function PostListing({
         and (${tagSlug}::text is null or exists (
           select 1 from post_tags pt join tags t on t.id = pt.tag_id
           where pt.post_id = p.id and t.slug = ${tagSlug}))
-        and (${pattern}::text is null or p.title ilike ${pattern} or p.excerpt ilike ${pattern})
+        and (${pattern}::text is null or p.title ilike ${pattern} or p.excerpt ilike ${pattern}
+             or p.title_bn ilike ${pattern} or p.excerpt_bn ilike ${pattern})
     `,
     getBlogSidebarData(),
   ]);
@@ -155,7 +162,7 @@ export default async function PostListing({
           <div className="flex flex-col gap-4">
             <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:px-0 [scrollbar-width:none]">
               <Link href="/blog" className={`shrink-0 rounded-full border px-4 py-2 text-sm font-medium transition ${allActive ? "border-neutral-950 bg-neutral-950 text-white" : "border-neutral-200 bg-white text-neutral-600 hover:border-neutral-300"}`}>
-                All <span className="ml-1 opacity-60">{sidebar.stats?.articles ?? 0}</span>
+                {L("All", "সব")} <span className="ml-1 opacity-60">{num(sidebar.stats?.articles ?? 0)}</span>
               </Link>
               {sidebar.categories.map((c) => (
                 <Link
@@ -163,7 +170,7 @@ export default async function PostListing({
                   href={`/blog/category/${c.slug}`}
                   className={`shrink-0 rounded-full border px-4 py-2 text-sm font-medium transition ${categorySlug === c.slug ? "border-neutral-950 bg-neutral-950 text-white" : "border-neutral-200 bg-white text-neutral-600 hover:border-neutral-300"}`}
                 >
-                  {c.name} <span className="ml-1 opacity-60">{c.total}</span>
+                  {c.name} <span className="ml-1 opacity-60">{num(c.total)}</span>
                 </Link>
               ))}
             </div>
@@ -171,20 +178,20 @@ export default async function PostListing({
               <p className="text-sm text-neutral-500">
                 {q ? (
                   <>
-                    {total} result{total === 1 ? "" : "s"} for <span className="font-semibold text-neutral-950">“{q}”</span>{" "}
-                    <Link href={basePath} className="ml-1 underline">clear</Link>
+                    {L(`${total} result${total === 1 ? "" : "s"} for`, `${num(total)}টি ফলাফল:`)} <span className="font-semibold text-neutral-950">“{q}”</span>{" "}
+                    <Link href={basePath} className="ml-1 underline">{L("clear", "মুছুন")}</Link>
                   </>
                 ) : (
                   <>
-                    {total} article{total === 1 ? "" : "s"}
+                    {L(`${total} article${total === 1 ? "" : "s"}`, `${num(total)}টি লেখা`)}
                   </>
                 )}
               </p>
-              <div className="inline-flex rounded-full border border-neutral-200 bg-white p-1" role="tablist" aria-label="Sort articles">
+              <div className="inline-flex rounded-full border border-neutral-200 bg-white p-1" role="tablist" aria-label={L("Sort articles", "লেখা সাজান")}>
                 {([
-                  ["latest", "Latest", Sparkles],
-                  ["popular", "Popular", TrendingUp],
-                  ["discussed", "Discussed", MessageCircle],
+                  ["latest", L("Latest", "সর্বশেষ"), Sparkles],
+                  ["popular", L("Popular", "জনপ্রিয়"), TrendingUp],
+                  ["discussed", L("Discussed", "আলোচিত"), MessageCircle],
                 ] as const).map(([key, label, Icon]) => (
                   <Link
                     key={key}
@@ -205,9 +212,9 @@ export default async function PostListing({
               <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-neutral-100">
                 <Newspaper className="h-5 w-5 text-neutral-500" />
               </div>
-              <h2 className="mt-5 text-lg font-semibold">No articles yet</h2>
+              <h2 className="mt-5 text-lg font-semibold">{L("No articles yet", "এখনো কোনো লেখা নেই")}</h2>
               <p className="mx-auto mt-2 max-w-md text-sm text-neutral-500">
-                {q ? "Nothing matched your search." : "New articles are on the way — check back soon."}
+                {q ? L("Nothing matched your search.", "আপনার সার্চের সাথে কিছু মেলেনি।") : L("New articles are on the way — check back soon.", "নতুন লেখা আসছে — শিগগিরই আবার দেখুন।")}
               </p>
             </div>
           ) : (
@@ -224,10 +231,10 @@ export default async function PostListing({
           )}
 
           {totalPages > 1 && (
-            <nav aria-label="Pagination" className="flex items-center justify-between gap-3">
+            <nav aria-label={L("Pagination", "পেজ")} className="flex items-center justify-between gap-3">
               {page > 1 ? (
                 <Link href={pageHref(page - 1)} className="inline-flex items-center gap-1 rounded-full border border-neutral-200 bg-white px-4 py-2 text-sm font-medium hover:bg-neutral-50">
-                  <ChevronLeft className="h-4 w-4" /> <span className="hidden sm:inline">Newer</span>
+                  <ChevronLeft className="h-4 w-4" /> <span className="hidden sm:inline">{L("Newer", "নতুনগুলো")}</span>
                 </Link>
               ) : (
                 <span />
@@ -243,14 +250,14 @@ export default async function PostListing({
                       aria-current={n === page ? "page" : undefined}
                       className={`flex h-9 min-w-9 items-center justify-center rounded-full px-2 text-sm font-medium transition ${n === page ? "bg-neutral-950 text-white" : "text-neutral-600 hover:bg-neutral-100"}`}
                     >
-                      {n}
+                      {num(n)}
                     </Link>
                   ),
                 )}
               </div>
               {page < totalPages ? (
                 <Link href={pageHref(page + 1)} className="inline-flex items-center gap-1 rounded-full border border-neutral-200 bg-white px-4 py-2 text-sm font-medium hover:bg-neutral-50">
-                  <span className="hidden sm:inline">Older</span> <ChevronRight className="h-4 w-4" />
+                  <span className="hidden sm:inline">{L("Older", "পুরোনোগুলো")}</span> <ChevronRight className="h-4 w-4" />
                 </Link>
               ) : (
                 <span />
@@ -263,14 +270,14 @@ export default async function PostListing({
           {basePath !== "/blog" && (
           <form action={basePath} className="rounded-3xl border border-neutral-200 bg-white p-5">
             <label htmlFor="blog-q" className="text-sm font-semibold text-neutral-950">
-              Search articles
+              {L("Search articles", "লেখা খুঁজুন")}
             </label>
             <input
               id="blog-q"
               type="search"
               name="q"
               defaultValue={q ?? ""}
-              placeholder="e.g. Next.js, SEO…"
+              placeholder={L("e.g. Next.js, SEO…", "যেমন: Next.js, এসইও…")}
               className="mt-3 h-10 w-full rounded-xl border border-neutral-200 px-3.5 text-sm outline-none focus:border-neutral-950 focus:ring-2 focus:ring-neutral-950/10"
             />
           </form>
@@ -279,17 +286,17 @@ export default async function PostListing({
           {sidebar.popular.length > 0 && (
             <div className="rounded-3xl border border-neutral-200 bg-white p-5">
               <h3 className="flex items-center gap-2 text-sm font-semibold text-neutral-950">
-                <Flame className="h-4 w-4 text-orange-500" /> Most read
+                <Flame className="h-4 w-4 text-orange-500" /> {L("Most read", "সবচেয়ে বেশি পঠিত")}
               </h3>
               <ol className="mt-3 flex flex-col gap-1">
                 {sidebar.popular.map((p, i) => (
                   <li key={p.slug}>
                     <Link href={`/blog/${p.slug}`} className="group flex gap-3 rounded-xl px-2 py-2 transition hover:bg-neutral-50">
-                      <span className="text-lg font-bold leading-none text-neutral-300 group-hover:text-neutral-950">{String(i + 1).padStart(2, "0")}</span>
+                      <span className="text-lg font-bold leading-none text-neutral-300 group-hover:text-neutral-950">{num(i + 1).padStart(2, L("0", "০"))}</span>
                       <span className="min-w-0">
                         <span className="line-clamp-2 text-sm font-medium leading-snug text-neutral-800">{p.title}</span>
                         <span className="mt-1 flex items-center gap-1 text-xs text-neutral-400">
-                          <Eye className="h-3 w-3" /> {p.views_count.toLocaleString("en-US")} views
+                          <Eye className="h-3 w-3" /> {L(`${p.views_count.toLocaleString("en-US")} views`, `${num(p.views_count)} বার পঠিত`)}
                         </span>
                       </span>
                     </Link>
@@ -301,12 +308,12 @@ export default async function PostListing({
 
           <div className="grid grid-cols-3 gap-2 rounded-3xl border border-neutral-200 bg-white p-3 text-center">
             {[
-              { label: "Articles", value: sidebar.stats?.articles ?? 0 },
-              { label: "Reads", value: sidebar.stats?.views ?? 0 },
-              { label: "Comments", value: sidebar.stats?.comments ?? 0 },
+              { label: L("Articles", "লেখা"), value: sidebar.stats?.articles ?? 0 },
+              { label: L("Reads", "পঠিত"), value: sidebar.stats?.views ?? 0 },
+              { label: L("Comments", "কমেন্ট"), value: sidebar.stats?.comments ?? 0 },
             ].map((s) => (
               <div key={s.label} className="rounded-2xl bg-neutral-50 px-2 py-3">
-                <p className="text-lg font-bold text-neutral-950">{compact(s.value)}</p>
+                <p className="text-lg font-bold text-neutral-950">{compact(s.value, locale)}</p>
                 <p className="text-[11px] text-neutral-500">{s.label}</p>
               </div>
             ))}
@@ -314,7 +321,7 @@ export default async function PostListing({
 
           {sidebar.tags.length > 0 && (
             <div className="rounded-3xl border border-neutral-200 bg-white p-5">
-              <h3 className="text-sm font-semibold text-neutral-950">Tags</h3>
+              <h3 className="text-sm font-semibold text-neutral-950">{L("Tags", "ট্যাগ")}</h3>
               <div className="mt-3 flex flex-wrap gap-2">
                 {sidebar.tags.map((t) => (
                   <Link
@@ -330,15 +337,15 @@ export default async function PostListing({
           )}
 
           <div className="rounded-3xl bg-neutral-950 p-6 text-white">
-            <h3 className="text-base font-semibold">Have a project in mind?</h3>
-            <p className="mt-2 text-sm leading-6 text-neutral-400">We build fast, modern websites and web apps.</p>
+            <h3 className="text-base font-semibold">{L("Have a project in mind?", "মাথায় কোনো প্রজেক্ট আছে?")}</h3>
+            <p className="mt-2 text-sm leading-6 text-neutral-400">{L("We build fast, modern websites and web apps.", "আমরা দ্রুত, আধুনিক ওয়েবসাইট ও ওয়েব অ্যাপ বানাই।")}</p>
             <Link href="/contact" className="mt-4 inline-flex rounded-full bg-white px-4 py-2 text-sm font-semibold text-neutral-950 hover:bg-neutral-200">
-              Start a project
+              {L("Start a project", "প্রজেক্ট শুরু করুন")}
             </Link>
           </div>
 
           <a href="/blog/rss.xml" className="inline-flex items-center justify-center gap-2 rounded-full border border-neutral-200 bg-white px-4 py-2.5 text-sm font-medium text-neutral-700 transition hover:border-neutral-300">
-            <Rss className="h-4 w-4 text-orange-500" /> Subscribe via RSS
+            <Rss className="h-4 w-4 text-orange-500" /> {L("Subscribe via RSS", "আরএসএস-এ সাবস্ক্রাইব করুন")}
           </a>
         </aside>
       </div>
@@ -346,30 +353,32 @@ export default async function PostListing({
   );
 }
 
-function Meta({ post }: { post: ListedPost }) {
+async function Meta({ post }: { post: ListedPost }) {
+  const { L, num, date } = await getI18n();
   return (
     <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-neutral-500">
-      {post.published_at && <span>{formatDate(post.published_at)}</span>}
+      {post.published_at && <span>{date(post.published_at)}</span>}
       <span className="inline-flex items-center gap-1">
-        <Clock className="h-3 w-3" /> {readingTime(post.content)} min read
+        <Clock className="h-3 w-3" /> {L(`${readingTime(post.content)} min read`, `${num(readingTime(post.content))} মিনিটে পড়া`)}
       </span>
       <span className="inline-flex items-center gap-1">
-        <Eye className="h-3 w-3" /> {post.views_count}
+        <Eye className="h-3 w-3" /> {num(post.views_count)}
       </span>
       <span className="inline-flex items-center gap-1">
-        <MessageCircle className="h-3 w-3" /> {post.comment_count}
+        <MessageCircle className="h-3 w-3" /> {num(post.comment_count)}
       </span>
       {post.reaction_count > 0 && (
         <span className="inline-flex items-center gap-1">
-          <Heart className="h-3 w-3" /> {post.reaction_count}
+          <Heart className="h-3 w-3" /> {num(post.reaction_count)}
         </span>
       )}
     </div>
   );
 }
 
-function Author({ post }: { post: ListedPost }) {
-  const name = post.author_name || "Nirdeshona Web";
+async function Author({ post }: { post: ListedPost }) {
+  const { L } = await getI18n();
+  const name = post.author_name || L("Nirdeshona Web", "নির্দেশনা ওয়েব");
   return (
     <div className="flex items-center gap-2">
       <span className="flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-full bg-neutral-950 text-[10px] font-bold text-white">
@@ -390,8 +399,8 @@ function Author({ post }: { post: ListedPost }) {
   );
 }
 
-function compact(n: number) {
-  return new Intl.NumberFormat("en", { notation: "compact", maximumFractionDigits: 1 }).format(n);
+function compact(n: number, locale: Locale) {
+  return new Intl.NumberFormat(locale === "bn" ? "bn-BD" : "en", { notation: "compact", maximumFractionDigits: 1 }).format(n);
 }
 
 function paginationRange(current: number, total: number): (number | null)[] {
@@ -417,7 +426,8 @@ function Cover({ post, className }: { post: ListedPost; className: string }) {
   );
 }
 
-function FeaturedPost({ post }: { post: ListedPost }) {
+async function FeaturedPost({ post }: { post: ListedPost }) {
+  const { L } = await getI18n();
   return (
     <Link href={`/blog/${post.slug}`} className="group grid grid-cols-1 overflow-hidden rounded-3xl border border-neutral-200 bg-white transition hover:shadow-[0_20px_50px_rgba(0,0,0,0.08)] md:grid-cols-2">
       <div className="overflow-hidden">
@@ -426,7 +436,7 @@ function FeaturedPost({ post }: { post: ListedPost }) {
       <div className="flex flex-col justify-center p-6 sm:p-8">
         <div className="flex flex-wrap gap-2">
           <span className="inline-flex w-fit items-center gap-1 rounded-full bg-neutral-950 px-3 py-1 text-xs font-semibold text-white">
-            <Sparkles className="h-3 w-3" /> Latest
+            <Sparkles className="h-3 w-3" /> {L("Latest", "সর্বশেষ")}
           </span>
           {post.category_name && (
             <span className="w-fit rounded-full bg-neutral-100 px-3 py-1 text-xs font-medium text-neutral-700">{post.category_name}</span>

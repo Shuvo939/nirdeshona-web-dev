@@ -3,6 +3,7 @@ import "server-only";
 import crypto from "node:crypto";
 
 import { sql } from "@/lib/db";
+import { msg } from "@/lib/i18n/server";
 
 /*
  * Own captcha (no third party):
@@ -113,8 +114,9 @@ export function createCaptcha(): CaptchaChallenge {
 }
 
 export async function verifyCaptcha(token: unknown, answer: unknown): Promise<{ ok: true } | { ok: false; error: string }> {
-  const fail = (error = "Please solve the security check again.") => ({ ok: false as const, error });
-  if (typeof token !== "string" || typeof answer !== "string") return fail("Please complete the security check.");
+  const fallback = await msg("Please solve the security check again.", "আবার নিরাপত্তা যাচাই করুন।");
+  const fail = (error = fallback) => ({ ok: false as const, error });
+  if (typeof token !== "string" || typeof answer !== "string") return fail(await msg("Please complete the security check.", "নিরাপত্তা যাচাই সম্পন্ন করুন।"));
 
   const [payload, sig] = token.split(".");
   if (!payload || !sig) return fail();
@@ -130,16 +132,20 @@ export async function verifyCaptcha(token: unknown, answer: unknown): Promise<{ 
   }
 
   const now = Date.now();
-  if (now > data.e) return fail("The security check expired. Please try the new one.");
-  if (now - data.i < MIN_AGE_MS) return fail("That was a little too fast — please try again.");
+  if (now > data.e) return fail(await msg("The security check expired. Please try the new one.", "নিরাপত্তা যাচাইয়ের সময় শেষ। নতুনটি চেষ্টা করুন।"));
+  if (now - data.i < MIN_AGE_MS) return fail(await msg("That was a little too fast — please try again.", "একটু বেশি দ্রুত হয়ে গেল — আবার চেষ্টা করুন।"));
 
   // One attempt per challenge: consume it before checking the answer, so a
   // wrong guess can't be retried (no brute-forcing the small answer space).
   const inserted = await sql`insert into captcha_used (jti) values (${data.j}) on conflict do nothing returning jti`;
   if (inserted.length === 0) return fail();
 
-  const clean = answer.trim().replace(/[^\d-]/g, "");
-  if (!clean || hmac(`answer:${data.j}:${Number(clean)}`) !== data.h) return fail("The answer to the security check is wrong — try the new one.");
+  // Accept Bangla digits too (০-৯ → 0-9).
+  const clean = answer
+    .trim()
+    .replace(/[০-৯]/g, (d) => String("০১২৩৪৫৬৭৮৯".indexOf(d)))
+    .replace(/[^\d-]/g, "");
+  if (!clean || hmac(`answer:${data.j}:${Number(clean)}`) !== data.h) return fail(await msg("The answer to the security check is wrong — try the new one.", "নিরাপত্তা প্রশ্নের উত্তর ভুল — নতুনটি চেষ্টা করুন।"));
 
   // Occasional cleanup of old entries.
   if (crypto.randomInt(0, 50) === 0) {

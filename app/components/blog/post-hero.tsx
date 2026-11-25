@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/app/components/locale-link";
 
 import {
   ArrowLeft,
@@ -8,17 +8,9 @@ import {
   MessageCircle,
 } from "lucide-react";
 
+import { getI18n } from "@/lib/i18n/server";
+
 import type { Post } from "./types";
-
-function formatDate(date: string | null) {
-  if (!date) return "";
-
-  return new Intl.DateTimeFormat("en-US", {
-    month: "long",
-    day: "numeric",
-    year: "numeric",
-  }).format(new Date(date));
-}
 
 function initials(name: string | null) {
   if (!name) return "U";
@@ -33,13 +25,15 @@ function initials(name: string | null) {
     .join("");
 }
 
-export default function PostHero({
+export default async function PostHero({
   post,
   commentCount,
 }: {
   post: Post;
   commentCount: number;
 }) {
+  const { L, num, date } = await getI18n();
+  const formatDate = (value: string | null) => date(value, { day: "numeric", month: "long", year: "numeric" });
   return (
     <>
       <section className="relative overflow-hidden border-b border-neutral-200 bg-neutral-50">
@@ -69,7 +63,7 @@ export default function PostHero({
             className="group inline-flex items-center gap-2 text-sm font-medium text-neutral-500 transition hover:text-neutral-950"
           >
             <ArrowLeft className="h-4 w-4 transition group-hover:-translate-x-0.5" />
-            Back to blog
+            {L("Back to blog", "ব্লগে ফিরে যান")}
           </Link>
 
           <div className="mx-auto mt-12 max-w-4xl text-center">
@@ -101,7 +95,7 @@ export default function PostHero({
                     src={post.author_avatar}
                     alt={
                       post.author_name ||
-                      "Author"
+                      L("Author", "লেখক")
                     }
                     className="h-7 w-7 rounded-full object-cover"
                   />
@@ -115,7 +109,7 @@ export default function PostHero({
 
                 <span className="font-medium text-neutral-700">
                   {post.author_name ||
-                    "Nirdeshona"}
+                    L("Nirdeshona", "নির্দেশনা")}
                 </span>
               </div>
 
@@ -133,17 +127,14 @@ export default function PostHero({
 
               <span className="inline-flex items-center gap-1.5">
                 <Eye className="h-3.5 w-3.5" />
-                {Number(
-                  post.views_count
-                ).toLocaleString()}{" "}
-                views
+                {L(`${Number(post.views_count).toLocaleString("en-US")} views`, `${num(Number(post.views_count))} বার পঠিত`)}
               </span>
 
               <span className="hidden h-1 w-1 rounded-full bg-neutral-300 sm:block" />
 
               <span className="inline-flex items-center gap-1.5">
                 <MessageCircle className="h-3.5 w-3.5" />
-                {commentCount} comments
+                {L(`${commentCount} comments`, `${num(commentCount)}টি কমেন্ট`)}
               </span>
             </div>
           </div>

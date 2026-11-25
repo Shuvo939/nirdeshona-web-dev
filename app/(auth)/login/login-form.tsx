@@ -2,7 +2,7 @@
 
 import { safeNextPath } from "@/lib/safe-url";
 import { FormEvent, useState } from "react";
-import Link from "next/link";
+import Link from "@/app/components/locale-link";
 import { useRouter } from "next/navigation";
 import {
   Eye,
@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import Captcha, { type CaptchaValue } from "@/app/components/captcha";
 import { createClient } from "@/lib/supabase/client";
+import { useI18n } from "@/lib/i18n/client";
 
 function getSafeNext() {
   if (typeof window === "undefined") return "/client";
@@ -20,6 +21,7 @@ function getSafeNext() {
 
 export default function LoginForm({ initialCaptcha }: { initialCaptcha: { token: string; image: string } }) {
   const router = useRouter();
+  const { L, lp, tm } = useI18n();
   const supabase = createClient();
 
   const [email, setEmail] = useState("");
@@ -61,13 +63,13 @@ export default function LoginForm({ initialCaptcha }: { initialCaptcha: { token:
     const result = await res.json().catch(() => ({}));
 
     if (!res.ok) {
-      setError(result.error ?? "Couldn't log in. Please try again.");
+      setError(tm(result.error) ?? L("Couldn't log in. Please try again.", "লগ ইন করা যায়নি। আবার চেষ্টা করুন।"));
       setCaptchaKey((k) => k + 1); // every challenge works once
       setLoading(false);
       return;
     }
 
-    router.push(getSafeNext());
+    router.push(lp(getSafeNext()));
     router.refresh();
   }
 
@@ -89,7 +91,7 @@ export default function LoginForm({ initialCaptcha }: { initialCaptcha: { token:
     });
 
     if (error) {
-      setError(getAuthErrorMessage(error.message));
+      setError(getAuthErrorMessage(error.message, L));
       setGoogleLoading(false);
     }
   }
@@ -111,16 +113,16 @@ export default function LoginForm({ initialCaptcha }: { initialCaptcha: { token:
             </span>
 
             <span className="font-bold text-neutral-950">
-              Nirdeshona
+              {L("Nirdeshona", "নির্দেশনা")}
             </span>
           </Link>
 
           <h1 className="mt-3 text-2xl font-semibold tracking-tight text-neutral-950">
-            Welcome back
+            {L("Welcome back", "আবার স্বাগতম")}
           </h1>
 
           <p className="mt-1.5 text-sm leading-6 text-neutral-500">
-            Log in to your Nirdeshona account.
+            {L("Log in to your Nirdeshona account.", "আপনার নির্দেশনা অ্যাকাউন্টে লগ ইন করুন।")}
           </p>
         </div>
 
@@ -144,8 +146,8 @@ export default function LoginForm({ initialCaptcha }: { initialCaptcha: { token:
             )}
 
             {googleLoading
-              ? "Connecting..."
-              : "Continue with Google"}
+              ? L("Connecting...", "সংযোগ হচ্ছে...")
+              : L("Continue with Google", "Google দিয়ে চালিয়ে যান")}
           </button>
 
           {/* Divider */}
@@ -154,7 +156,7 @@ export default function LoginForm({ initialCaptcha }: { initialCaptcha: { token:
             <div className="h-px flex-1 bg-neutral-200" />
 
             <span className="text-xs text-neutral-400">
-              OR
+              {L("OR", "অথবা")}
             </span>
 
             <div className="h-px flex-1 bg-neutral-200" />
@@ -172,7 +174,7 @@ export default function LoginForm({ initialCaptcha }: { initialCaptcha: { token:
 
             <FloatingInput
               id="email"
-              label="Email address"
+              label={L("Email address", "ইমেইল ঠিকানা")}
               type="email"
               value={email}
               onChange={setEmail}
@@ -189,13 +191,13 @@ export default function LoginForm({ initialCaptcha }: { initialCaptcha: { token:
                   href="/forgot-password"
                   className="text-xs font-medium text-neutral-600 hover:text-neutral-950 hover:underline"
                 >
-                  Forgot password?
+                  {L("Forgot password?", "পাসওয়ার্ড ভুলে গেছেন?")}
                 </Link>
               </div>
 
               <FloatingPasswordInput
                 id="password"
-                label="Password"
+                label={L("Password", "পাসওয়ার্ড")}
                 value={password}
                 onChange={setPassword}
                 showPassword={showPassword}
@@ -218,8 +220,8 @@ export default function LoginForm({ initialCaptcha }: { initialCaptcha: { token:
                 onChange={(e) => setRemember(e.target.checked)}
                 className="h-4 w-4 rounded border-neutral-300 accent-neutral-950"
               />
-              Remember me
-              <span className="text-xs text-neutral-400">— stay signed in on this device</span>
+              {L("Remember me", "আমাকে মনে রাখুন")}
+              <span className="text-xs text-neutral-400">{L("— stay signed in on this device", "— এই ডিভাইসে লগ ইন থাকুন")}</span>
             </label>
 
             {/* Error */}
@@ -239,19 +241,19 @@ export default function LoginForm({ initialCaptcha }: { initialCaptcha: { token:
                 <Loader2 className="h-4 w-4 animate-spin" />
               )}
 
-              {loading ? "Logging in..." : "Log in"}
+              {loading ? L("Logging in...", "লগ ইন হচ্ছে...") : L("Log in", "লগ ইন")}
             </button>
           </form>
 
           {/* Register */}
 
           <p className="mt-6 text-center text-sm text-neutral-500">
-            Don&apos;t have an account?{" "}
+            {L("Don't have an account?", "অ্যাকাউন্ট নেই?")}{" "}
             <Link
               href="/register"
               className="font-medium text-neutral-950 hover:underline"
             >
-              Create an account
+              {L("Create an account", "অ্যাকাউন্ট খুলুন")}
             </Link>
           </p>
         </div>
@@ -338,6 +340,7 @@ function FloatingPasswordInput({
   autoComplete?: string;
   disabled?: boolean;
 }) {
+  const { L } = useI18n();
   return (
     <div className="relative">
       <input
@@ -369,8 +372,8 @@ function FloatingPasswordInput({
         disabled={disabled}
         aria-label={
           showPassword
-            ? "Hide password"
-            : "Show password"
+            ? L("Hide password", "পাসওয়ার্ড লুকান")
+            : L("Show password", "পাসওয়ার্ড দেখুন")
         }
         className="absolute right-2 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-lg text-neutral-400 transition hover:bg-neutral-100 hover:text-neutral-700"
       >
@@ -447,31 +450,31 @@ function GoogleIcon() {
  * =========================================================
  */
 
-function getAuthErrorMessage(message: string) {
+function getAuthErrorMessage(message: string, L: <T>(en: T, bn: T) => T) {
   const normalized = message.toLowerCase();
 
   if (
     normalized.includes("invalid login credentials")
   ) {
-    return "The email or password is incorrect.";
+    return L("The email or password is incorrect.", "ইমেইল বা পাসওয়ার্ড সঠিক নয়।");
   }
 
   if (
     normalized.includes("email not confirmed")
   ) {
-    return "Please verify your email address before logging in.";
+    return L("Please verify your email address before logging in.", "লগ ইন করার আগে আপনার ইমেইল ঠিকানা যাচাই করুন।");
   }
 
   if (
     normalized.includes("too many requests")
   ) {
-    return "Too many attempts. Please wait a moment and try again.";
+    return L("Too many attempts. Please wait a moment and try again.", "অনেকবার চেষ্টা করা হয়েছে। একটু অপেক্ষা করে আবার চেষ্টা করুন।");
   }
 
   if (
     normalized.includes("rate limit")
   ) {
-    return "Too many requests. Please wait a moment before trying again.";
+    return L("Too many requests. Please wait a moment before trying again.", "অনেক বেশি অনুরোধ। একটু অপেক্ষা করে আবার চেষ্টা করুন।");
   }
 
   return message;

@@ -1,5 +1,7 @@
 "use client";
 
+import { useI18n } from "@/lib/i18n/client";
+
 import { startNavigationProgress } from "@/app/components/navigation-progress";
 import { useRef, useState, useTransition } from "react";
 import { usePathname, useRouter } from "next/navigation";
@@ -8,7 +10,7 @@ import { Link2, ThumbsUp } from "lucide-react";
 import type { ReactionType } from "@/lib/comments";
 
 import { setPostReaction } from "./community-actions";
-import { REACTION_META, REACTION_ORDER } from "./reaction-meta";
+import { REACTION_META, REACTION_ORDER, reactionLabel } from "./reaction-meta";
 
 export default function PostReactions({
   postId,
@@ -25,6 +27,7 @@ export default function PostReactions({
 }) {
   const router = useRouter();
   const pathname = usePathname();
+  const { L, locale, num } = useI18n();
   const [counts, setCounts] = useState(initialCounts);
   const [mine, setMine] = useState(initialMine);
   const [picker, setPicker] = useState(false);
@@ -94,21 +97,25 @@ export default function PostReactions({
             <>
               <span className="flex -space-x-1">
                 {top.map((r) => (
-                  <span key={r} title={`${REACTION_META[r].label}: ${counts[r]}`} className="flex h-6 w-6 items-center justify-center rounded-full bg-white text-sm ring-2 ring-white">
+                  <span key={r} title={`${reactionLabel(r, locale)}: ${num(counts[r] ?? 0)}`} className="flex h-6 w-6 items-center justify-center rounded-full bg-white text-sm ring-2 ring-white">
                     {REACTION_META[r].emoji}
                   </span>
                 ))}
               </span>
               <span className="truncate">
-                {mine ? (total > 1 ? `You and ${total - 1} other${total - 1 === 1 ? "" : "s"}` : "You") : total}
+                {mine
+                  ? total > 1
+                    ? L(`You and ${total - 1} other${total - 1 === 1 ? "" : "s"}`, `আপনি ও আরও ${num(total - 1)} জন`)
+                    : L("You", "আপনি")
+                  : num(total)}
               </span>
             </>
           ) : (
-            <span>Be the first to react</span>
+            <span>{L("Be the first to react", "প্রথম রিঅ্যাকশন দিন")}</span>
           )}
         </div>
         <a href="#comments" className="shrink-0 hover:underline">
-          {commentCount} comment{commentCount === 1 ? "" : "s"}
+          {L(`${commentCount} comment${commentCount === 1 ? "" : "s"}`, `${num(commentCount)}টি কমেন্ট`)}
         </a>
       </div>
 
@@ -117,7 +124,7 @@ export default function PostReactions({
           {picker && (
             <div
               role="menu"
-              aria-label="Choose a reaction"
+              aria-label={L("Choose a reaction", "রিঅ্যাকশন বাছুন")}
               className="absolute bottom-full left-0 z-20 mb-2 flex gap-1 rounded-full border border-neutral-200 bg-white p-1.5 shadow-xl"
               onMouseEnter={openSoon}
             >
@@ -126,8 +133,8 @@ export default function PostReactions({
                   key={r}
                   type="button"
                   role="menuitem"
-                  title={REACTION_META[r].label}
-                  aria-label={REACTION_META[r].label}
+                  title={reactionLabel(r, locale)}
+                  aria-label={reactionLabel(r, locale)}
                   onClick={() => choose(r)}
                   className={`flex h-10 w-10 items-center justify-center rounded-full text-2xl transition duration-150 hover:-translate-y-1 hover:scale-125 ${mine === r ? "bg-neutral-100" : ""}`}
                 >
@@ -157,15 +164,15 @@ export default function PostReactions({
             className={`flex h-11 w-full select-none items-center justify-center gap-2 rounded-2xl text-sm font-semibold transition hover:bg-neutral-50 ${meta ? meta.color : "text-neutral-600"}`}
           >
             {meta ? <span className="text-lg leading-none">{meta.emoji}</span> : <ThumbsUp className="h-[18px] w-[18px]" />}
-            {meta ? meta.label : "Like"}
+            {meta ? (locale === "bn" ? meta.labelBn : meta.label) : L("Like", "লাইক")}
           </button>
         </div>
         <a href="#comment-composer" className="flex h-11 items-center justify-center gap-2 rounded-2xl text-sm font-semibold text-neutral-600 transition hover:bg-neutral-50">
-          💬 <span>Comment</span>
+          💬 <span>{L("Comment", "কমেন্ট")}</span>
         </a>
         <button type="button" onClick={share} className="flex h-11 items-center justify-center gap-2 rounded-2xl text-sm font-semibold text-neutral-600 transition hover:bg-neutral-50">
           <Link2 className="h-[18px] w-[18px]" />
-          {copied ? "Copied!" : "Share"}
+          {copied ? L("Copied!", "কপি হয়েছে!") : L("Share", "শেয়ার")}
         </button>
       </div>
     </section>

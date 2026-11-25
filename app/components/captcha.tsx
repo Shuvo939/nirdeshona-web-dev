@@ -1,5 +1,7 @@
 "use client";
 
+import { useI18n } from "@/lib/i18n/client";
+
 import { useCallback, useEffect, useRef, useState } from "react";
 import { RotateCw } from "lucide-react";
 
@@ -32,6 +34,7 @@ export default function Captcha({
   onChange?: (value: CaptchaValue) => void;
   name?: string;
 }) {
+  const { L } = useI18n();
   const [challenge, setChallenge] = useState(initial);
   const [answer, setAnswer] = useState("");
   const [spinning, setSpinning] = useState(false);
@@ -70,12 +73,12 @@ export default function Captcha({
   return (
     <div>
       <label htmlFor={`${name}-answer`} className="mb-1.5 block text-xs font-medium text-neutral-600">
-        Security check — solve the sum
+        {L("Security check — solve the sum", "নিরাপত্তা যাচাই — যোগফল লিখুন")}
       </label>
       <div className="flex h-12 items-stretch overflow-hidden rounded-xl border border-neutral-200 bg-white focus-within:border-neutral-950 focus-within:ring-2 focus-within:ring-neutral-950/10">
         <div className="flex shrink-0 items-center border-r border-neutral-200 bg-neutral-50 px-2">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={challenge.image} alt="Security check: solve the sum shown" className="h-[38px] w-auto select-none" draggable={false} />
+          <img src={challenge.image} alt={L("Security check: solve the sum shown", "নিরাপত্তা যাচাই: দেখানো যোগফলটি লিখুন")} className="h-[38px] w-auto select-none" draggable={false} />
         </div>
         <input
           id={`${name}-answer`}
@@ -84,7 +87,7 @@ export default function Captcha({
           onChange={(e) => setAnswer(e.target.value.replace(/[^\d-]/g, "").slice(0, 3))}
           inputMode="numeric"
           autoComplete="off"
-          placeholder="Answer"
+          placeholder={L("Answer", "উত্তর")}
           required
           className="min-w-0 flex-1 bg-transparent px-3 text-sm text-neutral-900 outline-none placeholder:text-neutral-400"
         />
@@ -92,8 +95,8 @@ export default function Captcha({
         <button
           type="button"
           onClick={() => void next()}
-          aria-label="New security check"
-          title="New sum"
+          aria-label={L("New security check", "নতুন নিরাপত্তা প্রশ্ন")}
+          title={L("New sum", "নতুন যোগফল")}
           className="flex w-11 shrink-0 items-center justify-center border-l border-neutral-200 text-neutral-500 transition hover:bg-neutral-50 hover:text-neutral-900"
         >
           <RotateCw className={`h-4 w-4 ${spinning ? "animate-[spin_0.5s_linear_1]" : ""}`} />

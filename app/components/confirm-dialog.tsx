@@ -3,11 +3,13 @@
 import { useEffect } from "react";
 import { AlertTriangle } from "lucide-react";
 
+import { useI18n } from "@/lib/i18n/client";
+
 // Controlled confirmation dialog (never window.confirm).
 export default function ConfirmDialog({
   title,
   description,
-  confirmLabel = "Confirm",
+  confirmLabel,
   danger = true,
   onConfirm,
   onCancel,
@@ -19,6 +21,7 @@ export default function ConfirmDialog({
   onConfirm: () => void;
   onCancel: () => void;
 }) {
+  const { L } = useI18n();
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onCancel();
     document.addEventListener("keydown", onKey);
@@ -35,7 +38,7 @@ export default function ConfirmDialog({
         <p className="mt-2 text-sm leading-6 text-neutral-600">{description}</p>
         <div className="mt-6 flex justify-end gap-2">
           <button type="button" onClick={onCancel} className="h-10 rounded-xl border border-neutral-200 px-4 text-sm font-medium hover:bg-neutral-50">
-            Cancel
+            {L("Cancel", "বাতিল")}
           </button>
           <button
             type="button"
@@ -43,7 +46,7 @@ export default function ConfirmDialog({
             onClick={onConfirm}
             className={`h-10 rounded-xl px-4 text-sm font-semibold text-white ${danger ? "bg-red-600 hover:bg-red-700" : "bg-neutral-950 hover:bg-neutral-800"}`}
           >
-            {confirmLabel}
+            {confirmLabel ?? L("Confirm", "নিশ্চিত করুন")}
           </button>
         </div>
       </div>

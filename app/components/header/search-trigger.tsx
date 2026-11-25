@@ -1,5 +1,7 @@
 "use client";
 
+import { useI18n } from "@/lib/i18n/client";
+
 import { useEffect, useState } from "react";
 import { Search } from "lucide-react";
 
@@ -9,9 +11,10 @@ import SearchDialog from "./search-dialog";
 
 export default function SearchTrigger() {
   const [open, setOpen] = useState(false);
+  const { L, locale } = useI18n();
 
   // Download the search index while the browser is idle so search is instant.
-  useEffect(() => prefetchIndexWhenIdle(), []);
+  useEffect(() => prefetchIndexWhenIdle(locale), []);
 
   // Global shortcuts: Ctrl/Cmd + K, or "/" when not typing in a field.
   useEffect(() => {
@@ -32,9 +35,9 @@ export default function SearchTrigger() {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        onPointerEnter={() => void loadIndex()}
-        onFocus={() => void loadIndex()}
-        aria-label="Search Nirdeshona"
+        onPointerEnter={() => void loadIndex(locale)}
+        onFocus={() => void loadIndex(locale)}
+        aria-label={L("Search Nirdeshona", "নির্দেশনায় খুঁজুন")}
         className="
           flex h-10 w-10 items-center justify-center
           rounded-xl border border-neutral-100

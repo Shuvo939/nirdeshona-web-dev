@@ -1,6 +1,8 @@
-import Link from "next/link";
+import Link from "@/app/components/locale-link";
 import type { ReactNode } from "react";
 import { ChevronRight } from "lucide-react";
+
+import T from "@/app/components/t";
 
 // Page title block for pages inside the account area (sidebar layout).
 export default function AccountHeader({
@@ -18,9 +20,9 @@ export default function AccountHeader({
     <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
       <div className="min-w-0">
         <nav aria-label="Breadcrumb" className="flex flex-wrap items-center gap-1 text-xs text-neutral-500">
-          <Link href="/" className="hover:text-neutral-950">Home</Link>
+          <Link href="/" className="hover:text-neutral-950"><T en="Home" bn="হোম" /></Link>
           <ChevronRight className="h-3 w-3 text-neutral-300" />
-          <Link href="/account" className="hover:text-neutral-950">Account</Link>
+          <Link href="/account" className="hover:text-neutral-950"><T en="Account" bn="অ্যাকাউন্ট" /></Link>
           {crumbs.map((c) => (
             <span key={c.label} className="flex items-center gap-1">
               <ChevronRight className="h-3 w-3 text-neutral-300" />

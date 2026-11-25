@@ -3,12 +3,20 @@ import type { Metadata } from "next";
 import { PageHero } from "@/app/components/marketing";
 import ProjectExplorer, { type ExplorerProject } from "@/app/components/projects/project-explorer";
 import { sql } from "@/lib/db";
+import { getI18n, localeAlternates } from "@/lib/i18n/server";
+import { tcol } from "@/lib/i18n/sql";
 
-export const metadata: Metadata = {
-  title: "Our Work — Nirdeshona Web",
-  description: "Websites, web applications and digital products built by Nirdeshona Web Development.",
-  alternates: { canonical: "/projects" },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const { L, locale } = await getI18n();
+  return {
+    title: L("Our Work — Nirdeshona Web", "আমাদের কাজ — নির্দেশনা ওয়েব"),
+    description: L(
+      "Websites, web applications and digital products built by Nirdeshona Web Development.",
+      "নির্দেশনা ওয়েব ডেভেলপমেন্টের তৈরি ওয়েবসাইট, ওয়েব অ্যাপ্লিকেশন ও ডিজিটাল প্রোডাক্ট।",
+    ),
+    alternates: localeAlternates(locale, "/projects"),
+  };
+}
 
 export default async function ProjectsPage({
   searchParams,
@@ -16,10 +24,12 @@ export default async function ProjectsPage({
   searchParams: Promise<Record<string, string | undefined>>;
 }) {
   const params = await searchParams;
+  const { L, locale, num } = await getI18n();
 
   // The whole (small) portfolio is sent once; filtering happens instantly in the browser.
   const projects = (await sql`
-    select p.id, p.slug, p.title, p.short_description, p.category, p.status::text as status,
+    select p.id, p.slug, ${tcol(locale, "p.title")} as title, ${tcol(locale, "p.short_description")} as short_description,
+           p.category, p.status::text as status,
            p.progress_percent, p.cover_image_url, p.live_url, p.featured,
            c.name as client_name,
            extract(year from coalesce(p.completed_at, p.started_at, p.created_at::date))::int as year,
@@ -43,16 +53,19 @@ export default async function ProjectsPage({
   return (
     <>
       <PageHero
-        eyebrow="Portfolio"
-        title="Work we've designed, built and launched."
-        description="Websites, platforms and tools for organisations, businesses and individuals — filter by category, status or technology."
-        breadcrumbs={[{ label: "Our work" }]}
+        eyebrow={L("Portfolio", "পোর্টফোলিও")}
+        title={L("Work we've designed, built and launched.", "আমাদের ডিজাইন করা, বানানো ও চালু করা কাজ।")}
+        description={L(
+          "Websites, platforms and tools for organisations, businesses and individuals — filter by category, status or technology.",
+          "প্রতিষ্ঠান, ব্যবসা ও ব্যক্তির জন্য ওয়েবসাইট, প্ল্যাটফর্ম ও টুল — ক্যাটাগরি, অবস্থা বা প্রযুক্তি দিয়ে ফিল্টার করুন।",
+        )}
+        breadcrumbs={[{ label: L("Our work", "আমাদের কাজ") }]}
       >
         <div className="grid max-w-2xl grid-cols-2 gap-3 sm:grid-cols-4">
-          <Stat value={projects.length} label="Projects" />
-          <Stat value={completed} label="Launched" />
-          <Stat value={active} label="In progress" />
-          <Stat value={techs || clients} label={techs ? "Technologies" : "Clients"} />
+          <Stat value={num(projects.length)} label={L("Projects", "প্রজেক্ট")} />
+          <Stat value={num(completed)} label={L("Launched", "চালু হয়েছে")} />
+          <Stat value={num(active)} label={L("In progress", "চলমান")} />
+          <Stat value={num(techs || clients)} label={techs ? L("Technologies", "প্রযুক্তি") : L("Clients", "ক্লায়েন্ট")} />
         </div>
       </PageHero>
 
@@ -71,7 +84,7 @@ export default async function ProjectsPage({
   );
 }
 
-function Stat({ value, label }: { value: number; label: string }) {
+function Stat({ value, label }: { value: string; label: string }) {
   return (
     <div className="rounded-2xl border border-neutral-200 bg-white px-4 py-3">
       <p className="text-2xl font-bold tracking-tight text-neutral-950">{value}</p>

@@ -1,8 +1,10 @@
 "use client";
 
-import Link from "next/link";
+import Link from "@/app/components/locale-link";
 
-import { services } from "@/lib/site";
+import { LanguageSwitcherFull } from "@/app/components/language-switcher";
+import { getContent } from "@/lib/content";
+import { useI18n } from "@/lib/i18n/client";
 import {
   ArrowUpRight,
   CheckCircle2,
@@ -15,6 +17,8 @@ import {
 
 export default function Footer() {
   const year = new Date().getFullYear();
+  const { L, locale, num } = useI18n();
+  const { services } = getContent(locale);
 
   return (
     <footer className="border-t border-neutral-200 bg-neutral-950 text-white">
@@ -33,16 +37,15 @@ export default function Footer() {
               <div className="max-w-2xl">
                 <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.05] px-3 py-1.5 text-xs font-medium text-neutral-300">
                   <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
-                  Available for new projects
+                  {L("Available for new projects", "নতুন প্রজেক্টের জন্য প্রস্তুত")}
                 </div>
 
                 <h2 className="mt-5 text-3xl font-semibold tracking-[-0.03em] sm:text-4xl">
-                  Have something worth building?
+                  {L("Have something worth building?", "বানানোর মতো কিছু ভাবছেন?")}
                 </h2>
 
                 <p className="mt-3 max-w-xl text-sm leading-6 text-neutral-400 sm:text-base">
-                  Tell us what you want to build, improve, or solve. We&apos;ll
-                  help turn the idea into a practical digital solution.
+                  {L("Tell us what you want to build, improve, or solve. We'll help turn the idea into a practical digital solution.", "কী বানাতে, উন্নত করতে বা সমাধান করতে চান — জানান। ভাবনাটিকে কাজের ডিজিটাল সমাধানে রূপ দিতে আমরা সাহায্য করব।")}
                 </p>
               </div>
 
@@ -50,8 +53,7 @@ export default function Footer() {
                 href="/contact"
                 className="group inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-xl bg-white px-5 text-sm font-medium text-neutral-950 transition hover:bg-neutral-200"
               >
-                Start a conversation
-
+                {L("Start a conversation", "কথা শুরু করুন")}
                 <ArrowUpRight className="h-4 w-4 transition group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
               </Link>
             </div>
@@ -77,18 +79,17 @@ export default function Footer() {
 
               <div>
                 <div className="text-[15px] font-bold tracking-tight">
-                  Nirdeshona
+                  {L("Nirdeshona", "নির্দেশনা")}
                 </div>
 
                 <div className="text-[10px] font-medium uppercase tracking-[0.18em] text-neutral-500">
-                  Web
+                  {L("Web", "ওয়েব")}
                 </div>
               </div>
             </Link>
 
             <p className="mt-5 max-w-sm text-sm leading-6 text-neutral-400">
-              Modern websites, web applications, WordPress solutions, and
-              digital experiences designed around real-world needs.
+              {L("Modern websites, web applications, WordPress solutions, and digital experiences designed around real-world needs.", "বাস্তব প্রয়োজন মাথায় রেখে তৈরি আধুনিক ওয়েবসাইট, ওয়েব অ্যাপ্লিকেশন, ওয়ার্ডপ্রেস সমাধান ও ডিজিটাল অভিজ্ঞতা।")}
             </p>
 
             {/* Contact */}
@@ -104,7 +105,7 @@ export default function Footer() {
 
               <div className="flex items-center gap-2.5 text-sm text-neutral-400">
                 <MapPin className="h-4 w-4 text-neutral-500" />
-                Bangladesh
+                {L("Bangladesh", "বাংলাদেশ")}
               </div>
 
               <div className="flex items-center gap-2.5 text-sm text-neutral-400">
@@ -134,18 +135,18 @@ export default function Footer() {
               COMPANY
           ================================================== */}
 
-          <FooterColumn title="Company">
-            <FooterLink href="/about">About</FooterLink>
-            <FooterLink href="/projects">Our work</FooterLink>
-            <FooterLink href="/contact">Contact</FooterLink>
-            <FooterLink href="/clients">Clients</FooterLink>
+          <FooterColumn title={L("Company", "প্রতিষ্ঠান")}>
+            <FooterLink href="/about">{L("About", "আমাদের সম্পর্কে")}</FooterLink>
+            <FooterLink href="/projects">{L("Our work", "আমাদের কাজ")}</FooterLink>
+            <FooterLink href="/contact">{L("Contact", "যোগাযোগ")}</FooterLink>
+            <FooterLink href="/clients">{L("Clients", "ক্লায়েন্ট")}</FooterLink>
           </FooterColumn>
 
           {/* =================================================
               SERVICES
           ================================================== */}
 
-          <FooterColumn title="Services">
+          <FooterColumn title={L("Services", "সার্ভিস")}>
             {services.map((service) => (
               <FooterLink key={service.slug} href={`/services/${service.slug}`}>
                 {service.title}
@@ -157,22 +158,21 @@ export default function Footer() {
               RESOURCES
           ================================================== */}
 
-          <FooterColumn title="Resources">
-            <FooterLink href="/blog">Blog</FooterLink>
-            <FooterLink href="/pricing">Pricing</FooterLink>
-            <FooterLink href="/faq">FAQ</FooterLink>
-            <FooterLink href="/privacy">Privacy policy</FooterLink>
-            <FooterLink href="/terms">Terms of service</FooterLink>
+          <FooterColumn title={L("Resources", "রিসোর্স")}>
+            <FooterLink href="/blog">{L("Blog", "ব্লগ")}</FooterLink>
+            <FooterLink href="/pricing">{L("Pricing", "প্রাইসিং")}</FooterLink>
+            <FooterLink href="/faq">{L("FAQ", "প্রশ্নোত্তর")}</FooterLink>
+            <FooterLink href="/privacy">{L("Privacy policy", "গোপনীয়তা নীতি")}</FooterLink>
+            <FooterLink href="/terms">{L("Terms of service", "সেবার শর্তাবলি")}</FooterLink>
 
             <div className="mt-7 rounded-2xl border border-white/10 bg-white/[0.03] p-4">
               <div className="flex items-center gap-2 text-xs font-medium text-neutral-300">
                 <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400" />
-                Currently available
+                {L("Currently available", "এখন কাজ নিচ্ছি")}
               </div>
 
               <p className="mt-2 text-xs leading-5 text-neutral-500">
-                We&apos;re currently accepting selected website and digital
-                product projects.
+                {L("We're currently accepting selected website and digital product projects.", "বর্তমানে আমরা নির্বাচিত ওয়েবসাইট ও ডিজিটাল প্রোডাক্ট প্রজেক্ট নিচ্ছি।")}
               </p>
             </div>
           </FooterColumn>
@@ -186,11 +186,11 @@ export default function Footer() {
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <p className="text-sm font-medium text-white">
-                Let&apos;s build something useful.
+                {L("Let's build something useful.", "চলুন, কাজের কিছু বানাই।")}
               </p>
 
               <p className="mt-1 text-xs text-neutral-500">
-                Have a question or project in mind?
+                {L("Have a question or project in mind?", "কোনো প্রশ্ন বা প্রজেক্টের ভাবনা আছে?")}
               </p>
             </div>
 
@@ -200,7 +200,7 @@ export default function Footer() {
                 className="inline-flex items-center justify-center gap-2 rounded-lg border border-white/10 px-3.5 py-2 text-xs font-medium text-neutral-300 transition hover:border-white/20 hover:bg-white/5 hover:text-white"
               >
                 <Mail className="h-3.5 w-3.5" />
-                Email us
+                {L("Email us", "ইমেইল করুন")}
               </a>
 
               <Link
@@ -208,7 +208,7 @@ export default function Footer() {
                 className="inline-flex items-center justify-center gap-2 rounded-lg bg-white px-3.5 py-2 text-xs font-medium text-neutral-950 transition hover:bg-neutral-200"
               >
                 <MessageCircle className="h-3.5 w-3.5" />
-                Contact
+                {L("Contact", "যোগাযোগ")}
               </Link>
             </div>
           </div>
@@ -221,32 +221,33 @@ export default function Footer() {
         <div className="flex flex-col gap-5 py-7 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <p className="text-xs text-neutral-500">
-              © {year} Nirdeshona Web. All rights reserved.
+              {L(`© ${year} Nirdeshona Web. All rights reserved.`, `© ${num(year)} নির্দেশনা ওয়েব। সর্বস্বত্ব সংরক্ষিত।`)}
             </p>
 
             <p className="mt-1 text-[11px] text-neutral-600">
-              Built with care in Bangladesh.
+              {L("Built with care in Bangladesh.", "বাংলাদেশে যত্ন নিয়ে তৈরি।")}
             </p>
           </div>
 
-          <div className="flex items-center gap-5">
+          <div className="flex flex-wrap items-center gap-5">
+            <LanguageSwitcherFull dark />
             <Link
               href="/privacy"
               className="text-xs text-neutral-500 transition hover:text-white"
             >
-              Privacy
+              {L("Privacy", "গোপনীয়তা")}
             </Link>
 
             <Link
               href="/terms"
               className="text-xs text-neutral-500 transition hover:text-white"
             >
-              Terms
+              {L("Terms", "শর্তাবলি")}
             </Link>
 
             <a
               href="#top"
-              aria-label="Back to top"
+              aria-label={L("Back to top", "উপরে যান")}
               className="group flex h-8 w-8 items-center justify-center rounded-lg border border-white/10 text-neutral-500 transition hover:border-white/20 hover:bg-white/5 hover:text-white"
             >
               <ChevronUp className="h-4 w-4 transition group-hover:-translate-y-0.5" />

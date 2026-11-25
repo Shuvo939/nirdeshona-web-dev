@@ -9,6 +9,7 @@ import { sql } from "@/lib/db";
 import { sendEmail } from "@/lib/email";
 import { deletePrivateObject, headPrivateObject, hasR2 } from "@/lib/r2";
 import { site } from "@/lib/site";
+import { msg } from "@/lib/i18n/server";
 
 export const runtime = "nodejs";
 
@@ -135,7 +136,7 @@ async function handleContact(request: Request) {
     if (!parsed.success) {
       return NextResponse.json(
         {
-          error: "Please check the highlighted fields.",
+          error: await msg("Please check the highlighted fields.", "চিহ্নিত ঘরগুলো দেখে নিন।"),
           fields: parsed.error.flatten().fieldErrors,
         },
         { status: 400 }
@@ -176,7 +177,7 @@ async function handleContact(request: Request) {
     `;
     if (by_email >= 3 || by_ip >= 5) {
       return NextResponse.json(
-        { error: "You've sent several messages recently. Please wait a while, or email us directly." },
+        { error: await msg("You've sent several messages recently. Please wait a while, or email us directly.", "সম্প্রতি আপনি কয়েকটি মেসেজ পাঠিয়েছেন। কিছুক্ষণ অপেক্ষা করুন, অথবা সরাসরি ইমেইল করুন।") },
         { status: 429 }
       );
     }
@@ -194,7 +195,7 @@ async function handleContact(request: Request) {
         console.error("Attachment verification failed:", error);
 
         return NextResponse.json(
-          { error: "We couldn't verify your attachment. Please try attaching it again." },
+          { error: await msg("We couldn't verify your attachment. Please try attaching it again.", "আপনার ফাইলটি যাচাই করা যায়নি। আবার যুক্ত করে চেষ্টা করুন।") },
           { status: 400 }
         );
       }
@@ -271,7 +272,7 @@ async function handleContact(request: Request) {
     console.error("Contact form error:", error);
 
     return NextResponse.json(
-      { error: "We couldn't process your request right now. Please try again later." },
+      { error: await msg("We couldn't process your request right now. Please try again later.", "এই মুহূর্তে অনুরোধটি প্রক্রিয়া করা যাচ্ছে না। পরে আবার চেষ্টা করুন।") },
       { status: 500 }
     );
   }

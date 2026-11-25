@@ -1,10 +1,11 @@
 "use client";
 
 import { FormEvent, useState } from "react";
-import Link from "next/link";
+import Link from "@/app/components/locale-link";
 import { useRouter } from "next/navigation";
 import Captcha, { type CaptchaValue } from "@/app/components/captcha";
 import { createClient } from "@/lib/supabase/client";
+import { useI18n } from "@/lib/i18n/client";
 import {
   Check,
   Eye,
@@ -13,6 +14,7 @@ import {
 } from "lucide-react";
 
 export default function RegisterForm({ initialCaptcha }: { initialCaptcha: { token: string; image: string } }) {
+  const { L, tm } = useI18n();
   const router = useRouter();
   const supabase = createClient();
 
@@ -48,22 +50,22 @@ export default function RegisterForm({ initialCaptcha }: { initialCaptcha: { tok
     const trimmedEmail = email.trim();
 
     if (trimmedName.length < 2) {
-      setError("Please enter your full name.");
+      setError(L("Please enter your full name.", "আপনার পুরো নাম লিখুন।"));
       return;
     }
 
     if (!trimmedEmail) {
-      setError("Please enter your email address.");
+      setError(L("Please enter your email address.", "আপনার ইমেইল ঠিকানা লিখুন।"));
       return;
     }
 
     if (password.length < 8) {
-      setError("Password must be at least 8 characters long.");
+      setError(L("Password must be at least 8 characters long.", "পাসওয়ার্ড কমপক্ষে ৮ অক্ষরের হতে হবে।"));
       return;
     }
 
     if (password !== confirmPassword) {
-      setError("Passwords do not match.");
+      setError(L("Passwords do not match.", "পাসওয়ার্ড দুটি মেলেনি।"));
       return;
     }
 
@@ -83,7 +85,7 @@ export default function RegisterForm({ initialCaptcha }: { initialCaptcha: { tok
     const result = await res.json().catch(() => ({}));
 
     if (!res.ok) {
-      setError(result.error ?? "Couldn't create your account. Please try again.");
+      setError(tm(result.error) ?? L("Couldn't create your account. Please try again.", "অ্যাকাউন্ট খোলা যায়নি। আবার চেষ্টা করুন।"));
       setCaptchaKey((k) => k + 1);
       setLoading(false);
       return;
@@ -123,7 +125,7 @@ export default function RegisterForm({ initialCaptcha }: { initialCaptcha: { tok
     });
 
     if (error) {
-      setError(getAuthErrorMessage(error.message));
+      setError(getAuthErrorMessage(error.message, L));
       setGoogleLoading(false);
     }
   }
@@ -150,17 +152,16 @@ export default function RegisterForm({ initialCaptcha }: { initialCaptcha: { tok
               </span>
 
               <span className="font-bold text-neutral-950">
-                Nirdeshona
+                {L("Nirdeshona", "নির্দেশনা")}
               </span>
             </Link>
 
             <h1 className="mt-6 text-2xl font-semibold tracking-tight text-neutral-950">
-              Check your email
+              {L("Check your email", "আপনার ইমেইল দেখুন")}
             </h1>
 
             <p className="mt-1.5 text-sm leading-6 text-neutral-500">
-              We&apos;ve sent a verification link to your email
-              address.
+              {L("We've sent a verification link to your email address.", "আপনার ইমেইল ঠিকানায় একটি যাচাই লিংক পাঠানো হয়েছে।")}
             </p>
           </div>
 
@@ -172,18 +173,18 @@ export default function RegisterForm({ initialCaptcha }: { initialCaptcha: { tok
             </div>
 
             <p className="mt-4 text-sm leading-6 text-neutral-500">
-              Click the link in the email sent to{" "}
+              {L("Click the link in the email sent to ", "")}
               <span className="font-medium text-neutral-800">
                 {email.trim()}
-              </span>{" "}
-              to verify your account and continue.
+              </span>
+              {L(" to verify your account and continue.", " ঠিকানায় পাঠানো ইমেইলের লিংকে ক্লিক করে অ্যাকাউন্ট যাচাই করুন।")}
             </p>
 
             <Link
               href="/login"
               className="mt-5 inline-flex h-11 items-center justify-center rounded-xl bg-neutral-950 px-5 text-sm font-medium text-white transition hover:bg-neutral-800"
             >
-              Back to login
+              {L("Back to login", "লগ ইনে ফিরে যান")}
             </Link>
           </div>
         </div>
@@ -214,16 +215,16 @@ export default function RegisterForm({ initialCaptcha }: { initialCaptcha: { tok
             </span>
 
             <span className="font-bold text-neutral-950">
-              Nirdeshona
+              {L("Nirdeshona", "নির্দেশনা")}
             </span>
           </Link>
 
           <h1 className="mt-3 text-2xl font-semibold tracking-tight text-neutral-950">
-            Create your account
+            {L("Create your account", "আপনার অ্যাকাউন্ট খুলুন")}
           </h1>
 
           <p className="mt-1.5 text-sm leading-6 text-neutral-500">
-            Get started with your Nirdeshona account.
+            {L("Get started with your Nirdeshona account.", "নির্দেশনা অ্যাকাউন্ট দিয়ে শুরু করুন।")}
           </p>
         </div>
 
@@ -249,8 +250,8 @@ export default function RegisterForm({ initialCaptcha }: { initialCaptcha: { tok
             )}
 
             {googleLoading
-              ? "Connecting..."
-              : "Continue with Google"}
+              ? L("Connecting...", "সংযোগ হচ্ছে...")
+              : L("Continue with Google", "Google দিয়ে চালিয়ে যান")}
           </button>
 
           {/* =================================================
@@ -261,7 +262,7 @@ export default function RegisterForm({ initialCaptcha }: { initialCaptcha: { tok
             <div className="h-px flex-1 bg-neutral-200" />
 
             <span className="text-xs text-neutral-400">
-              OR
+              {L("OR", "অথবা")}
             </span>
 
             <div className="h-px flex-1 bg-neutral-200" />
@@ -279,7 +280,7 @@ export default function RegisterForm({ initialCaptcha }: { initialCaptcha: { tok
 
             <FloatingInput
               id="fullName"
-              label="Full name"
+              label={L("Full name", "পুরো নাম")}
               type="text"
               value={fullName}
               onChange={setFullName}
@@ -291,7 +292,7 @@ export default function RegisterForm({ initialCaptcha }: { initialCaptcha: { tok
 
             <FloatingInput
               id="email"
-              label="Email address"
+              label={L("Email address", "ইমেইল ঠিকানা")}
               type="email"
               value={email}
               onChange={setEmail}
@@ -303,7 +304,7 @@ export default function RegisterForm({ initialCaptcha }: { initialCaptcha: { tok
 
             <FloatingPasswordInput
               id="password"
-              label="Password"
+              label={L("Password", "পাসওয়ার্ড")}
               value={password}
               onChange={setPassword}
               showPassword={showPassword}
@@ -316,7 +317,7 @@ export default function RegisterForm({ initialCaptcha }: { initialCaptcha: { tok
 
             <FloatingPasswordInput
               id="confirmPassword"
-              label="Confirm password"
+              label={L("Confirm password", "পাসওয়ার্ড নিশ্চিত করুন")}
               value={confirmPassword}
               onChange={setConfirmPassword}
               showPassword={showConfirmPassword}
@@ -326,7 +327,7 @@ export default function RegisterForm({ initialCaptcha }: { initialCaptcha: { tok
             />
 
             <p className="text-xs text-neutral-400">
-              Password must be at least 8 characters.
+              {L("Password must be at least 8 characters.", "পাসওয়ার্ড কমপক্ষে ৮ অক্ষরের হতে হবে।")}
             </p>
 
             {/* Security check */}
@@ -349,8 +350,8 @@ export default function RegisterForm({ initialCaptcha }: { initialCaptcha: { tok
               )}
 
               {loading
-                ? "Creating account..."
-                : "Create account"}
+                ? L("Creating account...", "অ্যাকাউন্ট খোলা হচ্ছে...")
+                : L("Create account", "অ্যাকাউন্ট খুলুন")}
             </button>
           </form>
 
@@ -359,12 +360,12 @@ export default function RegisterForm({ initialCaptcha }: { initialCaptcha: { tok
           ================================================== */}
 
           <p className="mt-6 text-center text-sm text-neutral-500">
-            Already have an account?{" "}
+            {L("Already have an account?", "আগেই অ্যাকাউন্ট আছে?")}{" "}
             <Link
               href="/login"
               className="font-medium text-neutral-950 hover:underline"
             >
-              Log in
+              {L("Log in", "লগ ইন")}
             </Link>
           </p>
         </div>
@@ -447,6 +448,7 @@ function FloatingPasswordInput({
   autoComplete?: string;
   disabled?: boolean;
 }) {
+  const { L } = useI18n();
   return (
     <div className="relative">
       <input
@@ -476,8 +478,8 @@ function FloatingPasswordInput({
         disabled={disabled}
         aria-label={
           showPassword
-            ? "Hide password"
-            : "Show password"
+            ? L("Hide password", "পাসওয়ার্ড লুকান")
+            : L("Show password", "পাসওয়ার্ড দেখুন")
         }
         className="absolute right-2 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-lg text-neutral-400 transition hover:bg-neutral-100 hover:text-neutral-700"
       >
@@ -554,11 +556,11 @@ function GoogleIcon() {
  * =========================================================
  */
 
-function getAuthErrorMessage(message: string) {
+function getAuthErrorMessage(message: string, L: <T>(en: T, bn: T) => T) {
   const normalized = message.toLowerCase();
 
   if (normalized.includes("user already registered")) {
-    return "An account with this email already exists. Try logging in instead.";
+    return L("An account with this email already exists. Try logging in instead.", "এই ইমেইলে আগেই একটি অ্যাকাউন্ট আছে। লগ ইন করে দেখুন।");
   }
 
   if (normalized.includes("password")) {

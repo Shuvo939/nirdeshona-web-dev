@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import Link from "@/app/components/locale-link";
 import { notFound } from "next/navigation";
 import { cache } from "react";
 import {
@@ -23,6 +23,11 @@ import ProjectCard, { type ProjectCardData } from "@/app/components/project-card
 import ProjectGallery from "@/app/components/projects/project-gallery";
 import ShareButton from "@/app/components/projects/share-button";
 import { sql } from "@/lib/db";
+import { getLocalizedService } from "@/lib/content";
+import type { Locale } from "@/lib/i18n/config";
+import { getI18n, getLocale, localeAlternates, makeI18n } from "@/lib/i18n/server";
+import { tcol } from "@/lib/i18n/sql";
+import { categoryLabel } from "@/lib/projects/categories";
 import { jsonLd } from "@/lib/json-ld";
 import { isHttpUrl } from "@/lib/safe-url";
 import { services, site } from "@/lib/site";
@@ -49,9 +54,10 @@ type Project = {
   client_logo: string | null;
 };
 
-const getProject = cache(async (slug: string) => {
+const getProject = cache(async (slug: string, locale: Locale) => {
   const [project] = (await sql`
-    select p.id, p.slug, p.title, p.short_description, p.description, p.category, p.status::text as status,
+    select p.id, p.slug, ${tcol(locale, "p.title")} as title, ${tcol(locale, "p.short_description")} as short_description,
+           ${tcol(locale, "p.description")} as description, p.category, p.status::text as status,
            p.progress_percent, p.featured, p.cover_image_url, p.live_url, p.repository_url,
            p.started_at::text as started_at, p.completed_at::text as completed_at, p.updated_at,
            c.name as client_name, c.logo_url as client_logo
@@ -64,13 +70,15 @@ const getProject = cache(async (slug: string) => {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
-  const project = await getProject(slug);
-  if (!project) return { title: "Project not found — Nirdeshona Web" };
-  const description = project.short_description || `${project.title} — a project by Nirdeshona Web Development.`;
+  const { L, locale } = await getI18n();
+  const project = await getProject(slug, locale);
+  if (!project) return { title: L("Project not found — Nirdeshona Web", "প্রজেক্ট পাওয়া যায়নি — নির্দেশনা ওয়েব") };
+  const description =
+    project.short_description || L(`${project.title} — a project by Nirdeshona Web Development.`, `${project.title} — নির্দেশনা ওয়েব ডেভেলপমেন্টের একটি প্রজেক্ট।`);
   return {
-    title: `${project.title} — Nirdeshona Web`,
+    title: `${project.title} — ${L("Nirdeshona Web", "নির্দেশনা ওয়েব")}`,
     description,
-    alternates: { canonical: `/projects/${project.slug}` },
+    alternates: localeAlternates(locale, `/projects/${project.slug}`),
     openGraph: {
       title: project.title,
       description,
@@ -80,18 +88,23 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-const fmt = (value: string | null) =>
-  value ? new Intl.DateTimeFormat("en-GB", { month: "short", year: "numeric", timeZone: "Asia/Dhaka" }).format(new Date(value)) : null;
+function makeFmt(locale: Locale) {
+  return (value: string | null) =>
+    value
+      ? new Intl.DateTimeFormat(locale === "bn" ? "bn-BD" : "en-GB", { month: "short", year: "numeric", timeZone: "Asia/Dhaka" }).format(new Date(value))
+      : null;
+}
 
-function duration(start: string | null, end: string | null) {
+function duration(start: string | null, end: string | null, locale: Locale) {
   if (!start) return null;
+  const { L, num } = makeI18n(locale);
   const from = new Date(start);
   const to = end ? new Date(end) : new Date();
   const days = Math.max(1, Math.round((to.getTime() - from.getTime()) / 86_400_000));
-  if (days < 14) return `${days} day${days > 1 ? "s" : ""}`;
-  if (days < 60) return `${Math.round(days / 7)} weeks`;
+  if (days < 14) return L(`${days} day${days > 1 ? "s" : ""}`, `${num(days)} দিন`);
+  if (days < 60) return L(`${Math.round(days / 7)} weeks`, `${num(Math.round(days / 7))} সপ্তাহ`);
   const months = Math.round(days / 30.4);
-  return `${months} month${months > 1 ? "s" : ""}`;
+  return L(`${months} month${months > 1 ? "s" : ""}`, `${num(months)} মাস`);
 }
 
 function hostOf(url: string | null) {
@@ -105,7 +118,10 @@ function hostOf(url: string | null) {
 
 export default async function ProjectDetailsPage({ params }: Props) {
   const { slug } = await params;
-  const project = await getProject(slug);
+  const locale = await getLocale();
+  const { L, num } = makeI18n(locale);
+  const fmt = makeFmt(locale);
+  const project = await getProject(slug, locale);
   if (!project) notFound();
 
   const [media, technologies, related, siblings] = await Promise.all([
@@ -119,7 +135,8 @@ export default async function ProjectDetailsPage({ params }: Props) {
       where pt.project_id = ${project.id} order by t.name asc
     ` as unknown as Promise<{ name: string }[]>,
     sql`
-      select p.id, p.slug, p.title, p.short_description, p.category, p.status::text as status, p.progress_percent,
+      select p.id, p.slug, ${tcol(locale, "p.title")} as title, ${tcol(locale, "p.short_description")} as short_description,
+             p.category, p.status::text as status, p.progress_percent,
              p.cover_image_url, p.featured, c.name as client_name
       from projects p left join clients c on c.id = p.client_id
       where p.id <> ${project.id}
@@ -128,7 +145,7 @@ export default async function ProjectDetailsPage({ params }: Props) {
       limit 3
     ` as unknown as Promise<ProjectCardData[]>,
     sql`
-      select slug, title from projects
+      select slug, ${tcol(locale, "title")} as title from projects
       order by featured desc, coalesce(completed_at, started_at, created_at::date) desc, id
     ` as unknown as Promise<{ slug: string; title: string }[]>,
   ]);
@@ -142,20 +159,21 @@ export default async function ProjectDetailsPage({ params }: Props) {
   const repoUrl = project.repository_url && isHttpUrl(project.repository_url) ? project.repository_url : null;
   const host = hostOf(liveUrl);
   const completed = project.status === "COMPLETED";
-  const timeTaken = duration(project.started_at, project.completed_at);
+  const timeTaken = duration(project.started_at, project.completed_at, locale);
   const matchedService = services.find(
     (s) => project.category && (s.title.toLowerCase().includes(project.category.toLowerCase()) || project.category.toLowerCase().includes(s.title.split(" ")[0].toLowerCase())),
   );
+  const serviceLabel = matchedService ? getLocalizedService(locale, matchedService.slug)?.title ?? matchedService.title : null;
 
   const facts = [
-    project.client_name && { icon: Building2, label: "Client", value: project.client_name },
-    project.category && { icon: Layers3, label: "Category", value: project.category },
+    project.client_name && { icon: Building2, label: L("Client", "ক্লায়েন্ট"), value: project.client_name },
+    project.category && { icon: Layers3, label: L("Category", "ক্যাটাগরি"), value: categoryLabel(project.category, locale) },
     (project.started_at || project.completed_at) && {
       icon: CalendarDays,
-      label: completed ? "Launched" : "Started",
+      label: completed ? L("Launched", "চালু হয়েছে") : L("Started", "শুরু"),
       value: fmt(completed ? project.completed_at ?? project.started_at : project.started_at) ?? "—",
     },
-    timeTaken && { icon: Timer, label: completed ? "Delivered in" : "Running for", value: timeTaken },
+    timeTaken && { icon: Timer, label: completed ? L("Delivered in", "সময় লেগেছে") : L("Running for", "চলছে"), value: timeTaken },
   ].filter(Boolean) as { icon: typeof Building2; label: string; value: string }[];
 
   const schema = {
@@ -163,7 +181,8 @@ export default async function ProjectDetailsPage({ params }: Props) {
     "@type": "CreativeWork",
     name: project.title,
     description: project.short_description ?? undefined,
-    url: `${site.url.replace(/\/$/, "")}/projects/${project.slug}`,
+    url: `${site.url.replace(/\/$/, "")}/${locale}/projects/${project.slug}`,
+    inLanguage: locale === "bn" ? "bn-BD" : "en",
     image: project.cover_image_url ?? undefined,
     dateCreated: project.started_at ?? undefined,
     datePublished: project.completed_at ?? undefined,
@@ -180,9 +199,9 @@ export default async function ProjectDetailsPage({ params }: Props) {
         <div aria-hidden className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_0%,rgba(16,185,129,0.08),transparent_45%),radial-gradient(circle_at_90%_10%,rgba(0,0,0,0.05),transparent_40%)]" />
         <div className="relative mx-auto max-w-7xl px-4 pb-12 pt-8 sm:px-6 sm:pt-10 lg:px-8">
           <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-xs text-neutral-500">
-            <Link href="/" className="hover:text-neutral-950">Home</Link>
+            <Link href="/" className="hover:text-neutral-950">{L("Home", "হোম")}</Link>
             <ChevronRight className="h-3 w-3" />
-            <Link href="/projects" className="hover:text-neutral-950">Our work</Link>
+            <Link href="/projects" className="hover:text-neutral-950">{L("Our work", "আমাদের কাজ")}</Link>
             <ChevronRight className="h-3 w-3" />
             <span className="truncate text-neutral-800">{project.title}</span>
           </nav>
@@ -193,12 +212,12 @@ export default async function ProjectDetailsPage({ params }: Props) {
                 <StatusBadge map={PROJECT_STATUS} value={project.status} />
                 {project.category && (
                   <Link href={`/projects?category=${encodeURIComponent(project.category)}`} className="rounded-full border border-neutral-200 bg-white px-3 py-1 text-xs font-medium text-neutral-700 hover:border-neutral-300">
-                    {project.category}
+                    {categoryLabel(project.category, locale)}
                   </Link>
                 )}
                 {project.featured && (
                   <span className="inline-flex items-center gap-1 rounded-full bg-neutral-950 px-3 py-1 text-xs font-semibold text-white">
-                    <Star className="h-3 w-3 fill-amber-300 text-amber-300" /> Featured
+                    <Star className="h-3 w-3 fill-amber-300 text-amber-300" /> {L("Featured", "ফিচার্ড")}
                   </span>
                 )}
               </div>
@@ -207,7 +226,14 @@ export default async function ProjectDetailsPage({ params }: Props) {
               {project.client_name && (
                 <p className="mt-3 flex items-center gap-2 text-sm text-neutral-500">
                   <ClientMark name={project.client_name} logo={project.client_logo} />
-                  for <span className="font-medium text-neutral-800">{project.client_name}</span>
+                  {L(
+                    <>
+                      for <span className="font-medium text-neutral-800">{project.client_name}</span>
+                    </>,
+                    <>
+                      <span className="font-medium text-neutral-800">{project.client_name}</span>-এর জন্য
+                    </>,
+                  )}
                 </p>
               )}
               {project.short_description && <p className="mt-5 max-w-xl text-lg leading-8 text-neutral-600">{project.short_description}</p>}
@@ -215,8 +241,8 @@ export default async function ProjectDetailsPage({ params }: Props) {
               {!completed && (
                 <div className="mt-6 max-w-sm">
                   <div className="flex items-center justify-between text-xs font-medium text-neutral-600">
-                    <span>Progress</span>
-                    <span>{project.progress_percent}%</span>
+                    <span>{L("Progress", "অগ্রগতি")}</span>
+                    <span>{num(project.progress_percent)}%</span>
                   </div>
                   <div className="mt-2 h-2 overflow-hidden rounded-full bg-neutral-200">
                     <div className="h-full rounded-full bg-gradient-to-r from-neutral-800 to-emerald-500" style={{ width: `${project.progress_percent}%` }} />
@@ -227,12 +253,12 @@ export default async function ProjectDetailsPage({ params }: Props) {
               <div className="mt-8 flex flex-wrap gap-3">
                 {liveUrl && (
                   <a href={liveUrl} target="_blank" rel="noopener noreferrer" className="inline-flex h-11 items-center gap-2 rounded-full bg-neutral-950 px-5 text-sm font-semibold text-white transition hover:bg-neutral-800">
-                    <Globe className="h-4 w-4" /> Visit website <ArrowUpRight className="h-4 w-4" />
+                    <Globe className="h-4 w-4" /> {L("Visit website", "ওয়েবসাইট দেখুন")} <ArrowUpRight className="h-4 w-4" />
                   </a>
                 )}
                 {repoUrl && (
                   <a href={repoUrl} target="_blank" rel="noopener noreferrer" className="inline-flex h-11 items-center gap-2 rounded-full border border-neutral-200 bg-white px-5 text-sm font-semibold text-neutral-800 hover:border-neutral-300">
-                    <Code2 className="h-4 w-4" /> Source
+                    <Code2 className="h-4 w-4" /> {L("Source", "সোর্স কোড")}
                   </a>
                 )}
                 <ShareButton
@@ -286,20 +312,20 @@ export default async function ProjectDetailsPage({ params }: Props) {
       <section className="mx-auto grid max-w-7xl grid-cols-1 gap-10 px-4 py-14 sm:px-6 lg:grid-cols-[minmax(0,1fr)_320px] lg:px-8">
         <div className="flex min-w-0 flex-col gap-12">
           <div>
-            <h2 className="text-xs font-semibold uppercase tracking-[0.16em] text-neutral-400">Overview</h2>
+            <h2 className="text-xs font-semibold uppercase tracking-[0.16em] text-neutral-400">{L("Overview", "সংক্ষেপে")}</h2>
             {project.description ? (
               <div className="mt-4 text-[15px] leading-7 text-neutral-700 sm:text-base" dangerouslySetInnerHTML={{ __html: renderMarkdown(project.description) }} />
             ) : (
-              <p className="mt-4 text-neutral-600">{project.short_description ?? "Details for this project are coming soon."}</p>
+              <p className="mt-4 text-neutral-600">{project.short_description ?? L("Details for this project are coming soon.", "এই প্রজেক্টের বিস্তারিত শিগগিরই আসছে।")}</p>
             )}
           </div>
 
           {media.length > 0 && (
             <div>
               <div className="flex items-end justify-between gap-3">
-                <h2 className="text-xs font-semibold uppercase tracking-[0.16em] text-neutral-400">Gallery</h2>
+                <h2 className="text-xs font-semibold uppercase tracking-[0.16em] text-neutral-400">{L("Gallery", "গ্যালারি")}</h2>
                 <span className="text-xs text-neutral-400">
-                  {media.length} image{media.length > 1 ? "s" : ""} · click to enlarge
+                  {L(`${media.length} image${media.length > 1 ? "s" : ""} · click to enlarge`, `${num(media.length)}টি ছবি · বড় করে দেখতে ক্লিক করুন`)}
                 </span>
               </div>
               <div className="mt-4">
@@ -310,14 +336,14 @@ export default async function ProjectDetailsPage({ params }: Props) {
 
           {tech.length > 0 && (
             <div>
-              <h2 className="text-xs font-semibold uppercase tracking-[0.16em] text-neutral-400">Built with</h2>
+              <h2 className="text-xs font-semibold uppercase tracking-[0.16em] text-neutral-400">{L("Built with", "যা দিয়ে তৈরি")}</h2>
               <div className="mt-4 flex flex-wrap gap-2">
                 {tech.map((t) => (
                   <Link
                     key={t}
                     href={`/projects?tech=${encodeURIComponent(t)}`}
                     className="rounded-full border border-neutral-200 bg-white px-3.5 py-1.5 text-sm text-neutral-700 transition hover:border-neutral-950 hover:text-neutral-950"
-                    title={`More projects built with ${t}`}
+                    title={L(`More projects built with ${t}`, `${t} দিয়ে তৈরি আরও প্রজেক্ট`)}
                   >
                     {t}
                   </Link>
@@ -329,16 +355,16 @@ export default async function ProjectDetailsPage({ params }: Props) {
 
         <aside className="flex flex-col gap-4 lg:sticky lg:top-24 lg:self-start">
           <div className="rounded-3xl border border-neutral-200 bg-white p-5">
-            <h3 className="text-sm font-semibold text-neutral-950">Project details</h3>
+            <h3 className="text-sm font-semibold text-neutral-950">{L("Project details", "প্রজেক্টের তথ্য")}</h3>
             <dl className="mt-4 flex flex-col divide-y divide-neutral-100 text-sm">
-              <Row label="Status">
+              <Row label={L("Status", "অবস্থা")}>
                 <StatusBadge map={PROJECT_STATUS} value={project.status} />
               </Row>
-              {project.started_at && <Row label="Started">{fmt(project.started_at)}</Row>}
-              {project.completed_at && <Row label="Completed">{fmt(project.completed_at)}</Row>}
-              {timeTaken && <Row label="Duration">{timeTaken}</Row>}
-              {tech.length > 0 && <Row label="Technologies">{tech.length}</Row>}
-              <Row label="Last updated">{fmt(project.updated_at)}</Row>
+              {project.started_at && <Row label={L("Started", "শুরু")}>{fmt(project.started_at)}</Row>}
+              {project.completed_at && <Row label={L("Completed", "সম্পন্ন")}>{fmt(project.completed_at)}</Row>}
+              {timeTaken && <Row label={L("Duration", "সময়কাল")}>{timeTaken}</Row>}
+              {tech.length > 0 && <Row label={L("Technologies", "প্রযুক্তি")}>{num(tech.length)}</Row>}
+              <Row label={L("Last updated", "সর্বশেষ আপডেট")}>{fmt(project.updated_at)}</Row>
             </dl>
             {(liveUrl || repoUrl) && (
               <div className="mt-4 flex flex-col gap-2">
@@ -350,7 +376,7 @@ export default async function ProjectDetailsPage({ params }: Props) {
                 )}
                 {repoUrl && (
                   <a href={repoUrl} target="_blank" rel="noopener noreferrer" className="flex items-center justify-between rounded-xl bg-neutral-50 px-3.5 py-2.5 text-sm font-medium text-neutral-800 hover:bg-neutral-100">
-                    <span>Repository</span>
+                    <span>{L("Repository", "রিপোজিটরি")}</span>
                     <Code2 className="h-4 w-4 shrink-0" />
                   </a>
                 )}
@@ -360,17 +386,22 @@ export default async function ProjectDetailsPage({ params }: Props) {
 
           <div className="rounded-3xl bg-neutral-950 p-6 text-white">
             <MessageSquare className="h-6 w-6 text-emerald-300" />
-            <h3 className="mt-4 text-lg font-semibold">Want something similar?</h3>
-            <p className="mt-2 text-sm leading-6 text-neutral-400">Tell us about your idea — we&apos;ll reply within a working day with honest advice and a quote.</p>
+            <h3 className="mt-4 text-lg font-semibold">{L("Want something similar?", "এমন কিছু চান?")}</h3>
+            <p className="mt-2 text-sm leading-6 text-neutral-400">
+              {L(
+                "Tell us about your idea — we'll reply within a working day with honest advice and a quote.",
+                "আপনার আইডিয়া জানান — এক কর্মদিবসের মধ্যে সৎ পরামর্শ ও খরচের হিসাবসহ উত্তর দেব।",
+              )}
+            </p>
             <Link
               href={`/contact${matchedService ? `?service=${encodeURIComponent(matchedService.title)}` : ""}`}
               className="mt-5 inline-flex h-10 items-center gap-2 rounded-full bg-white px-4 text-sm font-semibold text-neutral-950 hover:bg-neutral-200"
             >
-              Start a project <ArrowRight className="h-4 w-4" />
+              {L("Start a project", "প্রজেক্ট শুরু করুন")} <ArrowRight className="h-4 w-4" />
             </Link>
             {matchedService && (
               <Link href={`/services/${matchedService.slug}`} className="mt-3 block text-xs text-neutral-400 hover:text-white">
-                About our {matchedService.title.toLowerCase()} service →
+                {L(`About our ${matchedService.title.toLowerCase()} service →`, `আমাদের ${serviceLabel} সেবা সম্পর্কে →`)}
               </Link>
             )}
           </div>
@@ -379,12 +410,12 @@ export default async function ProjectDetailsPage({ params }: Props) {
 
       {/* Prev / next */}
       {(prev || next) && (
-        <nav aria-label="More projects" className="border-y border-neutral-200 bg-neutral-50">
+        <nav aria-label={L("More projects", "আরও প্রজেক্ট")} className="border-y border-neutral-200 bg-neutral-50">
           <div className="mx-auto grid max-w-7xl grid-cols-2 divide-x divide-neutral-200 px-0 sm:px-6 lg:px-8">
             {prev ? (
               <Link href={`/projects/${prev.slug}`} className="group flex flex-col gap-1 px-4 py-6 sm:px-0 sm:pr-6">
                 <span className="flex items-center gap-1 text-xs text-neutral-500">
-                  <ArrowLeft className="h-3.5 w-3.5 transition group-hover:-translate-x-0.5" /> Previous
+                  <ArrowLeft className="h-3.5 w-3.5 transition group-hover:-translate-x-0.5" /> {L("Previous", "আগের")}
                 </span>
                 <span className="truncate font-semibold text-neutral-950">{prev.title}</span>
               </Link>
@@ -394,7 +425,7 @@ export default async function ProjectDetailsPage({ params }: Props) {
             {next ? (
               <Link href={`/projects/${next.slug}`} className="group flex flex-col items-end gap-1 px-4 py-6 text-right sm:px-0 sm:pl-6">
                 <span className="flex items-center gap-1 text-xs text-neutral-500">
-                  Next <ArrowRight className="h-3.5 w-3.5 transition group-hover:translate-x-0.5" />
+                  {L("Next", "পরের")} <ArrowRight className="h-3.5 w-3.5 transition group-hover:translate-x-0.5" />
                 </span>
                 <span className="max-w-full truncate font-semibold text-neutral-950">{next.title}</span>
               </Link>
@@ -409,9 +440,9 @@ export default async function ProjectDetailsPage({ params }: Props) {
       {related.length > 0 && (
         <section className="mx-auto max-w-7xl px-4 pb-20 pt-16 sm:px-6 lg:px-8">
           <div className="flex items-end justify-between gap-4">
-            <h2 className="text-2xl font-bold tracking-[-0.03em] text-neutral-950">More of our work</h2>
+            <h2 className="text-2xl font-bold tracking-[-0.03em] text-neutral-950">{L("More of our work", "আমাদের আরও কাজ")}</h2>
             <Link href="/projects" className="text-sm font-semibold text-neutral-950 hover:underline">
-              All projects →
+              {L("All projects →", "সব প্রজেক্ট →")}
             </Link>
           </div>
           <div className="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">

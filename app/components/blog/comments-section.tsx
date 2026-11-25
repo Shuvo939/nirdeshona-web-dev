@@ -1,6 +1,9 @@
 "use client";
 
-import Link from "next/link";
+import { timeAgo as timeAgoLocale } from "@/lib/i18n/config";
+import { useI18n } from "@/lib/i18n/client";
+
+import Link from "@/app/components/locale-link";
 import { usePathname } from "next/navigation";
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { CornerDownRight, EyeOff, Flag, Link2, Loader2, MoreVertical, Pencil, SendHorizonal, ShieldCheck, Trash2 } from "lucide-react";
@@ -9,7 +12,7 @@ import ConfirmDialog from "@/app/components/confirm-dialog";
 import type { CommentNode, ReactionType } from "@/lib/comments";
 
 import { addComment, deleteComment, editComment, hideComment, reportComment, setCommentReaction } from "./community-actions";
-import { REACTION_META, REACTION_ORDER } from "./reaction-meta";
+import { REACTION_META, REACTION_ORDER, reactionLabel } from "./reaction-meta";
 
 export type Viewer = { id: string; name: string | null; avatarUrl: string | null; isAdmin: boolean } | null;
 type Sort = "relevant" | "newest" | "oldest";
@@ -18,14 +21,9 @@ type Sort = "relevant" | "newest" | "oldest";
 /* helpers                                                             */
 /* ------------------------------------------------------------------ */
 
-function timeAgo(value: string) {
-  const s = (Date.now() - new Date(value).getTime()) / 1000;
-  if (s < 60) return "Just now";
-  if (s < 3600) return `${Math.floor(s / 60)}m`;
-  if (s < 86400) return `${Math.floor(s / 3600)}h`;
-  if (s < 604800) return `${Math.floor(s / 86400)}d`;
-  if (s < 31536000) return `${Math.floor(s / 604800)}w`;
-  return new Date(value).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
+function useShortAgo() {
+  const { locale } = useI18n();
+  return (value: string) => timeAgoLocale(value, locale);
 }
 
 function Avatar({ name, url, size = "h-9 w-9" }: { name: string | null; url: string | null; size?: string }) {
@@ -90,6 +88,7 @@ function Composer({
   onCancel?: () => void;
   id?: string;
 }) {
+  const { L } = useI18n();
   const [text, setText] = useState(initial);
   const [busy, setBusy] = useState(false);
   const ref = useRef<HTMLTextAreaElement>(null);
@@ -144,20 +143,20 @@ function Composer({
             type="button"
             onClick={submit}
             disabled={!text.trim() || busy}
-            aria-label="Send"
+            aria-label={L("Send", "পাঠান")}
             className="mb-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-blue-600 transition hover:bg-blue-50 disabled:text-neutral-300 disabled:hover:bg-transparent"
           >
             {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <SendHorizonal className="h-4 w-4" />}
           </button>
         </div>
         <div className="mt-1 flex items-center gap-2 px-3 text-[11px] text-neutral-400">
-          <span className="hidden sm:inline">Enter to post · Shift + Enter for a new line</span>
-          <span className="sm:hidden">Tap send to post</span>
+          <span className="hidden sm:inline">{L("Enter to post · Shift + Enter for a new line", "পোস্ট করতে Enter · নতুন লাইনে Shift + Enter")}</span>
+          <span className="sm:hidden">{L("Tap send to post", "পোস্ট করতে পাঠান চাপুন")}</span>
           {onCancel && (
             <>
               <span>·</span>
               <button type="button" onClick={onCancel} className="font-semibold text-blue-600 hover:underline">
-                Cancel
+                {L("Cancel", "বাতিল")}
               </button>
             </>
           )}
@@ -172,11 +171,12 @@ function Composer({
 /* ------------------------------------------------------------------ */
 
 function ReactionSummary({ comment }: { comment: CommentNode }) {
+  const { L, num } = useI18n();
   if (comment.reaction_count === 0) return null;
   const top = comment.top_reactions.length ? comment.top_reactions : (["like"] as ReactionType[]);
   return (
     <span
-      title={`${comment.reaction_count} reaction${comment.reaction_count === 1 ? "" : "s"}`}
+      title={L(`${comment.reaction_count} reaction${comment.reaction_count === 1 ? "" : "s"}`, `${num(comment.reaction_count)}টি রিঅ্যাকশন`)}
       className="absolute -bottom-3 right-2 flex items-center gap-0.5 rounded-full bg-white py-0.5 pl-0.5 pr-1.5 text-[12px] leading-none text-neutral-600 shadow-[0_1px_3px_rgba(0,0,0,0.2)]"
     >
       <span className="flex -space-x-1">
@@ -186,12 +186,13 @@ function ReactionSummary({ comment }: { comment: CommentNode }) {
           </span>
         ))}
       </span>
-      {comment.reaction_count > 1 && <span className="ml-0.5">{comment.reaction_count}</span>}
+      {comment.reaction_count > 1 && <span className="ml-0.5">{num(comment.reaction_count)}</span>}
     </span>
   );
 }
 
 function ReactButton({ comment, onReact }: { comment: CommentNode; onReact: (c: CommentNode, r: ReactionType | null) => void }) {
+  const { L, locale } = useI18n();
   const [open, setOpen] = useState(false);
   const hover = useRef<number | null>(null);
   const press = useRef<number | null>(null);
@@ -210,14 +211,14 @@ function ReactButton({ comment, onReact }: { comment: CommentNode; onReact: (c: 
   return (
     <span className="relative" onMouseEnter={openSoon} onMouseLeave={closeSoon}>
       {open && (
-        <span role="menu" aria-label="React" className="absolute bottom-full left-[-8px] z-30 mb-1.5 flex gap-0.5 rounded-full border border-neutral-200 bg-white p-1 shadow-xl">
+        <span role="menu" aria-label={L("React", "রিঅ্যাকশন")} className="absolute bottom-full left-[-8px] z-30 mb-1.5 flex gap-0.5 rounded-full border border-neutral-200 bg-white p-1 shadow-xl">
           {REACTION_ORDER.map((r) => (
             <button
               key={r}
               type="button"
               role="menuitem"
-              title={REACTION_META[r].label}
-              aria-label={REACTION_META[r].label}
+              title={reactionLabel(r, locale)}
+              aria-label={reactionLabel(r, locale)}
               onClick={() => {
                 setOpen(false);
                 onReact(comment, comment.my_reaction === r ? null : r);
@@ -249,7 +250,7 @@ function ReactButton({ comment, onReact }: { comment: CommentNode; onReact: (c: 
         onContextMenu={(e) => e.preventDefault()}
         className={`select-none font-semibold hover:underline ${mine ? mine.color : "text-neutral-600"}`}
       >
-        {mine ? mine.label : "Like"}
+        {mine ? (locale === "bn" ? mine.labelBn : mine.label) : L("Like", "লাইক")}
       </button>
     </span>
   );
@@ -280,6 +281,8 @@ function CommentItem({
   onHide: (c: CommentNode) => void;
   onReport: (c: CommentNode) => void;
 }) {
+  const { L, locale } = useI18n();
+  const ago = useShortAgo();
   const [menu, setMenu] = useState(false);
   const [editing, setEditing] = useState(false);
   const menuRef = useRef<HTMLSpanElement>(null);
@@ -303,7 +306,7 @@ function CommentItem({
         <Composer
           viewer={viewer}
           compact={isReply}
-          placeholder="Edit your comment…"
+          placeholder={L("Edit your comment…", "কমেন্ট সম্পাদনা করুন…")}
           initial={comment.content}
           autoFocus
           onCancel={() => setEditing(false)}
@@ -327,13 +330,13 @@ function CommentItem({
           } ${comment.reaction_count > 0 ? "mb-2" : ""}`}
         >
           <div className="flex flex-wrap items-center gap-x-1.5">
-            <span className="text-[13px] font-semibold leading-5 text-neutral-950">{comment.full_name || "Member"}</span>
+            <span className="text-[13px] font-semibold leading-5 text-neutral-950">{comment.full_name || L("Member", "সদস্য")}</span>
             {comment.user_id === postAuthorId && (
-              <span className="rounded bg-neutral-950 px-1.5 py-px text-[10px] font-semibold text-white">Author</span>
+              <span className="rounded bg-neutral-950 px-1.5 py-px text-[10px] font-semibold text-white">{L("Author", "লেখক")}</span>
             )}
             {comment.role === "ADMIN" && comment.user_id !== postAuthorId && (
               <span className="inline-flex items-center gap-0.5 rounded bg-blue-50 px-1.5 py-px text-[10px] font-semibold text-blue-700">
-                <ShieldCheck className="h-2.5 w-2.5" /> Team
+                <ShieldCheck className="h-2.5 w-2.5" /> {L("Team", "টিম")}
               </span>
             )}
           </div>
@@ -344,8 +347,8 @@ function CommentItem({
         </div>
 
         <div className="mt-0.5 flex flex-wrap items-center gap-x-3 px-3 text-xs text-neutral-500">
-          <a href={`#comment-${comment.id}`} className="hover:underline" title={new Date(comment.created_at).toLocaleString("en-GB")}>
-            {pending ? "Posting…" : timeAgo(comment.created_at)}
+          <a href={`#comment-${comment.id}`} className="hover:underline" title={new Date(comment.created_at).toLocaleString(locale === "bn" ? "bn-BD" : "en-GB")}>
+            {pending ? L("Posting…", "পোস্ট হচ্ছে…") : ago(comment.created_at)}
           </a>
           {!pending && (
             <>
@@ -353,18 +356,18 @@ function CommentItem({
                 <ReactButton comment={comment} onReact={onReact} />
               ) : (
                 <button type="button" onClick={() => onReact(comment, "like")} className="font-semibold text-neutral-600 hover:underline">
-                  Like
+                  {L("Like", "লাইক")}
                 </button>
               )}
               <button type="button" onClick={() => onReply(comment)} className="font-semibold text-neutral-600 hover:underline">
-                Reply
+                {L("Reply", "উত্তর দিন")}
               </button>
-              {comment.edited_at && <span>Edited</span>}
+              {comment.edited_at && <span>{L("Edited", "সম্পাদিত")}</span>}
               {viewer && (
                 <span ref={menuRef} className="relative">
                   <button
                     type="button"
-                    aria-label="Comment options"
+                    aria-label={L("Comment options", "কমেন্টের অপশন")}
                     aria-expanded={menu}
                     onClick={() => setMenu((v) => !v)}
                     className="-my-1 flex h-7 w-7 items-center justify-center rounded-full text-neutral-500 transition hover:bg-neutral-100 hover:text-neutral-800"
@@ -375,20 +378,20 @@ function CommentItem({
                     <span className="absolute left-0 top-full z-30 mt-1 block w-48 overflow-hidden rounded-xl border border-neutral-200 bg-white p-1 shadow-xl">
                       <MenuButton
                         icon={<Link2 className="h-4 w-4" />}
-                        label="Copy link"
+                        label={L("Copy link", "লিংক কপি")}
                         onClick={() => {
                           setMenu(false);
                           void navigator.clipboard?.writeText(`${window.location.href.split("#")[0]}#comment-${comment.id}`);
                         }}
                       />
-                      {mine && <MenuButton icon={<Pencil className="h-4 w-4" />} label="Edit" onClick={() => { setMenu(false); setEditing(true); }} />}
+                      {mine && <MenuButton icon={<Pencil className="h-4 w-4" />} label={L("Edit", "সম্পাদনা")} onClick={() => { setMenu(false); setEditing(true); }} />}
                       {(mine || viewer.isAdmin) && (
-                        <MenuButton danger icon={<Trash2 className="h-4 w-4" />} label="Delete" onClick={() => { setMenu(false); onDelete(comment); }} />
+                        <MenuButton danger icon={<Trash2 className="h-4 w-4" />} label={L("Delete", "মুছুন")} onClick={() => { setMenu(false); onDelete(comment); }} />
                       )}
                       {viewer.isAdmin && !mine && (
-                        <MenuButton icon={<EyeOff className="h-4 w-4" />} label="Hide comment" onClick={() => { setMenu(false); onHide(comment); }} />
+                        <MenuButton icon={<EyeOff className="h-4 w-4" />} label={L("Hide comment", "কমেন্ট লুকান")} onClick={() => { setMenu(false); onHide(comment); }} />
                       )}
-                      {!mine && <MenuButton icon={<Flag className="h-4 w-4" />} label="Report" onClick={() => { setMenu(false); onReport(comment); }} />}
+                      {!mine && <MenuButton icon={<Flag className="h-4 w-4" />} label={L("Report", "রিপোর্ট")} onClick={() => { setMenu(false); onReport(comment); }} />}
                     </span>
                   )}
                 </span>
@@ -432,6 +435,7 @@ export default function CommentsSection({
   viewer: Viewer;
 }) {
   const pathname = usePathname();
+  const { L, num } = useI18n();
   const [comments, setComments] = useState(initialComments);
   const [sort, setSort] = useState<Sort>("relevant");
   const [replyTo, setReplyTo] = useState<{ rootId: string; targetId: string; mention: string | null; key: number } | null>(null);
@@ -571,14 +575,14 @@ export default function CommentsSection({
       if (!res.ok) {
         setComments(snapshot);
         flash(res.error);
-      } else flash(kind === "delete" ? "Comment deleted" : "Comment hidden");
+      } else flash(kind === "delete" ? L("Comment deleted", "কমেন্ট মুছে ফেলা হয়েছে") : L("Comment hidden", "কমেন্ট লুকানো হয়েছে"));
     });
   }
 
   function startReply(c: CommentNode) {
     if (!viewer) return void (window.location.href = `/login?next=${encodeURIComponent(pathname)}`);
     const rootId = c.parent_id ?? c.id;
-    const mention = c.user_id !== viewer.id && c.parent_id ? `@${c.full_name ?? "Member"} ` : null;
+    const mention = c.user_id !== viewer.id && c.parent_id ? `@${c.full_name ?? L("Member", "সদস্য")} ` : null;
     setExpanded((e) => ({ ...e, [rootId]: true }));
     setReplyTo({ rootId, targetId: c.id, mention, key: Date.now() });
   }
@@ -589,19 +593,19 @@ export default function CommentsSection({
     <section id="comments" className="mt-12 scroll-mt-24">
       <div className="flex items-center justify-between gap-3">
         <h2 className="text-xl font-bold tracking-tight text-neutral-950">
-          Comments <span className="text-neutral-400">{total}</span>
+          {L("Comments", "কমেন্ট")} <span className="text-neutral-400">{num(total)}</span>
         </h2>
         {roots.length > 1 && (
           <label className="flex items-center gap-2 text-xs text-neutral-500">
-            Sort by
+            {L("Sort by", "সাজান")}
             <select
               value={sort}
               onChange={(e) => setSort(e.target.value as Sort)}
               className="h-8 rounded-lg border border-neutral-200 bg-white px-2 text-xs font-medium text-neutral-800 outline-none"
             >
-              <option value="relevant">Most relevant</option>
-              <option value="newest">Newest</option>
-              <option value="oldest">Oldest</option>
+              <option value="relevant">{L("Most relevant", "সবচেয়ে প্রাসঙ্গিক")}</option>
+              <option value="newest">{L("Newest", "নতুন আগে")}</option>
+              <option value="oldest">{L("Oldest", "পুরোনো আগে")}</option>
             </select>
           </label>
         )}
@@ -609,16 +613,16 @@ export default function CommentsSection({
 
       <div className="mt-5">
         {viewer ? (
-          <Composer id="comment-composer" viewer={viewer} placeholder="Write a comment…" onSubmit={(t) => submit(t, null)} />
+          <Composer id="comment-composer" viewer={viewer} placeholder={L("Write a comment…", "একটি কমেন্ট লিখুন…")} onSubmit={(t) => submit(t, null)} />
         ) : (
           <div id="comment-composer" className="flex flex-col items-start gap-3 rounded-2xl border border-neutral-200 bg-neutral-50 p-4 sm:flex-row sm:items-center sm:justify-between">
-            <p className="text-sm text-neutral-600">Sign in to join the conversation.</p>
+            <p className="text-sm text-neutral-600">{L("Sign in to join the conversation.", "আলোচনায় যোগ দিতে লগইন করুন।")}</p>
             <div className="flex gap-2">
               <Link href={`/login?next=${encodeURIComponent(pathname)}`} className="rounded-full bg-neutral-950 px-4 py-2 text-xs font-semibold text-white hover:bg-neutral-800">
-                Sign in
+                {L("Sign in", "লগইন")}
               </Link>
               <Link href="/register" className="rounded-full border border-neutral-200 bg-white px-4 py-2 text-xs font-semibold text-neutral-800 hover:bg-neutral-100">
-                Create account
+                {L("Create account", "অ্যাকাউন্ট খুলুন")}
               </Link>
             </div>
           </div>
@@ -626,7 +630,7 @@ export default function CommentsSection({
       </div>
 
       {roots.length === 0 ? (
-        <p className="mt-8 text-center text-sm text-neutral-500">No comments yet. Start the conversation!</p>
+        <p className="mt-8 text-center text-sm text-neutral-500">{L("No comments yet. Start the conversation!", "এখনো কোনো কমেন্ট নেই। আলোচনা শুরু করুন!")}</p>
       ) : (
         <ul className="mt-6 flex flex-col gap-5">
           {roots.slice(0, visibleRoots).map((root) => {
@@ -658,7 +662,7 @@ export default function CommentsSection({
                         className="w-fit text-left text-[13px] font-semibold text-neutral-600 hover:underline"
                       >
                         <CornerDownRight className="mr-1 inline h-3.5 w-3.5" />
-                        View all {thread.length} replies
+                        {L(`View all ${thread.length} replies`, `সব ${num(thread.length)}টি উত্তর দেখুন`)}
                       </button>
                     )}
                     {shown.map((reply) => (
@@ -684,7 +688,7 @@ export default function CommentsSection({
                         compact
                         autoFocus
                         initial={replyTo.mention ?? ""}
-                        placeholder={`Reply to ${root.full_name ?? "this comment"}…`}
+                        placeholder={L(`Reply to ${root.full_name ?? "this comment"}…`, `${root.full_name ?? "এই কমেন্টের"}-কে উত্তর দিন…`)}
                         onCancel={() => setReplyTo(null)}
                         onSubmit={async (t) => {
                           const ok = await submit(t, replyTo.targetId, root.id);
@@ -707,19 +711,19 @@ export default function CommentsSection({
           onClick={() => setVisibleRoots((v) => v + 10)}
           className="mt-6 w-full rounded-2xl border border-neutral-200 py-3 text-sm font-semibold text-neutral-700 hover:bg-neutral-50"
         >
-          View more comments ({roots.length - visibleRoots})
+          {L("View more comments", "আরও কমেন্ট দেখুন")} ({num(roots.length - visibleRoots)})
         </button>
       )}
 
       {confirm && (
         <ConfirmDialog
-          title={confirm.kind === "delete" ? "Delete comment?" : "Hide comment?"}
+          title={confirm.kind === "delete" ? L("Delete comment?", "কমেন্ট মুছবেন?") : L("Hide comment?", "কমেন্ট লুকাবেন?")}
           description={
             confirm.kind === "delete"
-              ? "This comment and its replies will be removed."
-              : "The comment will be hidden from everyone. You can restore it from the admin panel."
+              ? L("This comment and its replies will be removed.", "এই কমেন্ট ও এর উত্তরগুলো মুছে যাবে।")
+              : L("The comment will be hidden from everyone. You can restore it from the admin panel.", "কমেন্টটি সবার কাছ থেকে লুকানো হবে। অ্যাডমিন প্যানেল থেকে আবার দেখানো যাবে।")
           }
-          confirmLabel={confirm.kind === "delete" ? "Delete" : "Hide"}
+          confirmLabel={confirm.kind === "delete" ? L("Delete", "মুছুন") : L("Hide", "লুকান")}
           onCancel={() => setConfirm(null)}
           onConfirm={() => {
             remove(confirm.comment, confirm.kind);
@@ -734,7 +738,7 @@ export default function CommentsSection({
           onSubmit={async (reason) => {
             const res = await reportComment(reporting.id, reason);
             setReporting(null);
-            flash(res.ok ? "Thanks — our team will review this comment." : res.error);
+            flash(res.ok ? L("Thanks — our team will review this comment.", "ধন্যবাদ — আমাদের টিম কমেন্টটি দেখবে।") : res.error);
           }}
         />
       )}
@@ -748,27 +752,34 @@ export default function CommentsSection({
   );
 }
 
-const REPORT_REASONS = ["Spam or advertising", "Harassment or hate", "False information", "Off-topic", "Something else"];
+const REPORT_REASONS: [string, string][] = [
+  ["Spam or advertising", "স্প্যাম বা বিজ্ঞাপন"],
+  ["Harassment or hate", "হয়রানি বা বিদ্বেষ"],
+  ["False information", "ভুল তথ্য"],
+  ["Off-topic", "অপ্রাসঙ্গিক"],
+  ["Something else", "অন্য কিছু"],
+];
 
 function ReportDialog({ onCancel, onSubmit }: { onCancel: () => void; onSubmit: (reason: string) => Promise<void> }) {
-  const [reason, setReason] = useState(REPORT_REASONS[0]);
+  const { L } = useI18n();
+  const [reason, setReason] = useState(REPORT_REASONS[0][0]);
   const [busy, setBusy] = useState(false);
   return (
     <div className="fixed inset-0 z-[120] flex items-center justify-center bg-neutral-950/40 p-4 backdrop-blur-sm" onClick={onCancel}>
       <div role="dialog" aria-modal="true" className="w-full max-w-sm rounded-3xl bg-white p-6 shadow-2xl" onClick={(e) => e.stopPropagation()}>
-        <h2 className="text-lg font-semibold text-neutral-950">Report comment</h2>
-        <p className="mt-1 text-sm text-neutral-500">Why are you reporting this?</p>
+        <h2 className="text-lg font-semibold text-neutral-950">{L("Report comment", "কমেন্ট রিপোর্ট করুন")}</h2>
+        <p className="mt-1 text-sm text-neutral-500">{L("Why are you reporting this?", "কেন রিপোর্ট করছেন?")}</p>
         <div className="mt-4 flex flex-col gap-1.5">
-          {REPORT_REASONS.map((r) => (
+          {REPORT_REASONS.map(([r, bn]) => (
             <label key={r} className="flex cursor-pointer items-center gap-3 rounded-xl border border-neutral-200 px-3 py-2.5 text-sm has-[:checked]:border-neutral-950 has-[:checked]:bg-neutral-50">
               <input type="radio" name="reason" checked={reason === r} onChange={() => setReason(r)} className="accent-neutral-950" />
-              {r}
+              {L(r, bn)}
             </label>
           ))}
         </div>
         <div className="mt-6 flex justify-end gap-2">
           <button type="button" onClick={onCancel} className="h-10 rounded-xl border border-neutral-200 px-4 text-sm font-medium hover:bg-neutral-50">
-            Cancel
+            {L("Cancel", "বাতিল")}
           </button>
           <button
             type="button"
@@ -780,7 +791,7 @@ function ReportDialog({ onCancel, onSubmit }: { onCancel: () => void; onSubmit: 
             className="inline-flex h-10 items-center gap-2 rounded-xl bg-neutral-950 px-4 text-sm font-semibold text-white hover:bg-neutral-800 disabled:opacity-60"
           >
             {busy && <Loader2 className="h-4 w-4 animate-spin" />}
-            Report
+            {L("Report", "রিপোর্ট")}
           </button>
         </div>
       </div>

@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/app/components/locale-link";
 import {
   ArrowRight,
   ArrowUpRight,
@@ -24,7 +24,10 @@ import HeroSearch from "@/app/components/home/hero-search";
 import { FaqList, ServiceCard } from "@/app/components/marketing";
 import ProjectCard, { type ProjectCardData } from "@/app/components/project-card";
 import { sql } from "@/lib/db";
-import { allTech, faqGroups, packages, processSteps, services, values } from "@/lib/site";
+import { getContent } from "@/lib/content";
+import { getI18n } from "@/lib/i18n/server";
+import { tcol } from "@/lib/i18n/sql";
+import { allTech } from "@/lib/site";
 
 export const revalidate = 300;
 
@@ -32,10 +35,12 @@ const STACK = allTech;
 const VALUE_ICONS = [Compass, Smartphone, Layers3, HeartHandshake];
 
 export default async function HomePage() {
+  const { L, locale, date, num } = await getI18n();
+  const { faqGroups, packages, processSteps, services, values } = getContent(locale);
   const [projects, [stats], posts, clients] = await Promise.all([
     sql`
-      select p.id, p.slug, p.title, p.short_description, p.category, p.status, p.progress_percent,
-             p.cover_image_url, c.name as client_name
+      select p.id, p.slug, ${tcol(locale, "p.title")} as title, ${tcol(locale, "p.short_description")} as short_description,
+             p.category, p.status, p.progress_percent, p.cover_image_url, c.name as client_name
       from projects p left join clients c on c.id = p.client_id
       order by p.featured desc, coalesce(p.completed_at, p.started_at, p.created_at::date) desc
       limit 3
@@ -49,7 +54,8 @@ export default async function HomePage() {
       from projects
     `,
     sql`
-      select p.slug, p.title, p.excerpt, p.cover_image_url, p.published_at, pc.name as category,
+      select p.slug, ${tcol(locale, "p.title")} as title, ${tcol(locale, "p.excerpt")} as excerpt, p.cover_image_url, p.published_at,
+             ${tcol(locale, "pc.name")} as category,
              (select count(*)::int from comments c where c.post_id = p.id and c.status = 'visible') as comments
       from posts p left join post_categories pc on pc.id = p.category_id
       where p.status = 'published'
@@ -81,25 +87,24 @@ export default async function HomePage() {
                   <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
                   <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
                 </span>
-                Taking on new projects this month
+                {L("Taking on new projects this month", "এ মাসে নতুন প্রজেক্ট নিচ্ছি")}
               </div>
 
               <h1 className="mt-7 max-w-4xl text-[2.9rem] font-bold leading-[.98] tracking-[-0.055em] sm:text-6xl lg:text-[5.2rem]">
-                We build digital
-                <span className="block text-neutral-400">products that matter.</span>
+                {L("We build digital", "আমরা বানাই এমন ডিজিটাল")}
+                <span className="block text-neutral-400">{L("products that matter.", "প্রোডাক্ট, যা কাজে লাগে।")}</span>
               </h1>
 
               <p className="mt-7 max-w-2xl text-base leading-7 text-neutral-600 sm:text-lg sm:leading-8">
-                Websites, web apps and WordPress solutions for organisations, businesses and individuals — designed mobile-first,
-                built to last, and supported long after launch.
+                {L("Websites, web apps and WordPress solutions for organisations, businesses and individuals — designed mobile-first, built to last, and supported long after launch.", "প্রতিষ্ঠান, ব্যবসা ও ব্যক্তির জন্য ওয়েবসাইট, ওয়েব অ্যাপ ও ওয়ার্ডপ্রেস সমাধান — মোবাইল-ফার্স্ট ডিজাইন, টেকসই নির্মাণ, আর লঞ্চের পরও দীর্ঘদিনের সাপোর্ট।")}
               </p>
 
               <div className="mt-8 flex flex-col gap-3 sm:flex-row">
                 <Link href="/contact" className="group inline-flex h-12 items-center justify-center gap-2 rounded-full bg-neutral-950 px-6 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-neutral-800 hover:shadow-lg">
-                  Start a project <ArrowUpRight className="h-4 w-4 transition group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
+                  {L("Start a project", "প্রজেক্ট শুরু করুন")} <ArrowUpRight className="h-4 w-4 transition group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
                 </Link>
                 <Link href="/projects" className="inline-flex h-12 items-center justify-center gap-2 rounded-full border border-neutral-200 bg-white px-6 text-sm font-semibold text-neutral-800 transition hover:border-neutral-300 hover:bg-neutral-50">
-                  See our work <ArrowRight className="h-4 w-4" />
+                  {L("See our work", "আমাদের কাজ দেখুন")} <ArrowRight className="h-4 w-4" />
                 </Link>
               </div>
 
@@ -108,7 +113,7 @@ export default async function HomePage() {
               </div>
 
               <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-3 text-xs text-neutral-500 sm:text-sm">
-                {["Written scope & fixed quote", "Bengali + English", "You own the code"].map((t) => (
+                {[L("Written scope & fixed quote", "লিখিত পরিসর ও নির্দিষ্ট মূল্য"), L("Bengali + English", "বাংলা + ইংরেজি"), L("You own the code", "কোডের মালিক আপনি")].map((t) => (
                   <span key={t} className="flex items-center gap-2">
                     <CheckCircle2 className="h-4 w-4 text-emerald-600" /> {t}
                   </span>
@@ -123,29 +128,29 @@ export default async function HomePage() {
                 <div className="rounded-[1.5rem] border border-neutral-200 bg-neutral-50 p-5">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-xs font-medium text-neutral-400">Client portal</p>
-                      <p className="mt-0.5 font-semibold tracking-tight">Your project, live</p>
+                      <p className="text-xs font-medium text-neutral-400">{L("Client portal", "ক্লায়েন্ট পোর্টাল")}</p>
+                      <p className="mt-0.5 font-semibold tracking-tight">{L("Your project, live", "আপনার প্রজেক্ট, সরাসরি")}</p>
                     </div>
                     <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-neutral-950 text-sm font-bold text-white">N</span>
                   </div>
 
                   <div className="mt-5 grid grid-cols-3 gap-2">
-                    <Mini label="Projects" value={stats.total} />
-                    <Mini label="Launched" value={stats.completed} />
-                    <Mini label="Active" value={stats.active} />
+                    <Mini label={L("Projects", "প্রজেক্ট")} value={num(stats.total)} />
+                    <Mini label={L("Launched", "লঞ্চ হয়েছে")} value={num(stats.completed)} />
+                    <Mini label={L("Active", "চলমান")} value={num(stats.active)} />
                   </div>
 
                   <div className="mt-3 rounded-2xl border border-neutral-200 bg-white p-4">
                     {[
-                      ["Discovery", 100],
-                      ["Design", 86],
-                      ["Development", 64],
-                      ["Launch", 20],
+                      [L("Discovery", "আলোচনা"), 100],
+                      [L("Design", "ডিজাইন"), 86],
+                      [L("Development", "ডেভেলপমেন্ট"), 64],
+                      [L("Launch", "লঞ্চ"), 20],
                     ].map(([label, value]) => (
                       <div key={label as string} className="mb-3 last:mb-0">
                         <div className="mb-1.5 flex justify-between text-[11px]">
                           <span className="text-neutral-500">{label}</span>
-                          <span className="font-semibold">{value}%</span>
+                          <span className="font-semibold">{num(value as number)}%</span>
                         </div>
                         <div className="h-1.5 overflow-hidden rounded-full bg-neutral-100">
                           <div className="h-full rounded-full bg-neutral-950" style={{ width: `${value}%` }} />
@@ -155,8 +160,8 @@ export default async function HomePage() {
                   </div>
 
                   <div className="mt-3 flex flex-col gap-2">
-                    <Toast icon={<Bell className="h-3.5 w-3.5" />} title="New reply on #12" text="“Homepage draft is ready for review”" />
-                    <Toast icon={<Paperclip className="h-3.5 w-3.5" />} title="2 files attached" text="logo-final.svg · sitemap.pdf" />
+                    <Toast icon={<Bell className="h-3.5 w-3.5" />} title={L("New reply on #12", "#১২-এ নতুন উত্তর")} text={L("“Homepage draft is ready for review”", "“হোমপেজের খসড়া দেখার জন্য প্রস্তুত”")} />
+                    <Toast icon={<Paperclip className="h-3.5 w-3.5" />} title={L("2 files attached", "২টি ফাইল সংযুক্ত")} text="logo-final.svg · sitemap.pdf" />
                   </div>
                 </div>
               </div>
@@ -165,22 +170,22 @@ export default async function HomePage() {
 
           {/* Stats */}
           <div className="mt-16 grid grid-cols-2 gap-3 sm:mt-20 lg:grid-cols-4">
-            <StatCard icon={<FolderKanban className="h-5 w-5" />} value={<CountUp value={stats.total} suffix="+" />} label="Projects">
+            <StatCard icon={<FolderKanban className="h-5 w-5" />} value={<CountUp value={stats.total} suffix="+" />} label={L("Projects", "প্রজেক্ট")}>
               <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-neutral-100">
                 <div className="h-full rounded-full bg-emerald-500" style={{ width: `${stats.total ? Math.round((stats.completed / stats.total) * 100) : 0}%` }} />
               </div>
               <p className="mt-2 text-[11px] text-neutral-500">
-                {stats.completed} launched · {stats.active} in progress
+                {L(`${stats.completed} launched · ${stats.active} in progress`, `${num(stats.completed)}টি লঞ্চ হয়েছে · ${num(stats.active)}টি চলমান`)}
               </p>
             </StatCard>
-            <StatCard icon={<Users className="h-5 w-5" />} value={<CountUp value={stats.clients} />} label="Clients served">
-              <p className="mt-3 text-[11px] text-neutral-500">Organisations, businesses &amp; individuals</p>
+            <StatCard icon={<Users className="h-5 w-5" />} value={<CountUp value={stats.clients} />} label={L("Clients served", "ক্লায়েন্ট")}>
+              <p className="mt-3 text-[11px] text-neutral-500">{L("Organisations, businesses & individuals", "প্রতিষ্ঠান, ব্যবসা ও ব্যক্তি")}</p>
             </StatCard>
-            <StatCard icon={<Layers3 className="h-5 w-5" />} value={<CountUp value={allTech.length} suffix="+" />} label="Technologies">
-              <p className="mt-3 text-[11px] text-neutral-500">Next.js, WordPress, Supabase &amp; more</p>
+            <StatCard icon={<Layers3 className="h-5 w-5" />} value={<CountUp value={allTech.length} suffix="+" />} label={L("Technologies", "প্রযুক্তি")}>
+              <p className="mt-3 text-[11px] text-neutral-500">{L("Next.js, WordPress, Supabase & more", "Next.js, WordPress, Supabase ও আরও")}</p>
             </StatCard>
-            <StatCard icon={<Clock className="h-5 w-5" />} value={<span>&lt; 24h</span>} label="Support reply" dark>
-              <p className="mt-3 text-[11px] text-neutral-400">Since 2022 · {years}+ years of Nirdeshona</p>
+            <StatCard icon={<Clock className="h-5 w-5" />} value={<span>{L("< 24h", "২৪ ঘণ্টার কম")}</span>} label={L("Support reply", "সাপোর্টে উত্তর")} dark>
+              <p className="mt-3 text-[11px] text-neutral-400">{L(`Since 2022 · ${years}+ years of Nirdeshona`, `২০২২ থেকে · নির্দেশনার ${num(years)}+ বছর`)}</p>
             </StatCard>
           </div>
         </div>
@@ -190,7 +195,7 @@ export default async function HomePage() {
       {clients.length > 0 && (
         <section className="border-b border-neutral-200 bg-neutral-50/60">
           <div className="mx-auto flex max-w-7xl flex-col items-center gap-5 px-5 py-8 sm:flex-row sm:px-6 lg:px-8">
-            <p className="shrink-0 text-xs font-semibold uppercase tracking-[0.16em] text-neutral-400">Trusted by</p>
+            <p className="shrink-0 text-xs font-semibold uppercase tracking-[0.16em] text-neutral-400">{L("Trusted by", "যাদের আস্থা পেয়েছি")}</p>
             <div className="flex flex-wrap items-center justify-center gap-3 sm:justify-start">
               {clients.map((c) => (
                 <span key={c.name} className="inline-flex items-center gap-2 rounded-full border border-neutral-200 bg-white px-3.5 py-1.5 text-sm font-medium text-neutral-700">
@@ -204,7 +209,7 @@ export default async function HomePage() {
                 </span>
               ))}
               <Link href="/clients" className="text-sm font-semibold text-neutral-500 hover:text-neutral-950">
-                All clients →
+                {L("All clients →", "সব ক্লায়েন্ট →")}
               </Link>
             </div>
           </div>
@@ -214,10 +219,10 @@ export default async function HomePage() {
       {/* ================= SERVICES ================= */}
       <section id="services" className="mx-auto max-w-7xl scroll-mt-24 px-5 py-20 sm:px-6 lg:px-8 lg:py-24">
         <Heading
-          eyebrow="Services"
-          title="Everything you need to launch and grow online."
-          text="From a simple website to a full platform — one small team handles design, development and care."
-          link={{ href: "/services", label: "All services" }}
+          eyebrow={L("Services", "সার্ভিস")}
+          title={L("Everything you need to launch and grow online.", "অনলাইনে শুরু ও বেড়ে ওঠার জন্য যা যা দরকার।")}
+          text={L("From a simple website to a full platform — one small team handles design, development and care.", "সাধারণ ওয়েবসাইট থেকে পূর্ণাঙ্গ প্ল্যাটফর্ম — ডিজাইন, ডেভেলপমেন্ট ও দেখভাল, সবই একটি ছোট টিমের হাতে।")}
+          link={{ href: "/services", label: L("All services", "সব সার্ভিস") }}
         />
         <div className="mt-10 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {services.map((s) => (
@@ -229,9 +234,9 @@ export default async function HomePage() {
       {/* ================= WORK ================= */}
       <section id="projects" className="scroll-mt-24 border-y border-neutral-200 bg-neutral-50">
         <div className="mx-auto max-w-7xl px-5 py-20 sm:px-6 lg:px-8 lg:py-24">
-          <Heading eyebrow="Selected work" title="Built for real organisations." text="A few of the websites and platforms we've designed, built and launched." link={{ href: "/projects", label: "View all projects" }} />
+          <Heading eyebrow={L("Selected work", "নির্বাচিত কাজ")} title={L("Built for real organisations.", "বাস্তব প্রতিষ্ঠানের জন্য তৈরি।")} text={L("A few of the websites and platforms we've designed, built and launched.", "আমাদের ডিজাইন, নির্মাণ ও লঞ্চ করা কয়েকটি ওয়েবসাইট ও প্ল্যাটফর্ম।")} link={{ href: "/projects", label: L("View all projects", "সব প্রজেক্ট দেখুন") }} />
           {projects.length === 0 ? (
-            <p className="mt-10 rounded-3xl border border-dashed border-neutral-300 bg-white p-10 text-center text-sm text-neutral-500">Projects are being added — check back soon.</p>
+            <p className="mt-10 rounded-3xl border border-dashed border-neutral-300 bg-white p-10 text-center text-sm text-neutral-500">{L("Projects are being added — check back soon.", "প্রজেক্ট যোগ করা হচ্ছে — শিগগিরই আবার দেখুন।")}</p>
           ) : (
             <div className="mt-10 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
               {projects.map((p) => (
@@ -246,9 +251,9 @@ export default async function HomePage() {
       <section className="mx-auto max-w-7xl px-5 py-20 sm:px-6 lg:px-8 lg:py-24">
         <div className="grid grid-cols-1 gap-12 lg:grid-cols-[.9fr_1.1fr] lg:items-center">
           <div>
-            <Heading eyebrow="Why Nirdeshona" title="Small team. Clear process. Real support." text="We work with a handful of clients at a time, so you always talk to the people actually building your project." />
+            <Heading eyebrow={L("Why Nirdeshona", "কেন নির্দেশনা")} title={L("Small team. Clear process. Real support.", "ছোট টিম। স্পষ্ট প্রক্রিয়া। সত্যিকারের সাপোর্ট।")} text={L("We work with a handful of clients at a time, so you always talk to the people actually building your project.", "আমরা একসাথে অল্প কয়েকজন ক্লায়েন্টের সাথে কাজ করি, তাই আপনি সবসময় কথা বলবেন তাদের সাথেই, যারা আপনার প্রজেক্ট বানাচ্ছে।")} />
             <ul className="mt-8 flex flex-col gap-3">
-              {["A written scope and fixed quote before we start", "A live preview link you can check any time", "A client portal for progress, tickets and files", "Full ownership of your code, domain and accounts"].map((t) => (
+              {[L("A written scope and fixed quote before we start", "কাজ শুরুর আগে লিখিত পরিসর ও নির্দিষ্ট মূল্য"), L("A live preview link you can check any time", "যেকোনো সময় দেখার মতো লাইভ প্রিভিউ লিংক"), L("A client portal for progress, tickets and files", "অগ্রগতি, টিকিট ও ফাইলের জন্য ক্লায়েন্ট পোর্টাল"), L("Full ownership of your code, domain and accounts", "কোড, ডোমেইন ও অ্যাকাউন্টের পূর্ণ মালিকানা")].map((t) => (
                 <li key={t} className="flex items-start gap-3 text-sm text-neutral-700">
                   <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-emerald-50 text-emerald-600">
                     <Check className="h-3 w-3" />
@@ -278,12 +283,12 @@ export default async function HomePage() {
       {/* ================= PROCESS ================= */}
       <section className="border-y border-neutral-200 bg-neutral-50">
         <div className="mx-auto max-w-7xl px-5 py-20 sm:px-6 lg:px-8 lg:py-24">
-          <Heading eyebrow="How we work" title="From first call to launch — and beyond." align="center" />
+          <Heading eyebrow={L("How we work", "আমরা যেভাবে কাজ করি")} title={L("From first call to launch — and beyond.", "প্রথম কল থেকে লঞ্চ — এবং তারপরও।")} align="center" />
           <ol className="relative mt-12 grid grid-cols-1 gap-4 md:grid-cols-5">
             <div aria-hidden className="absolute left-0 right-0 top-[22px] hidden h-px bg-neutral-200 md:block" />
             {processSteps.map((step, i) => (
               <li key={step.title} className="relative flex gap-4 md:flex-col md:gap-0">
-                <span className="relative z-10 flex h-11 w-11 shrink-0 items-center justify-center rounded-full border-4 border-neutral-50 bg-neutral-950 text-sm font-bold text-white">{i + 1}</span>
+                <span className="relative z-10 flex h-11 w-11 shrink-0 items-center justify-center rounded-full border-4 border-neutral-50 bg-neutral-950 text-sm font-bold text-white">{num(i + 1)}</span>
                 <div className="md:mt-5">
                   <h3 className="font-semibold text-neutral-950">{step.title}</h3>
                   <p className="mt-1.5 text-sm leading-6 text-neutral-600">{step.text}</p>
@@ -301,26 +306,26 @@ export default async function HomePage() {
           <div aria-hidden className="pointer-events-none absolute -bottom-32 left-10 h-72 w-72 rounded-full bg-emerald-400/10 blur-3xl" />
           <div className="relative grid grid-cols-1 gap-10 lg:grid-cols-2 lg:items-center">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-neutral-400">Client portal</p>
-              <h2 className="mt-3 text-3xl font-bold tracking-[-0.035em] sm:text-4xl">Always know where your project stands.</h2>
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-neutral-400">{L("Client portal", "ক্লায়েন্ট পোর্টাল")}</p>
+              <h2 className="mt-3 text-3xl font-bold tracking-[-0.035em] sm:text-4xl">{L("Always know where your project stands.", "সবসময় জানুন, আপনার প্রজেক্ট কোথায় আছে।")}</h2>
               <p className="mt-4 max-w-lg text-sm leading-7 text-neutral-400 sm:text-base">
-                Every client gets a private portal: see progress, open support tickets, share files and get notified the moment we reply.
+                {L("Every client gets a private portal: see progress, open support tickets, share files and get notified the moment we reply.", "প্রত্যেক ক্লায়েন্ট পান একটি নিজস্ব পোর্টাল: অগ্রগতি দেখুন, সাপোর্ট টিকিট খুলুন, ফাইল শেয়ার করুন, আর আমরা উত্তর দিলেই সাথে সাথে নোটিফিকেশন পান।")}
               </p>
               <div className="mt-8 flex flex-col gap-3 sm:flex-row">
                 <Link href="/client" className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-white px-6 text-sm font-semibold text-neutral-950 hover:bg-neutral-200">
-                  Open client portal <ArrowUpRight className="h-4 w-4" />
+                  {L("Open client portal", "ক্লায়েন্ট পোর্টাল খুলুন")} <ArrowUpRight className="h-4 w-4" />
                 </Link>
                 <Link href="/contact" className="inline-flex h-12 items-center justify-center rounded-full border border-white/15 px-6 text-sm font-semibold hover:bg-white/10">
-                  Become a client
+                  {L("Become a client", "ক্লায়েন্ট হোন")}
                 </Link>
               </div>
             </div>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               {[
-                { icon: FolderKanban, t: "Live progress", d: "Status and percentage for every project." },
-                { icon: LifeBuoy, t: "Support tickets", d: "Priorities, replies and history in one thread." },
-                { icon: Paperclip, t: "File sharing", d: "Send screenshots and documents securely." },
-                { icon: Bell, t: "Instant updates", d: "In-app and email notifications." },
+                { icon: FolderKanban, t: L("Live progress", "সরাসরি অগ্রগতি"), d: L("Status and percentage for every project.", "প্রতিটি প্রজেক্টের অবস্থা ও শতাংশ।") },
+                { icon: LifeBuoy, t: L("Support tickets", "সাপোর্ট টিকিট"), d: L("Priorities, replies and history in one thread.", "অগ্রাধিকার, উত্তর ও ইতিহাস এক থ্রেডে।") },
+                { icon: Paperclip, t: L("File sharing", "ফাইল শেয়ার"), d: L("Send screenshots and documents securely.", "নিরাপদে স্ক্রিনশট ও ডকুমেন্ট পাঠান।") },
+                { icon: Bell, t: L("Instant updates", "তাৎক্ষণিক আপডেট"), d: L("In-app and email notifications.", "সাইটে ও ইমেইলে নোটিফিকেশন।") },
               ].map((f) => (
                 <div key={f.t} className="rounded-2xl border border-white/10 bg-white/5 p-5">
                   <f.icon className="h-5 w-5 text-emerald-300" />
@@ -336,13 +341,13 @@ export default async function HomePage() {
       {/* ================= PRICING ================= */}
       <section className="border-y border-neutral-200 bg-neutral-50">
         <div className="mx-auto max-w-7xl px-5 py-20 sm:px-6 lg:px-8 lg:py-24">
-          <Heading eyebrow="Pricing" title="Simple packages. Honest prices." text="Every project starts with a written scope and fixed quote." link={{ href: "/pricing", label: "Full pricing & care plans" }} />
+          <Heading eyebrow={L("Pricing", "প্রাইসিং")} title={L("Simple packages. Honest prices.", "সহজ প্যাকেজ। সৎ মূল্য।")} text={L("Every project starts with a written scope and fixed quote.", "প্রতিটি প্রজেক্ট শুরু হয় লিখিত পরিসর ও নির্দিষ্ট মূল্য দিয়ে।")} link={{ href: "/pricing", label: L("Full pricing & care plans", "পূর্ণ প্রাইসিং ও কেয়ার প্ল্যান") }} />
           <div className="mt-10 grid grid-cols-1 gap-4 lg:grid-cols-3">
             {packages.map((p) => (
               <div key={p.name} className={`flex flex-col rounded-3xl border p-6 ${p.highlighted ? "border-neutral-950 bg-neutral-950 text-white" : "border-neutral-200 bg-white"}`}>
                 <div className="flex items-center justify-between">
                   <h3 className="font-semibold">{p.name}</h3>
-                  {p.highlighted && <span className="inline-flex items-center gap-1 rounded-full bg-white/10 px-2.5 py-1 text-[11px]"><Sparkles className="h-3 w-3" /> Popular</span>}
+                  {p.highlighted && <span className="inline-flex items-center gap-1 rounded-full bg-white/10 px-2.5 py-1 text-[11px]"><Sparkles className="h-3 w-3" /> {L("Popular", "জনপ্রিয়")}</span>}
                 </div>
                 <p className="mt-4 text-3xl font-bold tracking-tight">{p.price}</p>
                 <p className={`mt-2 text-sm ${p.highlighted ? "text-neutral-400" : "text-neutral-600"}`}>{p.description}</p>
@@ -355,7 +360,7 @@ export default async function HomePage() {
                   ))}
                 </ul>
                 <Link href="/pricing" className={`mt-6 inline-flex h-11 items-center justify-center rounded-full text-sm font-semibold ${p.highlighted ? "bg-white text-neutral-950 hover:bg-neutral-200" : "bg-neutral-950 text-white hover:bg-neutral-800"}`}>
-                  See details
+                  {L("See details", "বিস্তারিত দেখুন")}
                 </Link>
               </div>
             ))}
@@ -366,7 +371,7 @@ export default async function HomePage() {
       {/* ================= BLOG ================= */}
       {posts.length > 0 && (
         <section className="mx-auto max-w-7xl px-5 py-20 sm:px-6 lg:px-8 lg:py-24">
-          <Heading eyebrow="From the blog" title="Ideas and guides for your website." link={{ href: "/blog", label: "All articles" }} />
+          <Heading eyebrow={L("From the blog", "ব্লগ থেকে")} title={L("Ideas and guides for your website.", "আপনার ওয়েবসাইটের জন্য ভাবনা ও গাইড।")} link={{ href: "/blog", label: L("All articles", "সব লেখা") }} />
           <div className="mt-10 grid grid-cols-1 gap-5 md:grid-cols-3">
             {posts.map((p) => (
               <Link key={p.slug} href={`/blog/${p.slug}`} className="group flex flex-col overflow-hidden rounded-3xl border border-neutral-200 bg-white transition hover:-translate-y-1 hover:shadow-[0_20px_50px_rgba(0,0,0,0.08)]">
@@ -388,10 +393,10 @@ export default async function HomePage() {
                     {p.published_at && (
                       <span className="flex items-center gap-1">
                         <Clock className="h-3 w-3" />
-                        {new Date(p.published_at).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
+                        {date(p.published_at)}
                       </span>
                     )}
-                    <span>💬 {p.comments}</span>
+                    <span>💬 {num(p.comments)}</span>
                   </p>
                 </div>
               </Link>
@@ -404,7 +409,7 @@ export default async function HomePage() {
       <section className="border-t border-neutral-200 bg-neutral-50">
         <div className="mx-auto grid max-w-7xl grid-cols-1 gap-12 px-5 py-20 sm:px-6 lg:grid-cols-2 lg:px-8 lg:py-24">
           <div>
-            <Heading eyebrow="Technology" title="Modern tools, chosen for longevity." text="We pick proven technology that keeps your site fast, secure and easy to maintain." />
+            <Heading eyebrow={L("Technology", "প্রযুক্তি")} title={L("Modern tools, chosen for longevity.", "দীর্ঘস্থায়িত্বের কথা ভেবে বাছাই করা আধুনিক টুল।")} text={L("We pick proven technology that keeps your site fast, secure and easy to maintain.", "আমরা পরীক্ষিত প্রযুক্তি বেছে নিই, যাতে আপনার সাইট দ্রুত, নিরাপদ ও সহজে রক্ষণাবেক্ষণযোগ্য থাকে।")} />
             <div className="mt-8 flex flex-wrap gap-2">
               {STACK.map((t) => (
                 <span key={t} className="rounded-full border border-neutral-200 bg-white px-3.5 py-1.5 text-sm font-medium text-neutral-700">
@@ -417,13 +422,13 @@ export default async function HomePage() {
                 <Rocket className="h-5 w-5" />
               </span>
               <div>
-                <p className="text-sm font-semibold">Fast on real phones</p>
-                <p className="text-xs leading-5 text-neutral-500">Every build is tested on small screens and slow mobile networks before launch.</p>
+                <p className="text-sm font-semibold">{L("Fast on real phones", "আসল ফোনেও দ্রুত")}</p>
+                <p className="text-xs leading-5 text-neutral-500">{L("Every build is tested on small screens and slow mobile networks before launch.", "লঞ্চের আগে প্রতিটি কাজ ছোট স্ক্রিন ও ধীর মোবাইল নেটওয়ার্কে পরীক্ষা করা হয়।")}</p>
               </div>
             </div>
           </div>
           <div>
-            <Heading eyebrow="FAQ" title="Questions, answered." link={{ href: "/faq", label: "All FAQs" }} />
+            <Heading eyebrow={L("FAQ", "প্রশ্নোত্তর")} title={L("Questions, answered.", "আপনার প্রশ্নের উত্তর।")} link={{ href: "/faq", label: L("All FAQs", "সব প্রশ্নোত্তর") }} />
             <div className="mt-8">
               <FaqList items={faqs} />
             </div>
@@ -490,7 +495,7 @@ function StatCard({
   );
 }
 
-function Mini({ label, value }: { label: string; value: number }) {
+function Mini({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-2xl border border-neutral-200 bg-white p-3">
       <p className="text-xl font-bold tracking-tight">{value}</p>

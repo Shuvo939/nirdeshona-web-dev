@@ -1,5 +1,8 @@
-import Link from "next/link";
+import Link from "@/app/components/locale-link";
 import type { ReactNode } from "react";
+
+import T from "@/app/components/t";
+import { formatDateLocale, type Locale } from "@/lib/i18n/config";
 import {
   ArrowUpRight,
   ChevronRight,
@@ -41,7 +44,7 @@ export function PageHero({
       <div className="relative mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8 lg:py-20">
         <nav aria-label="Breadcrumb" className="flex flex-wrap items-center gap-1 text-xs text-neutral-500">
           <Link href="/" className="transition hover:text-neutral-950">
-            Home
+            <T en="Home" bn="হোম" />
           </Link>
           {breadcrumbs.map((crumb) => (
             <span key={crumb.label} className="flex items-center gap-1">
@@ -167,7 +170,7 @@ export function ServiceCard({ service }: { service: Service }) {
       <p className="mt-2 flex-1 text-sm leading-6 text-neutral-600">{service.short}</p>
       <div className="mt-6 flex items-center justify-between border-t border-neutral-100 pt-4 text-xs">
         <span className="text-neutral-500">{service.timeline}</span>
-        <span className="font-semibold text-neutral-900">From {service.startingFrom}</span>
+        <span className="font-semibold text-neutral-900"><T en="From" bn="শুরু" /> {service.startingFrom}</span>
       </div>
     </Link>
   );
@@ -202,46 +205,56 @@ export function FaqList({ items }: { items: { q: string; a: string }[] }) {
    STATUS BADGES (projects + tickets)
 ============================================================ */
 
-export const PROJECT_STATUS: Record<string, { label: string; className: string }> = {
-  PLANNED: { label: "Planned", className: "bg-neutral-100 text-neutral-600" },
-  IN_PROGRESS: { label: "In progress", className: "bg-blue-50 text-blue-700" },
-  REVIEW: { label: "In review", className: "bg-amber-50 text-amber-700" },
-  COMPLETED: { label: "Completed", className: "bg-emerald-50 text-emerald-700" },
-  ON_HOLD: { label: "On hold", className: "bg-orange-50 text-orange-700" },
+type StatusMap = Record<string, { label: string; labelBn?: string; className: string }>;
+
+export const PROJECT_STATUS: StatusMap = {
+  PLANNED: { label: "Planned", labelBn: "পরিকল্পিত", className: "bg-neutral-100 text-neutral-600" },
+  IN_PROGRESS: { label: "In progress", labelBn: "চলমান", className: "bg-blue-50 text-blue-700" },
+  REVIEW: { label: "In review", labelBn: "পর্যালোচনায়", className: "bg-amber-50 text-amber-700" },
+  COMPLETED: { label: "Completed", labelBn: "সম্পন্ন", className: "bg-emerald-50 text-emerald-700" },
+  ON_HOLD: { label: "On hold", labelBn: "স্থগিত", className: "bg-orange-50 text-orange-700" },
 };
 
-export const TICKET_STATUS: Record<string, { label: string; className: string }> = {
-  OPEN: { label: "Open", className: "bg-blue-50 text-blue-700" },
-  IN_PROGRESS: { label: "In progress", className: "bg-violet-50 text-violet-700" },
-  WAITING_FOR_CLIENT: { label: "Awaiting your reply", className: "bg-amber-50 text-amber-700" },
-  RESOLVED: { label: "Resolved", className: "bg-emerald-50 text-emerald-700" },
-  CLOSED: { label: "Closed", className: "bg-neutral-100 text-neutral-600" },
+export const TICKET_STATUS: StatusMap = {
+  OPEN: { label: "Open", labelBn: "খোলা", className: "bg-blue-50 text-blue-700" },
+  IN_PROGRESS: { label: "In progress", labelBn: "কাজ চলছে", className: "bg-violet-50 text-violet-700" },
+  WAITING_FOR_CLIENT: { label: "Awaiting your reply", labelBn: "আপনার উত্তরের অপেক্ষায়", className: "bg-amber-50 text-amber-700" },
+  RESOLVED: { label: "Resolved", labelBn: "সমাধান হয়েছে", className: "bg-emerald-50 text-emerald-700" },
+  CLOSED: { label: "Closed", labelBn: "বন্ধ", className: "bg-neutral-100 text-neutral-600" },
 };
 
-export const TICKET_PRIORITY: Record<string, { label: string; className: string }> = {
-  LOW: { label: "Low", className: "text-neutral-500" },
-  NORMAL: { label: "Normal", className: "text-neutral-700" },
-  HIGH: { label: "High", className: "text-orange-600" },
-  URGENT: { label: "Urgent", className: "text-red-600" },
+export const TICKET_PRIORITY: StatusMap = {
+  LOW: { label: "Low", labelBn: "কম", className: "text-neutral-500" },
+  NORMAL: { label: "Normal", labelBn: "সাধারণ", className: "text-neutral-700" },
+  HIGH: { label: "High", labelBn: "বেশি", className: "text-orange-600" },
+  URGENT: { label: "Urgent", labelBn: "জরুরি", className: "text-red-600" },
 };
+
+/** Label of a status in the given locale (for places that need plain text). */
+export function statusLabel(map: StatusMap, value: string, locale: Locale = "en") {
+  const config = map[value];
+  if (!config) return value.replaceAll("_", " ");
+  return locale === "bn" && config.labelBn ? config.labelBn : config.label;
+}
 
 export function StatusBadge({
   map,
   value,
 }: {
-  map: Record<string, { label: string; className: string }>;
+  map: StatusMap;
   value: string;
 }) {
   const config = map[value] ?? { label: value.replaceAll("_", " "), className: "bg-neutral-100 text-neutral-600" };
   return (
     <span className={`inline-flex shrink-0 items-center rounded-full px-2.5 py-1 text-xs font-medium ${config.className}`}>
-      {config.label}
+      <T en={config.label} bn={config.labelBn ?? config.label} />
     </span>
   );
 }
 
-export function formatDate(value: string | Date | null | undefined, withTime = false) {
+export function formatDate(value: string | Date | null | undefined, withTime = false, locale?: Locale) {
   if (!value) return "";
+  if (locale) return formatDateLocale(value, locale, withTime);
   const date = typeof value === "string" ? new Date(value) : value;
   return date.toLocaleString("en-GB", {
     timeZone: "Asia/Dhaka",

@@ -71,6 +71,11 @@ export default async function EditPostPage({
           seo_description: post.seo_description
             ? String(post.seo_description)
             : "",
+          title_bn: post.title_bn ?? "",
+          excerpt_bn: post.excerpt_bn ?? "",
+          content_bn: post.content_bn ?? "",
+          seo_title_bn: post.seo_title_bn ?? "",
+          seo_description_bn: post.seo_description_bn ?? "",
           cover_image_url: post.cover_image_url
             ? String(post.cover_image_url)
             : "",

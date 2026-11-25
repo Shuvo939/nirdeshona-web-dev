@@ -28,6 +28,11 @@ type PostFormProps = {
     status?: string;
     seo_title?: string | null;
     seo_description?: string | null;
+    title_bn?: string | null;
+    excerpt_bn?: string | null;
+    content_bn?: string | null;
+    seo_title_bn?: string | null;
+    seo_description_bn?: string | null;
     cover_image_url?: string | null;
     tag_ids?: string[];
   };
@@ -155,6 +160,34 @@ export default function PostForm({
         <label htmlFor="content" className="block text-sm font-medium">Content</label>
         <MarkdownEditor name="content" defaultValue={v.content ?? ""} required rows={22} placeholder="Write your article…" />
       </div>
+
+
+      <fieldset lang="bn" className="space-y-4 rounded-2xl border border-emerald-200 bg-emerald-50/40 p-4 sm:p-5">
+        <legend className="px-2 text-sm font-semibold text-emerald-900">Bangla version (বাংলা)</legend>
+        <p className="text-xs text-neutral-500">
+          Shown on /bn pages. Any field left empty falls back to the English text above (and English pages fall back to Bangla).
+        </p>
+        <div>
+          <label className="block text-sm font-medium">Title (Bangla)</label>
+          <input name="title_bn" defaultValue={v.title_bn ?? ""} className="mt-1 w-full rounded-lg border border-neutral-200 px-3 py-2 outline-none focus:border-neutral-400" />
+        </div>
+        <div>
+          <label className="block text-sm font-medium">Excerpt (Bangla)</label>
+          <textarea name="excerpt_bn" defaultValue={v.excerpt_bn ?? ""} rows={3} className="mt-1 w-full rounded-lg border border-neutral-200 px-3 py-2 outline-none focus:border-neutral-400" />
+        </div>
+        <div>
+          <label className="block text-sm font-medium">Content (Bangla)</label>
+          <MarkdownEditor name="content_bn" defaultValue={v.content_bn ?? ""} rows={18} placeholder="বাংলায় লেখাটি লিখুন…" />
+        </div>
+        <div>
+          <label className="block text-sm font-medium">SEO title (Bangla)</label>
+          <input name="seo_title_bn" defaultValue={v.seo_title_bn ?? ""} className="mt-1 w-full rounded-lg border border-neutral-200 px-3 py-2 outline-none focus:border-neutral-400" />
+        </div>
+        <div>
+          <label className="block text-sm font-medium">SEO description (Bangla)</label>
+          <textarea name="seo_description_bn" defaultValue={v.seo_description_bn ?? ""} rows={2} className="mt-1 w-full rounded-lg border border-neutral-200 px-3 py-2 outline-none focus:border-neutral-400" />
+        </div>
+      </fieldset>
 
       <div>
         <label className="block text-sm font-medium">Status</label>

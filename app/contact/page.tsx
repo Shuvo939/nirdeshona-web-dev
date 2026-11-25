@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
 import { createCaptcha } from "@/lib/captcha";
-import Link from "next/link";
+import Link from "@/app/components/locale-link";
 import {
   Clock3,
   Mail,
@@ -13,12 +13,16 @@ import {
 } from "lucide-react";
 
 import ContactForm from "@/app/components/contact/contact-form";
+import { getI18n, localeAlternates } from "@/lib/i18n/server";
 
-export const metadata: Metadata = {
-  title: "Contact — Nirdeshona Web",
-  description: "Tell us about your project. We reply within one business day.",
-  alternates: { canonical: "/contact" },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const { L, locale } = await getI18n();
+  return {
+    title: L("Contact — Nirdeshona Web", "যোগাযোগ — নির্দেশনা ওয়েব"),
+    description: L("Tell us about your project. We reply within one business day.", "আপনার প্রজেক্ট সম্পর্কে জানান। আমরা এক কর্মদিবসের মধ্যে উত্তর দিই।"),
+    alternates: localeAlternates(locale, "/contact"),
+  };
+}
 
 export default async function ContactPage({
   searchParams,
@@ -26,6 +30,7 @@ export default async function ContactPage({
   searchParams: Promise<{ service?: string; message?: string }>;
 }) {
   const { service, message } = await searchParams;
+  const { L } = await getI18n();
 
   return (
     <main className="min-h-[calc(100vh-72px)] bg-neutral-50">
@@ -62,33 +67,30 @@ export default async function ContactPage({
               </span>
 
               <span className="text-xs font-semibold uppercase tracking-[0.15em] text-neutral-500">
-                Let&apos;s work together
+                {L("Let's work together", "চলুন একসাথে কাজ করি")}
               </span>
             </div>
 
             <h1 className="mt-7 max-w-3xl text-4xl font-bold tracking-[-0.04em] text-neutral-950 sm:text-5xl lg:text-6xl">
-              Have a project in mind?
+              {L("Have a project in mind?", "মাথায় কোনো প্রজেক্ট আছে?")}
               <span className="block text-neutral-400">
-                Let&apos;s build something great.
+                {L("Let's build something great.", "চলুন দারুণ কিছু বানাই।")}
               </span>
             </h1>
 
             <p className="mt-6 max-w-2xl text-base leading-8 text-neutral-500 sm:text-lg">
-              Tell us what you&apos;re working on,
-              what you need, and where you&apos;d like to
-              go. We&apos;ll review your project and get
-              back to you with the next steps.
+              {L("Tell us what you're working on, what you need, and where you'd like to go. We'll review your project and get back to you with the next steps.", "আপনি কী নিয়ে কাজ করছেন, কী দরকার আর কোথায় পৌঁছাতে চান — জানান। আপনার প্রজেক্ট দেখে আমরা পরের ধাপসহ যোগাযোগ করব।")}
             </p>
 
             <div className="mt-8 flex flex-wrap gap-3">
               <div className="inline-flex items-center gap-2 rounded-xl border border-neutral-200 bg-white px-4 py-2.5 text-sm text-neutral-600 shadow-sm">
                 <Clock3 className="h-4 w-4 text-neutral-400" />
-                Usually replies within 1 business day
+                {L("Usually replies within 1 business day", "সাধারণত ১ কর্মদিবসের মধ্যে উত্তর")}
               </div>
 
               <div className="inline-flex items-center gap-2 rounded-xl border border-neutral-200 bg-white px-4 py-2.5 text-sm text-neutral-600 shadow-sm">
                 <MessageSquare className="h-4 w-4 text-neutral-400" />
-                No commitment required
+                {L("No commitment required", "কোনো বাধ্যবাধকতা নেই")}
               </div>
             </div>
           </div>
@@ -112,14 +114,11 @@ export default async function ContactPage({
               </div>
 
               <h2 className="mt-5 text-xl font-semibold tracking-tight text-neutral-950">
-                Start a conversation
+                {L("Start a conversation", "কথা শুরু করুন")}
               </h2>
 
               <p className="mt-3 text-sm leading-7 text-neutral-500">
-                Whether you need a new website, an
-                application, a redesign, or ongoing
-                support, send us a few details and
-                we&apos;ll take it from there.
+                {L("Whether you need a new website, an application, a redesign, or ongoing support, send us a few details and we'll take it from there.", "নতুন ওয়েবসাইট, অ্যাপ্লিকেশন, রিডিজাইন বা নিয়মিত সাপোর্ট — যা-ই দরকার, কিছু তথ্য পাঠান, বাকিটা আমরা দেখব।")}
               </p>
             </div>
 
@@ -127,7 +126,7 @@ export default async function ContactPage({
 
             <div className="rounded-3xl border border-neutral-200 bg-white p-6 shadow-sm sm:p-7">
               <h2 className="text-sm font-semibold uppercase tracking-[0.14em] text-neutral-400">
-                Contact information
+                {L("Contact information", "যোগাযোগের তথ্য")}
               </h2>
 
               <div className="mt-6 space-y-5">
@@ -141,7 +140,7 @@ export default async function ContactPage({
 
                   <div className="min-w-0">
                     <p className="text-xs font-medium text-neutral-400">
-                      Email
+                      {L("Email", "ইমেইল")}
                     </p>
 
                     <p className="mt-1 truncate text-sm font-medium text-neutral-800 group-hover:text-black">
@@ -160,7 +159,7 @@ export default async function ContactPage({
 
                   <div>
                     <p className="text-xs font-medium text-neutral-400">
-                      Phone
+                      {L("Phone", "ফোন")}
                     </p>
 
                     <p className="mt-1 text-sm font-medium text-neutral-800 group-hover:text-black">
@@ -176,11 +175,11 @@ export default async function ContactPage({
 
                   <div>
                     <p className="text-xs font-medium text-neutral-400">
-                      Location
+                      {L("Location", "অবস্থান")}
                     </p>
 
                     <p className="mt-1 text-sm font-medium text-neutral-800">
-                      Bangladesh
+                      {L("Bangladesh", "বাংলাদেশ")}
                     </p>
                   </div>
                 </div>
@@ -191,25 +190,25 @@ export default async function ContactPage({
 
             <div className="rounded-3xl border border-neutral-200 bg-neutral-950 p-6 text-white shadow-sm sm:p-7">
               <p className="text-xs font-semibold uppercase tracking-[0.14em] text-neutral-500">
-                What happens next?
+                {L("What happens next?", "এরপর কী হবে?")}
               </p>
 
               <div className="mt-6 space-y-5">
                 {[
                   {
                     number: "01",
-                    title: "You send the details",
-                    text: "Tell us about your project and requirements.",
+                    title: L("You send the details", "আপনি তথ্য পাঠান"),
+                    text: L("Tell us about your project and requirements.", "আপনার প্রজেক্ট ও প্রয়োজনের কথা জানান।"),
                   },
                   {
                     number: "02",
-                    title: "We review it",
-                    text: "We look at your goals, scope and requirements.",
+                    title: L("We review it", "আমরা পর্যালোচনা করি"),
+                    text: L("We look at your goals, scope and requirements.", "আপনার লক্ষ্য, পরিসর ও প্রয়োজনগুলো দেখি।"),
                   },
                   {
                     number: "03",
-                    title: "We get in touch",
-                    text: "We'll discuss the best way to move forward.",
+                    title: L("We get in touch", "আমরা যোগাযোগ করি"),
+                    text: L("We'll discuss the best way to move forward.", "এগোনোর সবচেয়ে ভালো উপায় নিয়ে আলোচনা করি।"),
                   },
                 ].map((item) => (
                   <div
@@ -253,12 +252,11 @@ export default async function ContactPage({
         <div className="mx-auto flex max-w-7xl flex-col gap-5 px-6 py-12 sm:px-8 lg:flex-row lg:items-center lg:justify-between lg:px-8">
           <div>
             <p className="text-sm font-semibold text-neutral-950">
-              Not ready to start a project?
+              {L("Not ready to start a project?", "এখনই প্রজেক্ট শুরু করতে প্রস্তুত নন?")}
             </p>
 
             <p className="mt-1 text-sm text-neutral-500">
-              Explore our work or learn more about
-              what we do.
+              {L("Explore our work or learn more about what we do.", "আমাদের কাজ দেখুন বা আমরা কী করি, জেনে নিন।")}
             </p>
           </div>
 
@@ -267,14 +265,14 @@ export default async function ContactPage({
               href="/projects"
               className="inline-flex h-10 items-center gap-2 rounded-xl border border-neutral-200 px-4 text-sm font-medium text-neutral-700 transition hover:bg-neutral-50"
             >
-              View our work
+              {L("View our work", "আমাদের কাজ দেখুন")}
             </Link>
 
             <Link
               href="/services"
               className="inline-flex h-10 items-center gap-2 rounded-xl bg-black px-4 text-sm font-medium text-white transition hover:bg-neutral-800"
             >
-              Explore services
+              {L("Explore services", "সার্ভিসগুলো দেখুন")}
 
               <span aria-hidden="true">
                 →

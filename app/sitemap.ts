@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 
 import { sql } from "@/lib/db";
+import { LOCALES, localizePath } from "@/lib/i18n/config";
 import { services, site } from "@/lib/site";
 
 export const revalidate = 3600;
@@ -36,5 +37,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     console.error("sitemap: database unavailable", error);
   }
 
-  return [...staticRoutes, ...serviceRoutes, ...dynamicRoutes];
+  // Every page exists in Bangla (/bn) and English (/en); list both with hreflang alternates.
+  return [...staticRoutes, ...serviceRoutes, ...dynamicRoutes].flatMap((entry) => {
+    const path = entry.url.slice(base.length) || "/";
+    const languages = {
+      "bn-BD": `${base}${localizePath("bn", path)}`,
+      en: `${base}${localizePath("en", path)}`,
+    };
+    return LOCALES.map((locale) => ({ ...entry, url: `${base}${localizePath(locale, path)}`, alternates: { languages } }));
+  });
 }

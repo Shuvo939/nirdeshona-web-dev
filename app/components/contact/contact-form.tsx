@@ -1,6 +1,7 @@
 "use client";
 
 import Captcha, { type CaptchaValue } from "@/app/components/captcha";
+import { useI18n } from "@/lib/i18n/client";
 import { useSmoothProgress } from "@/lib/use-smooth-progress";
 import { compressImage, isCompressibleImage } from "@/lib/image-compress";
 import {
@@ -40,24 +41,25 @@ const ALLOWED_FILE_TYPES = [
   "text/plain",
 ];
 
-const services = [
-  "Web Development",
-  "WordPress Solutions",
-  "UI / UX Design",
-  "Custom Development",
-  "E-commerce",
-  "Care & Maintenance",
-  "Website Redesign",
-  "Not sure yet",
+// Values stay in English (they're stored and emailed); labels are localized.
+const services: [string, string][] = [
+  ["Web Development", "ওয়েব ডেভেলপমেন্ট"],
+  ["WordPress Solutions", "ওয়ার্ডপ্রেস সমাধান"],
+  ["UI / UX Design", "ইউআই / ইউএক্স ডিজাইন"],
+  ["Custom Development", "কাস্টম ডেভেলপমেন্ট"],
+  ["E-commerce", "ই-কমার্স"],
+  ["Care & Maintenance", "কেয়ার ও রক্ষণাবেক্ষণ"],
+  ["Website Redesign", "ওয়েবসাইট রিডিজাইন"],
+  ["Not sure yet", "এখনো নিশ্চিত নই"],
 ];
 
-const budgets = [
-  "Under $500",
-  "$500 – $1,000",
-  "$1,000 – $2,500",
-  "$2,500 – $5,000",
-  "$5,000+",
-  "Let's discuss",
+const budgets: [string, string][] = [
+  ["Under $500", "$৫০০-এর কম"],
+  ["$500 – $1,000", "$৫০০ – $১,০০০"],
+  ["$1,000 – $2,500", "$১,০০০ – $২,৫০০"],
+  ["$2,500 – $5,000", "$২,৫০০ – $৫,০০০"],
+  ["$5,000+", "$৫,০০০+"],
+  ["Let's discuss", "আলোচনা সাপেক্ষে"],
 ];
 
 export default function ContactForm({
@@ -69,6 +71,7 @@ export default function ContactForm({
   defaultMessage?: string;
   initialCaptcha: { token: string; image: string };
 }) {
+  const { L, num } = useI18n();
   const [captcha, setCaptcha] = useState<CaptchaValue>({ token: initialCaptcha.token, answer: "" });
   const [captchaKey, setCaptchaKey] = useState(0);
   const [status, setStatus] =
@@ -121,7 +124,7 @@ export default function ContactForm({
       !isCompressibleImage(selectedFile)
     ) {
       setErrorMessage(
-        "Attachment must be 10 MB or smaller."
+        L("Attachment must be 10 MB or smaller.", "ফাইল সর্বোচ্চ ১০ এমবি হতে পারবে।")
       );
 
       event.target.value = "";
@@ -140,7 +143,7 @@ export default function ContactForm({
       )
     ) {
       setErrorMessage(
-        "Unsupported file type. Please upload PDF, image, Word, Excel, PowerPoint, or TXT files."
+        L("Unsupported file type. Please upload PDF, image, Word, Excel, PowerPoint, or TXT files.", "এই ধরনের ফাইল চলবে না। PDF, ছবি, Word, Excel, PowerPoint বা TXT ফাইল দিন।")
       );
 
       event.target.value = "";
@@ -183,7 +186,7 @@ export default function ContactForm({
           setErrorMessage(
             error instanceof Error
               ? error.message
-              : "Couldn't compress this image."
+              : L("Couldn't compress this image.", "ছবিটি ছোট করা যায়নি।")
           );
           event.target.value = "";
           setFile(null);
@@ -263,7 +266,7 @@ export default function ContactForm({
     if (!prepareResponse.ok) {
       throw new Error(
         prepareResult?.error ||
-          "Could not prepare attachment upload."
+          L("Could not prepare attachment upload.", "ফাইল আপলোডের প্রস্তুতি নেওয়া যায়নি।")
       );
     }
 
@@ -290,8 +293,8 @@ export default function ContactForm({
         xhr.setRequestHeader("Content-Type", file.type || "application/octet-stream");
         xhr.upload.onprogress = (e) => e.lengthComputable && setUploadProgress(Math.round((e.loaded / e.total) * 100));
         xhr.onload = () =>
-          xhr.status >= 200 && xhr.status < 300 ? resolve() : reject(new Error("Attachment upload failed. Please try again."));
-        xhr.onerror = () => reject(new Error("Attachment upload failed. Check your connection."));
+          xhr.status >= 200 && xhr.status < 300 ? resolve() : reject(new Error(L("Attachment upload failed. Please try again.", "ফাইল আপলোড হয়নি। আবার চেষ্টা করুন।")));
+        xhr.onerror = () => reject(new Error(L("Attachment upload failed. Check your connection.", "ফাইল আপলোড হয়নি। ইন্টারনেট সংযোগ দেখুন।")));
         xhr.send(file);
       });
     } finally {
@@ -325,7 +328,7 @@ export default function ContactForm({
     // for a submission that is bound to fail.
     if (!captcha.answer.trim()) {
       setStatus("error");
-      setErrorMessage("Please answer the security check.");
+      setErrorMessage(L("Please answer the security check.", "নিরাপত্তা প্রশ্নের উত্তর দিন।"));
       return;
     }
 
@@ -387,7 +390,7 @@ export default function ContactForm({
       if (!response.ok) {
         throw new Error(
           result?.error ||
-            "Failed to submit contact form."
+            L("Failed to submit contact form.", "ফর্ম জমা দেওয়া যায়নি।")
         );
       }
 
@@ -413,7 +416,7 @@ export default function ContactForm({
       setErrorMessage(
         error instanceof Error
           ? error.message
-          : "We couldn't send your message. Please try again."
+          : L("We couldn't send your message. Please try again.", "আপনার মেসেজ পাঠানো যায়নি। আবার চেষ্টা করুন।")
       );
     }
   }
@@ -434,17 +437,15 @@ export default function ContactForm({
 
       <div className="border-b border-neutral-200 pb-7">
         <p className="text-xs font-semibold uppercase tracking-[0.14em] text-neutral-400">
-          Project inquiry
+          {L("Project inquiry", "প্রজেক্ট অনুসন্ধান")}
         </p>
 
         <h2 className="mt-2 text-2xl font-bold tracking-tight text-neutral-950">
-          Tell us about your project
+          {L("Tell us about your project", "আপনার প্রজেক্ট সম্পর্কে বলুন")}
         </h2>
 
         <p className="mt-2 text-sm leading-6 text-neutral-500">
-          The more details you provide,
-          the better we can understand
-          what you need.
+          {L("The more details you provide, the better we can understand what you need.", "যত বেশি বিস্তারিত জানাবেন, আপনার প্রয়োজন তত ভালোভাবে বুঝতে পারব।")}
         </p>
       </div>
 
@@ -466,15 +467,15 @@ export default function ContactForm({
 
         <div className="grid gap-5 sm:grid-cols-2">
           <Field
-            label="Name"
+            label={L("Name", "নাম")}
             name="name"
             type="text"
-            placeholder="Your name"
+            placeholder={L("Your name", "আপনার নাম")}
             required
           />
 
           <Field
-            label="Email"
+            label={L("Email", "ইমেইল")}
             name="email"
             type="email"
             placeholder="you@example.com"
@@ -486,7 +487,7 @@ export default function ContactForm({
 
         <div className="grid gap-5 sm:grid-cols-2">
           <Field
-            label="Phone"
+            label={L("Phone", "ফোন")}
             name="phone"
             type="tel"
             placeholder="+880..."
@@ -497,7 +498,7 @@ export default function ContactForm({
               htmlFor="preferred_contact_method"
               className="mb-2 block text-sm font-medium text-neutral-800"
             >
-              Preferred contact
+              {L("Preferred contact", "যোগাযোগের মাধ্যম")}
             </label>
 
             <select
@@ -507,11 +508,11 @@ export default function ContactForm({
               className="h-12 w-full rounded-xl border border-neutral-200 bg-white px-3.5 text-sm text-neutral-800 outline-none transition focus:border-neutral-950 focus:ring-2 focus:ring-neutral-950/10"
             >
               <option value="Email">
-                Email
+                {L("Email", "ইমেইল")}
               </option>
 
               <option value="Phone">
-                Phone
+                {L("Phone", "ফোন")}
               </option>
 
               <option value="WhatsApp">
@@ -528,33 +529,28 @@ export default function ContactForm({
             htmlFor="service"
             className="mb-2 block text-sm font-medium text-neutral-800"
           >
-            What can we help you with?
+            {L("What can we help you with?", "কোন বিষয়ে সাহায্য চান?")}
           </label>
 
           <select
             id="service"
             name="service"
             required
-            defaultValue={services.includes(defaultService) ? defaultService : ""}
+            defaultValue={services.some(([value]) => value === defaultService) ? defaultService : ""}
             className="h-12 w-full rounded-xl border border-neutral-200 bg-white px-3.5 text-sm text-neutral-800 outline-none transition focus:border-neutral-950 focus:ring-2 focus:ring-neutral-950/10"
           >
             <option
               value=""
               disabled
             >
-              Select a service
+              {L("Select a service", "একটি সার্ভিস বাছুন")}
             </option>
 
-            {services.map(
-              (service) => (
-                <option
-                  key={service}
-                  value={service}
-                >
-                  {service}
-                </option>
-              )
-            )}
+            {services.map(([value, bn]) => (
+              <option key={value} value={value}>
+                {L(value, bn)}
+              </option>
+            ))}
           </select>
         </div>
 
@@ -565,7 +561,7 @@ export default function ContactForm({
             htmlFor="budget"
             className="mb-2 block text-sm font-medium text-neutral-800"
           >
-            Estimated budget
+            {L("Estimated budget", "আনুমানিক বাজেট")}
           </label>
 
           <select
@@ -578,19 +574,14 @@ export default function ContactForm({
               value=""
               disabled
             >
-              Select a budget range
+              {L("Select a budget range", "বাজেটের সীমা বাছুন")}
             </option>
 
-            {budgets.map(
-              (budget) => (
-                <option
-                  key={budget}
-                  value={budget}
-                >
-                  {budget}
-                </option>
-              )
-            )}
+            {budgets.map(([value, bn]) => (
+              <option key={value} value={value}>
+                {L(value, bn)}
+              </option>
+            ))}
           </select>
         </div>
 
@@ -602,7 +593,7 @@ export default function ContactForm({
               htmlFor="message"
               className="block text-sm font-medium text-neutral-800"
             >
-              Project details
+              {L("Project details", "প্রজেক্টের বিবরণ")}
             </label>
 
             <span
@@ -613,8 +604,7 @@ export default function ContactForm({
                   : "text-neutral-400"
               }`}
             >
-              {messageLength}/
-              {MAX_MESSAGE_LENGTH}
+              {num(messageLength)}/{num(MAX_MESSAGE_LENGTH)}
             </span>
           </div>
 
@@ -628,7 +618,7 @@ export default function ContactForm({
             }
             rows={7}
             defaultValue={defaultMessage}
-            placeholder="Tell us about your project, goals, required features, timeline, existing website, or anything else that may help us understand your needs..."
+            placeholder={L("Tell us about your project, goals, required features, timeline, existing website, or anything else that may help us understand your needs...", "আপনার প্রজেক্ট, লক্ষ্য, প্রয়োজনীয় ফিচার, সময়সীমা, বর্তমান ওয়েবসাইট — যা কিছু আপনার প্রয়োজন বুঝতে সাহায্য করবে, লিখুন...")}
             onChange={(event) =>
               setMessageLength(
                 event.target.value.length
@@ -638,8 +628,7 @@ export default function ContactForm({
           />
 
           <p className="mt-2 text-xs text-neutral-400">
-            Please provide at least
-            20 characters.
+            {L("Please provide at least 20 characters.", "অন্তত ২০ অক্ষর লিখুন।")}
           </p>
         </div>
 
@@ -652,9 +641,9 @@ export default function ContactForm({
             htmlFor="attachment"
             className="mb-2 block text-sm font-medium text-neutral-800"
           >
-            Attachment
+            {L("Attachment", "ফাইল সংযুক্তি")}
             <span className="ml-1 font-normal text-neutral-400">
-              (optional)
+              {L("(optional)", "(ঐচ্ছিক)")}
             </span>
           </label>
 
@@ -669,21 +658,19 @@ export default function ContactForm({
                 </div>
 
                 <p className="mt-3 text-sm font-medium text-neutral-800">
-                  Attach a project file
+                  {L("Attach a project file", "প্রজেক্টের ফাইল যুক্ত করুন")}
                 </p>
 
                 <p className="mt-1 text-xs text-neutral-400">
-                  PDF, images, Word,
-                  Excel, PowerPoint
-                  or TXT
+                  {L("PDF, images, Word, Excel, PowerPoint or TXT", "PDF, ছবি, Word, Excel, PowerPoint বা TXT")}
                 </p>
 
                 <p className="mt-1 text-xs text-neutral-400">
-                  Photos: any size (auto-compressed) · Documents: up to 10 MB
+                  {L("Photos: any size (auto-compressed) · Documents: up to 10 MB", "ছবি: যেকোনো সাইজ (নিজে থেকে ছোট হয়) · ডকুমেন্ট: সর্বোচ্চ ১০ এমবি")}
                 </p>
 
                 <span className="mt-4 inline-flex h-9 items-center rounded-lg border border-neutral-200 bg-white px-4 text-xs font-semibold text-neutral-700 shadow-sm">
-                  Choose file
+                  {L("Choose file", "ফাইল বাছুন")}
                 </span>
 
                 <input
@@ -718,7 +705,7 @@ export default function ContactForm({
                   {file.type ===
                     "image/webp" && (
                     <p className="mt-0.5 text-[11px] text-neutral-400">
-                      Compacted image
+                      {L("Compacted image", "ছোট করা ছবি")}
                     </p>
                   )}
                 </div>
@@ -729,7 +716,7 @@ export default function ContactForm({
                     removeFile
                   }
                   className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-neutral-400 transition hover:bg-neutral-100 hover:text-neutral-900"
-                  aria-label="Remove attachment"
+                  aria-label={L("Remove attachment", "ফাইল সরান")}
                 >
                   <X className="h-4 w-4" />
                 </button>
@@ -740,14 +727,14 @@ export default function ContactForm({
           {compacting && (
             <div className="mt-2 flex items-center gap-2 text-xs text-neutral-500">
               <span className="h-3 w-3 animate-spin rounded-full border-2 border-neutral-300 border-t-neutral-700" />
-              Optimizing image {shownCompact}%
+              {L("Optimizing image", "ছবি ছোট করা হচ্ছে")} {num(shownCompact)}%
               <span className="h-1 w-24 overflow-hidden rounded-full bg-neutral-200">
                 <span className="block h-full bg-neutral-900" style={{ width: `${shownCompact}%` }} />
               </span>
             </div>
           )}
           {file && !compacting && (
-            <p className="mt-2 text-xs text-neutral-400">Uploaded only when you send the form.</p>
+            <p className="mt-2 text-xs text-neutral-400">{L("Uploaded only when you send the form.", "ফর্ম পাঠালে তবেই আপলোড হবে।")}</p>
           )}
         </div>
 
@@ -760,8 +747,7 @@ export default function ContactForm({
               className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
             >
               <p className="font-medium">
-                We couldn't send your
-                message.
+                {L("We couldn't send your message.", "আপনার মেসেজ পাঠানো যায়নি।")}
               </p>
 
               <p className="mt-1 text-xs text-red-600">
@@ -780,10 +766,7 @@ export default function ContactForm({
 
         <div className="flex flex-col gap-4 border-t border-neutral-200 pt-6 sm:flex-row sm:items-center sm:justify-between">
           <p className="max-w-sm text-xs leading-5 text-neutral-400">
-            By submitting this form,
-            you agree that we may
-            contact you regarding your
-            inquiry.
+            {L("By submitting this form, you agree that we may contact you regarding your inquiry.", "ফর্মটি জমা দিয়ে আপনি সম্মতি দিচ্ছেন যে এ বিষয়ে আমরা আপনার সাথে যোগাযোগ করতে পারি।")}
           </p>
 
           <button
@@ -797,11 +780,11 @@ export default function ContactForm({
             {status === "sending" ? (
               <>
                 <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
-                {uploadProgress !== null ? `Uploading ${shownUpload}%` : "Sending..."}
+                {uploadProgress !== null ? L(`Uploading ${shownUpload}%`, `আপলোড হচ্ছে ${num(shownUpload)}%`) : L("Sending...", "পাঠানো হচ্ছে...")}
               </>
             ) : (
               <>
-                Send inquiry
+                {L("Send inquiry", "মেসেজ পাঠান")}
                 <ArrowRight className="h-4 w-4" />
               </>
             )}
@@ -861,6 +844,7 @@ function Field({
 ============================================================ */
 
 function SuccessState() {
+  const { L } = useI18n();
   return (
     <div className="flex min-h-[560px] flex-col items-center justify-center py-12 text-center">
       <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-neutral-950 text-white shadow-lg">
@@ -869,19 +853,15 @@ function SuccessState() {
 
       <div className="mt-7">
         <p className="text-xs font-semibold uppercase tracking-[0.15em] text-neutral-400">
-          Message received
+          {L("Message received", "মেসেজ পৌঁছেছে")}
         </p>
 
         <h2 className="mt-3 text-3xl font-bold tracking-tight text-neutral-950">
-          Thanks for reaching out.
+          {L("Thanks for reaching out.", "যোগাযোগের জন্য ধন্যবাদ।")}
         </h2>
 
         <p className="mx-auto mt-4 max-w-md text-sm leading-7 text-neutral-500">
-          Your inquiry has been
-          submitted successfully.
-          We&apos;ll review the details
-          and get back to you as soon
-          as possible.
+          {L("Your inquiry has been submitted successfully. We'll review the details and get back to you as soon as possible.", "আপনার অনুসন্ধান সফলভাবে জমা হয়েছে। বিস্তারিত দেখে আমরা যত দ্রুত সম্ভব যোগাযোগ করব।")}
         </p>
       </div>
 
@@ -893,7 +873,7 @@ function SuccessState() {
           }
           className="inline-flex h-11 items-center justify-center rounded-xl bg-black px-5 text-sm font-medium text-white transition hover:bg-neutral-800"
         >
-          Send another inquiry
+          {L("Send another inquiry", "আরেকটি মেসেজ পাঠান")}
         </button>
       </div>
     </div>

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import Link from "@/app/components/locale-link";
 import { notFound } from "next/navigation";
 import { ArrowUpRight, CheckCircle2, Clock, Tag, Users } from "lucide-react";
 
@@ -11,7 +11,9 @@ import {
   SectionHeading,
   ServiceIcon,
 } from "@/app/components/marketing";
-import { getService, processSteps, services } from "@/lib/site";
+import { getContent, getLocalizedService } from "@/lib/content";
+import { getI18n, localeAlternates } from "@/lib/i18n/server";
+import { getService, services } from "@/lib/site";
 
 export function generateStaticParams() {
   return services.map((service) => ({ slug: service.slug }));
@@ -23,12 +25,13 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const service = getService(slug);
+  const { L, locale } = await getI18n();
+  const service = getLocalizedService(locale, slug);
   if (!service) return {};
   return {
-    title: `${service.title} — Nirdeshona Web`,
+    title: `${service.title} — ${L("Nirdeshona Web", "নির্দেশনা ওয়েব")}`,
     description: service.short,
-    alternates: { canonical: `/services/${service.slug}` },
+    alternates: localeAlternates(locale, `/services/${service.slug}`),
   };
 }
 
@@ -38,10 +41,13 @@ export default async function ServiceDetailPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const service = getService(slug);
+  const { L, locale, num } = await getI18n();
+  const service = getLocalizedService(locale, slug);
   if (!service) notFound();
+  const { processSteps, services: localized } = getContent(locale);
+  const englishTitle = getService(slug)?.title ?? service.title;
 
-  const others = services.filter((item) => item.slug !== service.slug).slice(0, 3);
+  const others = localized.filter((item) => item.slug !== service.slug).slice(0, 3);
 
   return (
     <>
@@ -49,22 +55,22 @@ export default async function ServiceDetailPage({
         eyebrow={service.title}
         title={service.short}
         description={service.intro}
-        breadcrumbs={[{ label: "Services", href: "/services" }, { label: service.title }]}
+        breadcrumbs={[{ label: L("Services", "সার্ভিস"), href: "/services" }, { label: service.title }]}
       >
         <div className="flex flex-col gap-3 sm:flex-row">
-          <PrimaryButton href={`/contact?service=${encodeURIComponent(service.title)}`}>
-            Get a quote
+          <PrimaryButton href={`/contact?service=${encodeURIComponent(englishTitle)}`}>
+            {L("Get a quote", "কোটেশন নিন")}
           </PrimaryButton>
-          <SecondaryButton href="/projects">See our work</SecondaryButton>
+          <SecondaryButton href="/projects">{L("See our work", "আমাদের কাজ দেখুন")}</SecondaryButton>
         </div>
       </PageHero>
 
       {/* Quick facts */}
       <section className="mx-auto -mt-px max-w-7xl px-4 pt-10 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-          <Fact icon={<Clock className="h-4 w-4" />} label="Typical timeline" value={service.timeline} />
-          <Fact icon={<Tag className="h-4 w-4" />} label="Starting from" value={service.startingFrom} />
-          <Fact icon={<Users className="h-4 w-4" />} label="Ideal for" value={service.idealFor.slice(0, 2).join(", ")} />
+          <Fact icon={<Clock className="h-4 w-4" />} label={L("Typical timeline", "সাধারণ সময়সীমা")} value={service.timeline} />
+          <Fact icon={<Tag className="h-4 w-4" />} label={L("Starting from", "শুরু")} value={service.startingFrom} />
+          <Fact icon={<Users className="h-4 w-4" />} label={L("Ideal for", "যাদের জন্য উপযোগী")} value={service.idealFor.slice(0, 2).join(", ")} />
         </div>
       </section>
 
@@ -77,9 +83,9 @@ export default async function ServiceDetailPage({
             </div>
             <div className="mt-6">
               <SectionHeading
-                eyebrow="What you get"
-                title="Deliverables"
-                description="A clear list of what's included, so you know exactly what you're paying for."
+                eyebrow={L("What you get", "আপনি যা পাবেন")}
+                title={L("Deliverables", "ডেলিভারেবল")}
+                description={L("A clear list of what's included, so you know exactly what you're paying for.", "কী কী থাকছে তার স্পষ্ট তালিকা, যাতে জানেন ঠিক কীসের জন্য খরচ করছেন।")}
               />
             </div>
           </div>
@@ -97,7 +103,7 @@ export default async function ServiceDetailPage({
       {/* Outcomes */}
       <section className="border-y border-neutral-200 bg-neutral-50">
         <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
-          <SectionHeading eyebrow="Why it matters" title="What changes for you" />
+          <SectionHeading eyebrow={L("Why it matters", "কেন গুরুত্বপূর্ণ")} title={L("What changes for you", "আপনার জন্য যা বদলায়")} />
           <div className="mt-10 grid grid-cols-1 gap-4 md:grid-cols-3">
             {service.outcomes.map((outcome) => (
               <div key={outcome.title} className="rounded-3xl border border-neutral-200 bg-white p-6">
@@ -113,7 +119,7 @@ export default async function ServiceDetailPage({
       <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
           <div className="rounded-3xl border border-neutral-200 bg-white p-6 sm:p-8">
-            <h3 className="text-lg font-semibold text-neutral-950">Tools & technologies</h3>
+            <h3 className="text-lg font-semibold text-neutral-950">{L("Tools & technologies", "টুল ও প্রযুক্তি")}</h3>
             <div className="mt-5 flex flex-wrap gap-2">
               {service.stack.map((item) => (
                 <span key={item} className="rounded-full border border-neutral-200 bg-neutral-50 px-3 py-1.5 text-xs font-medium text-neutral-700">
@@ -123,7 +129,7 @@ export default async function ServiceDetailPage({
             </div>
           </div>
           <div className="rounded-3xl border border-neutral-200 bg-white p-6 sm:p-8">
-            <h3 className="text-lg font-semibold text-neutral-950">A great fit for</h3>
+            <h3 className="text-lg font-semibold text-neutral-950">{L("A great fit for", "যাদের জন্য সবচেয়ে উপযোগী")}</h3>
             <ul className="mt-5 grid grid-cols-1 gap-2 sm:grid-cols-2">
               {service.idealFor.map((item) => (
                 <li key={item} className="flex items-center gap-2 text-sm text-neutral-700">
@@ -138,12 +144,12 @@ export default async function ServiceDetailPage({
 
       {/* Process */}
       <section className="mx-auto max-w-7xl px-4 pb-16 sm:px-6 lg:px-8">
-        <SectionHeading eyebrow="Process" title="From first call to launch" />
+        <SectionHeading eyebrow={L("Process", "প্রক্রিয়া")} title={L("From first call to launch", "প্রথম কল থেকে লঞ্চ")} />
         <ol className="mt-8 flex flex-col gap-3">
           {processSteps.map((step, index) => (
             <li key={step.title} className="flex gap-4 rounded-2xl border border-neutral-200 bg-white p-5">
               <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-neutral-950 text-xs font-semibold text-white">
-                {index + 1}
+                {num(index + 1)}
               </span>
               <div>
                 <h3 className="text-sm font-semibold text-neutral-950">{step.title}</h3>
@@ -157,11 +163,11 @@ export default async function ServiceDetailPage({
       {/* FAQ */}
       <section className="border-t border-neutral-200 bg-neutral-50">
         <div className="mx-auto grid grid-cols-1 max-w-7xl gap-10 px-4 py-16 sm:px-6 lg:grid-cols-[1fr_1.4fr] lg:px-8">
-          <SectionHeading eyebrow="Questions" title={`${service.title} FAQ`} description="More answers on our FAQ page." />
+          <SectionHeading eyebrow={L("Questions", "প্রশ্ন")} title={L(`${service.title} FAQ`, `${service.title}: প্রশ্নোত্তর`)} description={L("More answers on our FAQ page.", "আরও উত্তর পাবেন প্রশ্নোত্তর পেজে।")} />
           <div className="flex flex-col gap-4">
             <FaqList items={service.faqs} />
             <Link href="/faq" className="inline-flex items-center gap-1 text-sm font-semibold text-neutral-950 hover:underline">
-              All frequently asked questions
+              {L("All frequently asked questions", "সব প্রশ্নোত্তর")}
               <ArrowUpRight className="h-4 w-4" />
             </Link>
           </div>
@@ -170,7 +176,7 @@ export default async function ServiceDetailPage({
 
       {/* Other services */}
       <section className="mx-auto max-w-7xl px-4 pb-20 pt-16 sm:px-6 lg:px-8">
-        <SectionHeading eyebrow="Explore" title="Other services" />
+        <SectionHeading eyebrow={L("Explore", "আরও দেখুন")} title={L("Other services", "অন্যান্য সার্ভিস")} />
         <div className="mt-8 grid grid-cols-1 gap-4 md:grid-cols-3">
           {others.map((item) => (
             <Link

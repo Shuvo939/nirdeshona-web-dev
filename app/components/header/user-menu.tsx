@@ -1,7 +1,9 @@
 "use client";
 
+import { useI18n } from "@/lib/i18n/client";
+
 import SubmitButton from "@/app/components/submit-button";
-import Link from "next/link";
+import Link from "@/app/components/locale-link";
 import { useEffect, useRef, useState } from "react";
 import {
   ArrowUpRight,
@@ -30,6 +32,7 @@ export default function UserMenu({
   signOut,
 }: Props) {
   const [open, setOpen] = useState(false);
+  const { L } = useI18n();
   const menuRef = useRef<HTMLDivElement>(null);
 
   const displayName =
@@ -48,10 +51,10 @@ export default function UserMenu({
 
   const roleLabel =
     user.role === "ADMIN"
-      ? "Administrator"
+      ? L("Administrator", "অ্যাডমিনিস্ট্রেটর")
       : user.role === "CLIENT"
-        ? "Client"
-        : "Account";
+        ? L("Client", "ক্লায়েন্ট")
+        : L("Account", "অ্যাকাউন্ট");
 
   useEffect(() => {
     function handleOutside(event: MouseEvent) {
@@ -189,7 +192,7 @@ export default function UserMenu({
                   hover:text-neutral-950
                 "
               >
-                My account
+                {L("My account", "আমার অ্যাকাউন্ট")}
                 <ArrowUpRight className="h-3 w-3" />
               </Link>
             </div>
@@ -200,8 +203,8 @@ export default function UserMenu({
             <MenuItem
               href="/account"
               icon={<LayoutDashboard className="h-4 w-4" />}
-              label="My account"
-              description="Overview and activity"
+              label={L("My account", "আমার অ্যাকাউন্ট")}
+              description={L("Overview and activity", "সারসংক্ষেপ ও কার্যক্রম")}
               onClick={() => setOpen(false)}
             />
 
@@ -209,8 +212,8 @@ export default function UserMenu({
               <MenuItem
                 href="/client"
                 icon={<FolderKanban className="h-4 w-4" />}
-                label="Client portal"
-                description="Projects and support tickets"
+                label={L("Client portal", "ক্লায়েন্ট পোর্টাল")}
+                description={L("Projects and support tickets", "প্রজেক্ট ও সাপোর্ট টিকিট")}
                 onClick={() => setOpen(false)}
               />
             )}
@@ -219,8 +222,8 @@ export default function UserMenu({
               <MenuItem
                 href="/admin"
                 icon={<ShieldCheck className="h-4 w-4" />}
-                label="Admin Panel"
-                description="Manage Nirdeshona"
+                label={L("Admin Panel", "অ্যাডমিন প্যানেল")}
+                description={L("Manage Nirdeshona", "নির্দেশনা পরিচালনা")}
                 onClick={() => setOpen(false)}
               />
             )}
@@ -228,24 +231,24 @@ export default function UserMenu({
             <MenuItem
               href="/profile"
               icon={<UserRound className="h-4 w-4" />}
-              label="Profile"
-              description="Personal information"
+              label={L("Profile", "প্রোফাইল")}
+              description={L("Personal information", "ব্যক্তিগত তথ্য")}
               onClick={() => setOpen(false)}
             />
 
             <MenuItem
               href="/settings"
               icon={<Settings className="h-4 w-4" />}
-              label="Settings"
-              description="Account preferences"
+              label={L("Settings", "সেটিংস")}
+              description={L("Account preferences", "অ্যাকাউন্টের পছন্দ")}
               onClick={() => setOpen(false)}
             />
 
             <MenuItem
               href="/contact"
               icon={<CircleHelp className="h-4 w-4" />}
-              label="Support"
-              description="Get help or contact us"
+              label={L("Support", "সাপোর্ট")}
+              description={L("Get help or contact us", "সাহায্য নিন বা যোগাযোগ করুন")}
               onClick={() => setOpen(false)}
             />
           </div>
@@ -255,11 +258,11 @@ export default function UserMenu({
             <form action={signOut}>
               <SubmitButton
                 icon={<LogOut className="h-4 w-4" />}
-                pendingText={<span className="flex-1">Logging out…</span>}
+                pendingText={<span className="flex-1">{L("Logging out…", "লগআউট হচ্ছে…")}</span>}
                 className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-medium text-red-600 transition hover:bg-red-50 disabled:opacity-70"
               >
-                <span className="flex-1">Log out</span>
-                <span className="text-[10px] text-red-300">Sign out</span>
+                <span className="flex-1">{L("Log out", "লগআউট")}</span>
+                <span className="text-[10px] text-red-300">{L("Sign out", "সাইন আউট")}</span>
               </SubmitButton>
             </form>
           </div>

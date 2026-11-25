@@ -3,9 +3,12 @@
 import { useCallback, useEffect, useState } from "react";
 import { ChevronLeft, ChevronRight, Expand, X } from "lucide-react";
 
+import { useI18n } from "@/lib/i18n/client";
+
 type Item = { id: string; file_url: string; caption: string | null };
 
 export default function ProjectGallery({ items, title }: { items: Item[]; title: string }) {
+  const { L, num } = useI18n();
   const [open, setOpen] = useState<number | null>(null);
 
   const go = useCallback((dir: 1 | -1) => setOpen((i) => (i === null ? i : (i + dir + items.length) % items.length)), [items.length]);
@@ -53,12 +56,12 @@ export default function ProjectGallery({ items, title }: { items: Item[]; title:
       </div>
 
       {current && (
-        <div className="fixed inset-0 z-[100] flex flex-col bg-black/95" role="dialog" aria-modal="true" aria-label="Image viewer" onClick={() => setOpen(null)}>
+        <div className="fixed inset-0 z-[100] flex flex-col bg-black/95" role="dialog" aria-modal="true" aria-label={L("Image viewer", "ছবি দেখুন")} onClick={() => setOpen(null)}>
           <div className="flex items-center justify-between px-4 py-3 text-sm text-white/80">
             <span>
-              {open! + 1} / {items.length}
+              {num(open! + 1)} / {num(items.length)}
             </span>
-            <button type="button" aria-label="Close" onClick={() => setOpen(null)} className="rounded-full p-2 hover:bg-white/10">
+            <button type="button" aria-label={L("Close", "বন্ধ করুন")} onClick={() => setOpen(null)} className="rounded-full p-2 hover:bg-white/10">
               <X className="h-5 w-5" />
             </button>
           </div>
@@ -67,10 +70,10 @@ export default function ProjectGallery({ items, title }: { items: Item[]; title:
             <img src={current.file_url} alt={current.caption ?? title} className="max-h-full max-w-full rounded-lg object-contain" />
             {items.length > 1 && (
               <>
-                <button type="button" aria-label="Previous image" onClick={() => go(-1)} className="absolute left-2 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20 sm:left-4">
+                <button type="button" aria-label={L("Previous image", "আগের ছবি")} onClick={() => go(-1)} className="absolute left-2 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20 sm:left-4">
                   <ChevronLeft className="h-5 w-5" />
                 </button>
-                <button type="button" aria-label="Next image" onClick={() => go(1)} className="absolute right-2 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20 sm:right-4">
+                <button type="button" aria-label={L("Next image", "পরের ছবি")} onClick={() => go(1)} className="absolute right-2 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20 sm:right-4">
                   <ChevronRight className="h-5 w-5" />
                 </button>
               </>

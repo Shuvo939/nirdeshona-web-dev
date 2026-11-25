@@ -1,7 +1,9 @@
 "use client";
 
-import Link from "next/link";
+import Link from "@/app/components/locale-link";
 import { FormEvent, useState } from "react";
+
+import { useI18n } from "@/lib/i18n/client";
 import { CheckCircle2, Eye, EyeOff, Loader2 } from "lucide-react";
 
 import { createClient } from "@/lib/supabase/client";
@@ -12,6 +14,7 @@ const inputClass =
 type Status = { type: "ok" | "error"; text: string } | null;
 
 export function PasswordForm({ email }: { email: string }) {
+  const { L, tm } = useI18n();
   const [current, setCurrent] = useState("");
   const [next, setNext] = useState("");
   const [confirm, setConfirm] = useState("");
@@ -21,8 +24,8 @@ export function PasswordForm({ email }: { email: string }) {
   async function submit(event: FormEvent) {
     event.preventDefault();
     setStatus(null);
-    if (next.length < 8) return setStatus({ type: "error", text: "New password must be at least 8 characters." });
-    if (next !== confirm) return setStatus({ type: "error", text: "The new passwords don't match." });
+    if (next.length < 8) return setStatus({ type: "error", text: L("New password must be at least 8 characters.", "নতুন পাসওয়ার্ড কমপক্ষে ৮ অক্ষরের হতে হবে।") });
+    if (next !== confirm) return setStatus({ type: "error", text: L("The new passwords don't match.", "নতুন পাসওয়ার্ড দুটি মেলেনি।") });
 
     setLoading(true);
     const supabase = createClient();
@@ -30,33 +33,33 @@ export function PasswordForm({ email }: { email: string }) {
     const { error: reauthError } = await supabase.auth.signInWithPassword({ email, password: current });
     if (reauthError) {
       setLoading(false);
-      return setStatus({ type: "error", text: "Your current password is incorrect." });
+      return setStatus({ type: "error", text: L("Your current password is incorrect.", "আপনার বর্তমান পাসওয়ার্ড সঠিক নয়।") });
     }
     const { error } = await supabase.auth.updateUser({ password: next });
     setLoading(false);
-    if (error) return setStatus({ type: "error", text: error.message });
+    if (error) return setStatus({ type: "error", text: tm(error.message) });
     setCurrent("");
     setNext("");
     setConfirm("");
-    setStatus({ type: "ok", text: "Password updated." });
+    setStatus({ type: "ok", text: L("Password updated.", "পাসওয়ার্ড আপডেট হয়েছে।") });
   }
 
   return (
     <form onSubmit={submit} className="flex flex-col gap-4">
-      <PasswordInput id="current-password" label="Current password" value={current} onChange={setCurrent} autoComplete="current-password" />
+      <PasswordInput id="current-password" label={L("Current password", "বর্তমান পাসওয়ার্ড")} value={current} onChange={setCurrent} autoComplete="current-password" />
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <PasswordInput id="new-password" label="New password" value={next} onChange={setNext} autoComplete="new-password" />
-        <PasswordInput id="confirm-password" label="Confirm new password" value={confirm} onChange={setConfirm} autoComplete="new-password" />
+        <PasswordInput id="new-password" label={L("New password", "নতুন পাসওয়ার্ড")} value={next} onChange={setNext} autoComplete="new-password" />
+        <PasswordInput id="confirm-password" label={L("Confirm new password", "নতুন পাসওয়ার্ড নিশ্চিত করুন")} value={confirm} onChange={setConfirm} autoComplete="new-password" />
       </div>
       {next.length > 0 && <StrengthMeter password={next} />}
       <div className="flex flex-col-reverse items-stretch gap-3 sm:flex-row sm:items-center sm:justify-end">
         <StatusText status={status} />
-        <SubmitButton loading={loading}>Update password</SubmitButton>
+        <SubmitButton loading={loading}>{L("Update password", "পাসওয়ার্ড আপডেট করুন")}</SubmitButton>
       </div>
       <p className="text-xs leading-5 text-neutral-500">
-        Forgot your current password, or signed up with Google?{" "}
+        {L("Forgot your current password, or signed up with Google?", "বর্তমান পাসওয়ার্ড ভুলে গেছেন, নাকি Google দিয়ে সাইন আপ করেছিলেন?")}{" "}
         <Link href="/settings/password" className="font-medium text-neutral-900 underline">
-          Reset it with an email code
+          {L("Reset it with an email code", "ইমেইল কোড দিয়ে রিসেট করুন")}
         </Link>
         .
       </p>
@@ -65,6 +68,7 @@ export function PasswordForm({ email }: { email: string }) {
 }
 
 export function EmailForm({ email }: { email: string }) {
+  const { L, tm } = useI18n();
   const [value, setValue] = useState("");
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState<Status>(null);
@@ -73,8 +77,8 @@ export function EmailForm({ email }: { email: string }) {
     event.preventDefault();
     setStatus(null);
     const nextEmail = value.trim().toLowerCase();
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(nextEmail)) return setStatus({ type: "error", text: "Enter a valid email address." });
-    if (nextEmail === email.toLowerCase()) return setStatus({ type: "error", text: "That's already your email." });
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(nextEmail)) return setStatus({ type: "error", text: L("Enter a valid email address.", "সঠিক ইমেইল ঠিকানা লিখুন।") });
+    if (nextEmail === email.toLowerCase()) return setStatus({ type: "error", text: L("That's already your email.", "এটি তো আপনার বর্তমান ইমেইল।") });
 
     setLoading(true);
     const { error } = await createClient().auth.updateUser(
@@ -82,20 +86,20 @@ export function EmailForm({ email }: { email: string }) {
       { emailRedirectTo: `${window.location.origin}/auth/callback?next=/settings` },
     );
     setLoading(false);
-    if (error) return setStatus({ type: "error", text: error.message });
+    if (error) return setStatus({ type: "error", text: tm(error.message) });
     setValue("");
-    setStatus({ type: "ok", text: "Check both inboxes to confirm the change." });
+    setStatus({ type: "ok", text: L("Check both inboxes to confirm the change.", "পরিবর্তন নিশ্চিত করতে দুটি ইনবক্সই দেখুন।") });
   }
 
   return (
     <form onSubmit={submit} className="flex flex-col gap-4">
       <label className="block">
-        <span className="mb-2 block text-sm font-medium text-neutral-800">New email address</span>
+        <span className="mb-2 block text-sm font-medium text-neutral-800">{L("New email address", "নতুন ইমেইল ঠিকানা")}</span>
         <input type="email" value={value} onChange={(e) => setValue(e.target.value)} placeholder="you@example.com" className={inputClass} autoComplete="email" />
       </label>
       <div className="flex flex-col-reverse items-stretch gap-3 sm:flex-row sm:items-center sm:justify-end">
         <StatusText status={status} />
-        <SubmitButton loading={loading}>Change email</SubmitButton>
+        <SubmitButton loading={loading}>{L("Change email", "ইমেইল বদলান")}</SubmitButton>
       </div>
     </form>
   );
@@ -114,6 +118,7 @@ function PasswordInput({
   onChange: (v: string) => void;
   autoComplete: string;
 }) {
+  const { L } = useI18n();
   const [show, setShow] = useState(false);
   return (
     <div>
@@ -133,7 +138,7 @@ function PasswordInput({
         <button
           type="button"
           onClick={() => setShow((v) => !v)}
-          aria-label={show ? `Hide ${label.toLowerCase()}` : `Show ${label.toLowerCase()}`}
+          aria-label={show ? L(`Hide ${label.toLowerCase()}`, `${label} লুকান`) : L(`Show ${label.toLowerCase()}`, `${label} দেখুন`)}
           aria-pressed={show}
           className="absolute inset-y-0 right-0 flex w-11 items-center justify-center rounded-r-xl text-neutral-400 transition hover:text-neutral-800"
         >
@@ -145,15 +150,16 @@ function PasswordInput({
 }
 
 function StrengthMeter({ password }: { password: string }) {
+  const { L } = useI18n();
   const checks = [password.length >= 8, /[A-Z]/.test(password) && /[a-z]/.test(password), /\d/.test(password), /[^A-Za-z0-9]/.test(password), password.length >= 12];
   const score = checks.filter(Boolean).length;
   const levels = [
-    { label: "Too weak", color: "bg-red-500" },
-    { label: "Weak", color: "bg-red-500" },
-    { label: "Fair", color: "bg-amber-500" },
-    { label: "Good", color: "bg-lime-500" },
-    { label: "Strong", color: "bg-emerald-500" },
-    { label: "Very strong", color: "bg-emerald-600" },
+    { label: L("Too weak", "খুব দুর্বল"), color: "bg-red-500" },
+    { label: L("Weak", "দুর্বল"), color: "bg-red-500" },
+    { label: L("Fair", "মোটামুটি"), color: "bg-amber-500" },
+    { label: L("Good", "ভালো"), color: "bg-lime-500" },
+    { label: L("Strong", "শক্তিশালী"), color: "bg-emerald-500" },
+    { label: L("Very strong", "খুব শক্তিশালী"), color: "bg-emerald-600" },
   ];
   const level = levels[score];
   return (
@@ -164,7 +170,8 @@ function StrengthMeter({ password }: { password: string }) {
         ))}
       </div>
       <p className="mt-1.5 text-xs text-neutral-500">
-        Strength: <span className="font-medium text-neutral-800">{level.label}</span> · use 12+ characters with numbers and symbols
+        {L("Strength:", "শক্তি:")} <span className="font-medium text-neutral-800">{level.label}</span> ·{" "}
+        {L("use 12+ characters with numbers and symbols", "সংখ্যা ও চিহ্নসহ ১২+ অক্ষর ব্যবহার করুন")}
       </p>
     </div>
   );
