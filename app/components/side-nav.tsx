@@ -1,7 +1,7 @@
 "use client";
 
-import Link from "next/link";
-import { usePathname } from "next/navigation";
+import Link from "@/app/components/locale-link";
+import { useBarePathname as usePathname } from "@/lib/i18n/client";
 import { useEffect, useRef } from "react";
 import {
   Activity,

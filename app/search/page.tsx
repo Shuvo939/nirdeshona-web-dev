@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/app/components/locale-link";
 import {
   ArrowRight,
   BookOpen,
@@ -9,6 +9,9 @@ import {
 } from "lucide-react";
 import { sql } from "@/lib/db";
 import NavSubmitButton from "@/app/components/nav-submit-button";
+import { getContent } from "@/lib/content";
+import { getI18n } from "@/lib/i18n/server";
+import { tcol } from "@/lib/i18n/sql";
 
 type SearchPageProps = {
   searchParams: Promise<{ q?: string }>;
@@ -22,27 +25,18 @@ type SearchResult = {
   type: "Project" | "Post";
 };
 
-const services = [
-  {
-    title: "Web Development",
-    description: "Modern websites and web applications.",
-    href: "/services/web-development",
-  },
-  {
-    title: "WordPress",
-    description: "Custom WordPress websites and solutions.",
-    href: "/services/wordpress",
-  },
-  {
-    title: "UI / UX Design",
-    description: "Clean and intuitive digital experiences.",
-    href: "/services/design",
-  },
-];
+export async function generateMetadata() {
+  const { L } = await getI18n();
+  return { title: L("Search — Nirdeshona Web", "খুঁজুন — নির্দেশনা ওয়েব"), robots: { index: false } };
+}
 
 export default async function SearchPage({
   searchParams,
 }: SearchPageProps) {
+  const { L, locale, num } = await getI18n();
+  const services = getContent(locale)
+    .services.slice(0, 3)
+    .map((s) => ({ title: s.title, description: s.short, href: `/services/${s.slug}` }));
   const params = await searchParams;
   const query = params.q?.trim() ?? "";
   let results: SearchResult[] = [];
@@ -55,14 +49,17 @@ export default async function SearchPage({
         select
           id,
           slug,
-          title,
-          short_description
+          ${tcol(locale, "title")} as title,
+          ${tcol(locale, "short_description")} as short_description
         from projects
         where
           title ilike ${searchTerm}
           or short_description ilike ${searchTerm}
           or description ilike ${searchTerm}
           or category ilike ${searchTerm}
+          or title_bn ilike ${searchTerm}
+          or short_description_bn ilike ${searchTerm}
+          or description_bn ilike ${searchTerm}
         order by featured desc, created_at desc
         limit 12
       `,
@@ -70,8 +67,8 @@ export default async function SearchPage({
         select
           id,
           slug,
-          title,
-          excerpt
+          ${tcol(locale, "title")} as title,
+          ${tcol(locale, "excerpt")} as excerpt
         from posts
         where
           status = 'published'
@@ -79,6 +76,9 @@ export default async function SearchPage({
             title ilike ${searchTerm}
             or excerpt ilike ${searchTerm}
             or content ilike ${searchTerm}
+            or title_bn ilike ${searchTerm}
+            or excerpt_bn ilike ${searchTerm}
+            or content_bn ilike ${searchTerm}
           )
         order by published_at desc nulls last, created_at desc
         limit 12
@@ -130,21 +130,20 @@ export default async function SearchPage({
           <div className="inline-flex items-center gap-2 rounded-full border border-neutral-200 bg-white px-3.5 py-2 shadow-sm">
             <Search className="h-3.5 w-3.5 text-neutral-500" />
             <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-neutral-500">
-              Search Nirdeshona
+              {L("Search Nirdeshona", "নির্দেশনায় খুঁজুন")}
             </span>
           </div>
 
           <h1 className="mt-6 text-4xl font-bold tracking-[-0.04em] text-neutral-950 sm:text-5xl">
-            Find what you&apos;re looking for.
+            {L("Find what you're looking for.", "যা খুঁজছেন, এখানেই খুঁজুন।")}
           </h1>
 
           <p className="mx-auto mt-4 max-w-xl text-sm leading-7 text-neutral-500 sm:text-base">
-            Search through our projects, articles, services, and other
-            resources.
+            {L("Search through our projects, articles, services, and other resources.", "আমাদের প্রজেক্ট, লেখা, সার্ভিস ও অন্যান্য রিসোর্সে খুঁজুন।")}
           </p>
         </div>
 
-        <form action="/search" method="GET" className="mx-auto mt-10 max-w-3xl">
+        <form action={`/${locale}/search`} method="GET" className="mx-auto mt-10 max-w-3xl">
           <div className="group flex items-center gap-3 rounded-2xl border border-neutral-200 bg-white p-2 shadow-lg shadow-black/[0.04] transition focus-within:border-neutral-300 focus-within:shadow-xl focus-within:shadow-black/[0.06]">
             <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-neutral-100 text-neutral-500 transition group-focus-within:bg-neutral-950 group-focus-within:text-white">
               <Search className="h-5 w-5" />
@@ -154,13 +153,13 @@ export default async function SearchPage({
               type="search"
               name="q"
               defaultValue={query}
-              placeholder="Search projects, posts, services..."
+              placeholder={L("Search projects, posts, services...", "প্রজেক্ট, লেখা, সার্ভিস খুঁজুন...")}
               autoComplete="off"
               className="min-w-0 flex-1 bg-transparent px-1 text-sm text-neutral-950 outline-none placeholder:text-neutral-400 sm:text-base"
             />
 
             <NavSubmitButton className="hidden h-12 shrink-0 items-center gap-2 rounded-xl bg-neutral-950 px-5 text-sm font-semibold text-white transition hover:bg-neutral-800 sm:inline-flex">
-              Search
+              {L("Search", "খুঁজুন")}
               <ArrowRight className="h-4 w-4" />
             </NavSubmitButton>
           </div>
@@ -169,7 +168,7 @@ export default async function SearchPage({
             icon={<Search className="h-4 w-4" />}
             className="mt-3 flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-neutral-950 text-sm font-semibold text-white transition hover:bg-neutral-800 sm:hidden"
           >
-            Search
+            {L("Search", "খুঁজুন")}
           </NavSubmitButton>
         </form>
 
@@ -178,16 +177,15 @@ export default async function SearchPage({
             <div className="mb-6 flex items-end justify-between gap-4 border-b border-neutral-200 pb-4">
               <div>
                 <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-neutral-400">
-                  Search results
+                  {L("Search results", "সার্চের ফলাফল")}
                 </p>
                 <h2 className="mt-1 text-xl font-semibold tracking-tight text-neutral-950">
-                  Results for &quot;{query}&quot;
+                  {L("Results for", "যার জন্য ফলাফল:")} &quot;{query}&quot;
                 </h2>
               </div>
 
               <span className="shrink-0 rounded-full bg-neutral-100 px-3 py-1 text-xs font-medium text-neutral-500">
-                {results.length}{" "}
-                {results.length === 1 ? "result" : "results"}
+                {L(`${results.length} ${results.length === 1 ? "result" : "results"}`, `${num(results.length)}টি ফলাফল`)}
               </span>
             </div>
 
@@ -214,7 +212,7 @@ export default async function SearchPage({
                         </h3>
 
                         <span className="rounded-full bg-neutral-100 px-2 py-0.5 text-[10px] font-medium text-neutral-500">
-                          {result.type}
+                          {result.type === "Project" ? L("Project", "প্রজেক্ট") : L("Post", "লেখা")}
                         </span>
                       </div>
 
@@ -236,19 +234,18 @@ export default async function SearchPage({
                 </div>
 
                 <h2 className="mt-5 text-lg font-semibold text-neutral-900">
-                  No results found
+                  {L("No results found", "কোনো ফলাফল পাওয়া যায়নি")}
                 </h2>
 
                 <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-neutral-500">
-                  We couldn&apos;t find anything matching &quot;{query}&quot;.
-                  Try a different keyword or explore our services below.
+                  {L(`We couldn't find anything matching "${query}". Try a different keyword or explore our services below.`, `“${query}”-এর সাথে মেলে এমন কিছু পাওয়া যায়নি। অন্য শব্দে চেষ্টা করুন বা নিচে আমাদের সার্ভিসগুলো দেখুন।`)}
                 </p>
 
                 <Link
                   href="/services"
                   className="mt-6 inline-flex items-center gap-2 rounded-xl bg-neutral-950 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-neutral-800"
                 >
-                  Explore services
+                  {L("Explore services", "সার্ভিসগুলো দেখুন")}
                   <ArrowRight className="h-4 w-4" />
                 </Link>
               </div>
@@ -259,7 +256,7 @@ export default async function SearchPage({
             <div className="mb-5 flex items-center gap-2">
               <Sparkles className="h-4 w-4 text-neutral-400" />
               <p className="text-xs font-semibold uppercase tracking-[0.16em] text-neutral-400">
-                Explore Nirdeshona
+                {L("Explore Nirdeshona", "নির্দেশনা ঘুরে দেখুন")}
               </p>
             </div>
 
@@ -276,11 +273,11 @@ export default async function SearchPage({
                 </div>
 
                 <h2 className="mt-5 text-base font-semibold text-neutral-950">
-                  Our Services
+                  {L("Our Services", "আমাদের সার্ভিস")}
                 </h2>
 
                 <p className="mt-1 text-sm leading-6 text-neutral-500">
-                  Web development, WordPress, UI/UX and digital solutions.
+                  {L("Web development, WordPress, UI/UX and digital solutions.", "ওয়েব ডেভেলপমেন্ট, ওয়ার্ডপ্রেস, ইউআই/ইউএক্স ও ডিজিটাল সমাধান।")}
                 </p>
               </Link>
 
@@ -296,11 +293,11 @@ export default async function SearchPage({
                 </div>
 
                 <h2 className="mt-5 text-base font-semibold text-neutral-950">
-                  Our Work
+                  {L("Our Work", "আমাদের কাজ")}
                 </h2>
 
                 <p className="mt-1 text-sm leading-6 text-neutral-500">
-                  Explore the websites and digital products we&apos;ve built.
+                  {L("Explore the websites and digital products we've built.", "আমাদের বানানো ওয়েবসাইট ও ডিজিটাল প্রোডাক্টগুলো দেখুন।")}
                 </p>
               </Link>
             </div>
@@ -309,7 +306,7 @@ export default async function SearchPage({
               <div className="flex items-center gap-2">
                 <BookOpen className="h-4 w-4 text-neutral-400" />
                 <p className="text-xs font-semibold uppercase tracking-[0.16em] text-neutral-400">
-                  Popular
+                  {L("Popular", "জনপ্রিয়")}
                 </p>
               </div>
 

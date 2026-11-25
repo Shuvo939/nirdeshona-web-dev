@@ -1,3 +1,17 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Bangla: Hind Siliguri (self-hosted via @fontsource) with comfortable line height. */
+.font-bangla {
+  font-family: "Hind Siliguri", ui-sans-serif, system-ui, sans-serif;
+}
+.font-bangla :where(h1, h2, h3) {
+  letter-spacing: 0 !important;
+  line-height: 1.3;
+}
+.font-bangla [class*="tracking-[-"],
+.font-bangla .tracking-tight,
+.font-bangla .tracking-tighter {
+  letter-spacing: 0 !important;
+}

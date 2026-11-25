@@ -8,6 +8,7 @@ import { Camera, CheckCircle2, Loader2, Trash2 } from "lucide-react";
 import AvatarCropper from "@/app/components/avatar-cropper";
 import { updateProfile } from "@/app/account-actions";
 import type { FormState } from "@/app/(account)/client/actions";
+import { useI18n } from "@/lib/i18n/client";
 
 const inputClass =
   "w-full rounded-xl border border-neutral-200 bg-white px-3.5 text-sm text-neutral-900 outline-none transition focus:border-neutral-950 focus:ring-2 focus:ring-neutral-950/10";
@@ -20,6 +21,7 @@ export default function ProfileForm({
   initial: { fullName: string; email: string; phone: string; company: string; bio: string; avatarUrl: string | null };
 }) {
   const router = useRouter();
+  const { L, num, tm, tfe } = useI18n();
   const [state, action, pending] = useActionState<FormState, FormData>(updateProfile, {});
   const [avatar, setAvatar] = useState(initial.avatarUrl);
   const [uploading, setUploading] = useState(false);
@@ -35,7 +37,7 @@ export default function ProfileForm({
   async function pick(original: File) {
     setAvatarError(null);
     if (!original.type.startsWith("image/")) {
-      setAvatarError("Please choose an image file.");
+      setAvatarError(L("Please choose an image file.", "একটি ছবির ফাইল বেছে নিন।"));
       return;
     }
     setUploading(true);
@@ -44,12 +46,12 @@ export default function ProfileForm({
       const file = await compressImage(original, { maxEdge: 2000, targetBytes: 1.5 * 1024 * 1024 });
       setCropSrc(URL.createObjectURL(file));
     } catch (e) {
-      setAvatarError(e instanceof Error ? e.message : "Couldn't open that image.");
+      setAvatarError(e instanceof Error ? e.message : L("Couldn't open that image.", "ছবিটি খোলা যায়নি।"));
     } finally {
       setUploading(false);
     }
   }
-  const errors = state.fieldErrors ?? {};
+  const errors = tfe(state.fieldErrors) ?? {};
 
   async function upload(file: File) {
     setAvatarError(null);
@@ -60,7 +62,7 @@ export default function ProfileForm({
     const json = await res.json().catch(() => ({}));
     setUploading(false);
     if (!res.ok) {
-      throw new Error(json.error ?? "Upload failed. Please try again.");
+      throw new Error(tm(json.error) ?? L("Upload failed. Please try again.", "আপলোড ব্যর্থ হয়েছে। আবার চেষ্টা করুন।"));
     }
     setAvatar(json.url);
     setCropSrc(null);
@@ -84,13 +86,13 @@ export default function ProfileForm({
           type="button"
           onClick={() => fileRef.current?.click()}
           disabled={uploading}
-          aria-label={avatar ? "Change profile photo" : "Upload profile photo"}
+          aria-label={avatar ? L("Change profile photo", "প্রোফাইল ছবি বদলান") : L("Upload profile photo", "প্রোফাইল ছবি আপলোড করুন")}
           className="group relative rounded-full"
         >
           <div className="flex h-24 w-24 items-center justify-center overflow-hidden rounded-full bg-neutral-100 text-3xl font-semibold text-neutral-600 ring-4 ring-white shadow">
             {avatar ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={avatar} alt="Your profile photo" className="h-full w-full object-cover" />
+              <img src={avatar} alt={L("Your profile photo", "আপনার প্রোফাইল ছবি")} className="h-full w-full object-cover" />
             ) : (
               initials
             )}
@@ -106,8 +108,8 @@ export default function ProfileForm({
           )}
         </button>
         <div>
-          <p className="text-sm font-semibold text-neutral-950">Profile photo</p>
-          <p className="mt-1 text-xs text-neutral-500">JPG, PNG or WebP — any size. Crop, zoom, rotate and flip before saving.</p>
+          <p className="text-sm font-semibold text-neutral-950">{L("Profile photo", "প্রোফাইল ছবি")}</p>
+          <p className="mt-1 text-xs text-neutral-500">{L("JPG, PNG or WebP — any size. Crop, zoom, rotate and flip before saving.", "JPG, PNG বা WebP — যেকোনো সাইজ। সেভের আগে ক্রপ, জুম, রোটেট ও ফ্লিপ করুন।")}</p>
           <div className="mt-3 flex gap-2">
             <button
               type="button"
@@ -115,7 +117,7 @@ export default function ProfileForm({
               onClick={() => fileRef.current?.click()}
               className="inline-flex h-9 items-center gap-2 rounded-full bg-neutral-950 px-4 text-xs font-semibold text-white hover:bg-neutral-800 disabled:opacity-60"
             >
-              <Camera className="h-3.5 w-3.5" /> {avatar ? "Change photo" : "Upload photo"}
+              <Camera className="h-3.5 w-3.5" /> {avatar ? L("Change photo", "ছবি বদলান") : L("Upload photo", "ছবি আপলোড করুন")}
             </button>
             {avatar && (
               <button
@@ -124,7 +126,7 @@ export default function ProfileForm({
                 onClick={removeAvatar}
                 className="inline-flex h-9 items-center gap-2 rounded-full border border-neutral-200 px-4 text-xs font-semibold text-neutral-700 hover:bg-neutral-50 disabled:opacity-60"
               >
-                <Trash2 className="h-3.5 w-3.5" /> Remove
+                <Trash2 className="h-3.5 w-3.5" /> {L("Remove", "সরান")}
               </button>
             )}
           </div>
@@ -149,20 +151,20 @@ export default function ProfileForm({
 
       <form action={action} className="flex flex-col gap-5 rounded-3xl border border-neutral-200 bg-white p-5 sm:p-6">
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-          <Field label="Full name" error={errors.fullName}>
+          <Field label={L("Full name", "পুরো নাম")} error={errors.fullName}>
             <input name="fullName" defaultValue={initial.fullName} required maxLength={100} className={`${inputClass} h-11`} />
           </Field>
-          <Field label="Email" hint="Change it in Settings">
+          <Field label={L("Email", "ইমেইল")} hint={L("Change it in Settings", "সেটিংসে গিয়ে বদলান")}>
             <input value={initial.email} disabled className={`${inputClass} h-11 bg-neutral-50 text-neutral-500`} />
           </Field>
-          <Field label="Phone" error={errors.phone} hint="Only visible to our team">
+          <Field label={L("Phone", "ফোন")} error={errors.phone} hint={L("Only visible to our team", "শুধু আমাদের টিম দেখতে পাবে")}>
             <input name="phone" type="tel" defaultValue={initial.phone} maxLength={30} placeholder="+880…" className={`${inputClass} h-11`} />
           </Field>
-          <Field label="Organisation" error={errors.company}>
+          <Field label={L("Organisation", "প্রতিষ্ঠান")} error={errors.company}>
             <input name="company" defaultValue={initial.company} maxLength={120} className={`${inputClass} h-11`} />
           </Field>
         </div>
-        <Field label="About you" error={errors.bio} hint={`${bioLength}/500`}>
+        <Field label={L("About you", "আপনার সম্পর্কে")} error={errors.bio} hint={`${num(bioLength)}/${num(500)}`}>
           <textarea
             name="bio"
             rows={4}
@@ -175,17 +177,17 @@ export default function ProfileForm({
         <div className="flex flex-col-reverse items-stretch gap-3 sm:flex-row sm:items-center sm:justify-end">
           {state.ok && !pending && (
             <p className="flex items-center gap-1.5 text-sm text-emerald-700">
-              <CheckCircle2 className="h-4 w-4" /> Profile saved
+              <CheckCircle2 className="h-4 w-4" /> {L("Profile saved", "প্রোফাইল সেভ হয়েছে")}
             </p>
           )}
-          {state.error && <p className="text-sm text-red-600">{state.error}</p>}
+          {state.error && <p className="text-sm text-red-600">{tm(state.error)}</p>}
           <button
             type="submit"
             disabled={pending}
             className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-neutral-950 px-6 text-sm font-semibold text-white hover:bg-neutral-800 disabled:opacity-60"
           >
             {pending && <Loader2 className="h-4 w-4 animate-spin" />}
-            Save changes
+            {L("Save changes", "পরিবর্তন সেভ করুন")}
           </button>
         </div>
       </form>

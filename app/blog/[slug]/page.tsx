@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import { sql } from "@/lib/db";
+import { getI18n } from "@/lib/i18n/server";
+import { tcol } from "@/lib/i18n/sql";
 import { trackPostView } from "@/lib/posts/views";
 import PostPage from "@/app/components/blog/post-page";
 
@@ -17,14 +19,16 @@ export async function generateMetadata({
   params,
 }: PageProps): Promise<Metadata> {
   const { slug } = await params;
+  const { L, locale, lp } = await getI18n();
 
   const [post] = await sql`
     select
-      title,
-      excerpt,
-      seo_title,
-      seo_description,
-      cover_image_url
+      ${tcol(locale, "title")} as title,
+      ${tcol(locale, "excerpt")} as excerpt,
+      ${tcol(locale, "seo_title")} as seo_title,
+      ${tcol(locale, "seo_description")} as seo_description,
+      cover_image_url,
+      (title_bn is not null and title_bn <> '') as has_bn
     from public.posts
     where slug = ${slug}
       and status = 'published'
@@ -33,7 +37,7 @@ export async function generateMetadata({
 
   if (!post) {
     return {
-      title: "Post Not Found | Nirdeshona",
+      title: L("Post Not Found | Nirdeshona", "লেখা পাওয়া যায়নি | নির্দেশনা"),
     };
   }
 
@@ -42,11 +46,15 @@ export async function generateMetadata({
   const description =
     post.seo_description ||
     post.excerpt ||
-    `Read ${post.title} on Nirdeshona.`;
+    L(`Read ${post.title} on Nirdeshona.`, `নির্দেশনায় পড়ুন: ${post.title}`);
 
   return {
     title,
     description,
+    alternates: {
+      canonical: lp(`/blog/${slug}`),
+      languages: { "bn-BD": `/bn/blog/${slug}`, en: `/en/blog/${slug}`, "x-default": `/bn/blog/${slug}` },
+    },
 
     openGraph: {
       title,
@@ -86,15 +94,19 @@ export default async function SinglePostPage({
   params,
 }: PageProps) {
   const { slug } = await params;
+  const { locale } = await getI18n();
 
   const [post] = (await sql`
     select
       p.*,
+      ${tcol(locale, "p.title")} as title,
+      ${tcol(locale, "p.excerpt")} as excerpt,
+      ${tcol(locale, "p.content")} as content,
 
       pr.full_name as author_name,
       pr.avatar_url as author_avatar,
 
-      pc.name as category_name,
+      ${tcol(locale, "pc.name")} as category_name,
       pc.slug as category_slug
 
     from public.posts p
@@ -142,7 +154,7 @@ export default async function SinglePostPage({
   }
 
   const tags = (await sql`
-    select t.id, t.name, t.slug
+    select t.id, ${tcol(locale, "t.name")} as name, t.slug
     from public.tags t
     inner join public.post_tags pt on pt.tag_id = t.id
     where pt.post_id = ${post.id}

@@ -27,6 +27,11 @@ const PostSchema = z.object({
   status: z.enum(["draft", "published", "archived"]),
   seo_title: z.string().trim().optional(),
   seo_description: z.string().trim().optional(),
+  title_bn: z.string().trim().optional(),
+  excerpt_bn: z.string().trim().optional(),
+  content_bn: z.string().optional(),
+  seo_title_bn: z.string().trim().optional(),
+  seo_description_bn: z.string().trim().optional(),
   cover_image_url: z
     .string()
     .url()
@@ -56,6 +61,11 @@ function parseForm(formData: FormData) {
     status: formData.get("status"),
     seo_title: formData.get("seo_title") || undefined,
     seo_description: formData.get("seo_description") || undefined,
+    title_bn: formData.get("title_bn") || undefined,
+    excerpt_bn: formData.get("excerpt_bn") || undefined,
+    content_bn: formData.get("content_bn") || undefined,
+    seo_title_bn: formData.get("seo_title_bn") || undefined,
+    seo_description_bn: formData.get("seo_description_bn") || undefined,
     cover_image_url: formData.get("cover_image_url") || "",
     cover_image_key: formData.get("cover_image_key") || "",
     existing_cover_image_url: formData.get("existing_cover_image_url") || "",
@@ -143,6 +153,11 @@ export async function createPost(formData: FormData) {
       status,
       seo_title,
       seo_description,
+      title_bn,
+      excerpt_bn,
+      content_bn,
+      seo_title_bn,
+      seo_description_bn,
       published_at
     )
     values (
@@ -156,6 +171,11 @@ export async function createPost(formData: FormData) {
       ${data.status},
       ${data.seo_title || null},
       ${data.seo_description || null},
+      ${data.title_bn || null},
+      ${data.excerpt_bn || null},
+      ${data.content_bn?.trim() ? data.content_bn : null},
+      ${data.seo_title_bn || null},
+      ${data.seo_description_bn || null},
       ${data.status === "published" ? sql`now()` : null}
     )
     returning id
@@ -211,6 +231,11 @@ export async function updatePost(id: string, formData: FormData) {
       status = ${data.status},
       seo_title = ${data.seo_title || null},
       seo_description = ${data.seo_description || null},
+      title_bn = ${data.title_bn || null},
+      excerpt_bn = ${data.excerpt_bn || null},
+      content_bn = ${data.content_bn?.trim() ? data.content_bn : null},
+      seo_title_bn = ${data.seo_title_bn || null},
+      seo_description_bn = ${data.seo_description_bn || null},
       published_at = case
         when ${data.status} = 'published'
           and published_at is null

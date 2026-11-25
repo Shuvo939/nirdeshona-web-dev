@@ -1,8 +1,10 @@
-import Link from "next/link";
+import Link from "@/app/components/locale-link";
 import { redirect } from "next/navigation";
 import { ArrowUpRight, Sparkles } from "lucide-react";
 
+import { LanguageSwitcher } from "@/app/components/language-switcher";
 import { sql } from "@/lib/db";
+import { getI18n } from "@/lib/i18n/server";
 import { createClient } from "@/lib/supabase/server";
 
 import DesktopNav from "./desktop-nav";
@@ -12,6 +14,7 @@ import NotificationBell from "./notification-bell";
 import UserMenu from "./user-menu";
 
 export default async function Header() {
+  const { L, lp } = await getI18n();
   const supabase = await createClient();
 
   const {
@@ -53,7 +56,7 @@ export default async function Header() {
 
     await supabase.auth.signOut();
 
-    redirect("/login");
+    redirect(lp("/login"));
   }
 
   const userData = user
@@ -113,11 +116,11 @@ export default async function Header() {
 
               <div className="hidden sm:block">
                 <div className="text-[15px] font-bold leading-none tracking-[-0.02em] text-neutral-950">
-                  Nirdeshona
+                  {L("Nirdeshona", "নির্দেশনা")}
                 </div>
 
                 <div className="mt-1.5 text-[9px] font-semibold uppercase tracking-[0.22em] text-neutral-400">
-                  Web Development
+                  {L("Web Development", "ওয়েব ডেভেলপমেন্ট")}
                 </div>
               </div>
             </Link>
@@ -150,6 +153,8 @@ export default async function Header() {
               <SearchTrigger />
             </div>
 
+            <LanguageSwitcher />
+
             {/* DESKTOP AUTH / USER */}
             {!user ? (
               <div className="hidden items-center gap-1.5 sm:flex">
@@ -163,7 +168,7 @@ export default async function Header() {
                     hover:text-neutral-950
                   "
                 >
-                  Log in
+                  {L("Log in", "লগইন")}
                 </Link>
 
                 <Link
@@ -179,7 +184,7 @@ export default async function Header() {
                     hover:shadow-lg
                   "
                 >
-                  Get started
+                  {L("Get started", "শুরু করুন")}
 
                   <ArrowUpRight
                     className="
@@ -214,7 +219,7 @@ export default async function Header() {
                     hover:text-neutral-950
                   "
                 >
-                  Log in
+                  {L("Log in", "লগইন")}
                 </Link>
               </div>
             )}
@@ -229,7 +234,7 @@ export default async function Header() {
         <div className="mx-auto flex h-8 max-w-7xl items-center justify-center px-4">
           <div className="flex items-center gap-2 text-[10px] font-medium uppercase tracking-[0.16em] text-neutral-400">
             <Sparkles className="h-3 w-3" />
-            Digital solutions that move ideas forward
+            {L("Digital solutions that move ideas forward", "ভাবনাকে এগিয়ে নেওয়ার ডিজিটাল সমাধান")}
           </div>
         </div>
       </div>

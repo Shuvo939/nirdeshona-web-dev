@@ -40,6 +40,10 @@ const ProjectSchema = z.object({
     .trim()
     .optional(),
 
+  title_bn: z.string().trim().max(200).optional(),
+  short_description_bn: z.string().trim().max(300).optional(),
+  description_bn: z.string().trim().optional(),
+
   category: z
     .enum(PROJECT_CATEGORIES)
     .optional(),
@@ -112,6 +116,9 @@ function readForm(formData: FormData) {
     slug: formData.get("slug"),
     short_description: parseOptionalString(formData.get("short_description")),
     description: parseOptionalString(formData.get("description")),
+    title_bn: parseOptionalString(formData.get("title_bn")),
+    short_description_bn: parseOptionalString(formData.get("short_description_bn")),
+    description_bn: parseOptionalString(formData.get("description_bn")),
     category: parseOptionalString(formData.get("category")),
     client_id: parseOptionalString(formData.get("client_id")),
     status: formData.get("status"),
@@ -190,6 +197,8 @@ async function saveProject(id: string | null, formData: FormData): Promise<Proje
           update projects set
             client_id = ${data.client_id ?? null}, title = ${data.title}, slug = ${data.slug},
             short_description = ${data.short_description ?? null}, description = ${data.description ?? null},
+            title_bn = ${data.title_bn ?? null}, short_description_bn = ${data.short_description_bn ?? null},
+            description_bn = ${data.description_bn ?? null},
             category = ${data.category ?? null}, status = ${data.status}, progress_percent = ${data.progress_percent},
             featured = ${data.featured}, cover_image_url = ${cover}, live_url = ${data.live_url ?? null},
             repository_url = ${data.repository_url ?? null}, started_at = ${data.started_at ?? null},
@@ -198,10 +207,11 @@ async function saveProject(id: string | null, formData: FormData): Promise<Proje
         `;
       } else {
         const [row] = await tx`
-          insert into projects (client_id, title, slug, short_description, description, category, status,
+          insert into projects (client_id, title, slug, short_description, description, title_bn, short_description_bn, description_bn, category, status,
                                 progress_percent, featured, cover_image_url, live_url, repository_url, started_at, completed_at)
           values (${data.client_id ?? null}, ${data.title}, ${data.slug}, ${data.short_description ?? null},
-                  ${data.description ?? null}, ${data.category ?? null}, ${data.status}, ${data.progress_percent},
+                  ${data.description ?? null}, ${data.title_bn ?? null}, ${data.short_description_bn ?? null},
+                  ${data.description_bn ?? null}, ${data.category ?? null}, ${data.status}, ${data.progress_percent},
                   ${data.featured}, ${cover}, ${data.live_url ?? null}, ${data.repository_url ?? null},
                   ${data.started_at ?? null}, ${data.completed_at ?? null})
           returning id

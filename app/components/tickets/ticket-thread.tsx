@@ -1,6 +1,8 @@
 import { FileText, ShieldCheck } from "lucide-react";
 
 import { formatDate } from "@/app/components/marketing";
+import T from "@/app/components/t";
+import type { Locale } from "@/lib/i18n/config";
 import type { TicketMessage } from "@/lib/tickets";
 import { formatBytes } from "@/lib/tickets/attachments";
 
@@ -13,7 +15,7 @@ function initials(name: string | null) {
     .join("");
 }
 
-export default function TicketThread({ messages, viewerId }: { messages: TicketMessage[]; viewerId: string }) {
+export default function TicketThread({ messages, viewerId, locale = "en" }: { messages: TicketMessage[]; viewerId: string; locale?: Locale }) {
   return (
     <ol className="flex flex-col gap-4">
       {messages.map((m) => {
@@ -31,13 +33,13 @@ export default function TicketThread({ messages, viewerId }: { messages: TicketM
             </div>
             <div className={`flex min-w-0 max-w-[85%] flex-col ${mine ? "items-end" : "items-start"}`}>
               <div className="mb-1 flex flex-wrap items-center gap-2 text-xs text-neutral-500">
-                <span className="font-medium text-neutral-800">{mine ? "You" : m.full_name || "User"}</span>
+                <span className="font-medium text-neutral-800">{mine ? <T en="You" bn="আপনি" /> : m.full_name || <T en="User" bn="ইউজার" />}</span>
                 {staff && (
                   <span className="inline-flex items-center gap-1 rounded-full bg-neutral-950 px-2 py-0.5 text-[10px] font-medium text-white">
-                    <ShieldCheck className="h-3 w-3" /> Nirdeshona team
+                    <ShieldCheck className="h-3 w-3" /> <T en="Nirdeshona team" bn="নির্দেশনা টিম" />
                   </span>
                 )}
-                <time dateTime={new Date(m.created_at).toISOString()}>{formatDate(m.created_at, true)}</time>
+                <time dateTime={new Date(m.created_at).toISOString()}>{formatDate(m.created_at, true, locale)}</time>
               </div>
               <div
                 className={`whitespace-pre-wrap break-words rounded-2xl px-4 py-3 text-sm leading-6 ${

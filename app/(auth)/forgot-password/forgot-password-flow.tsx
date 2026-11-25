@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import Link from "@/app/components/locale-link";
 import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import Captcha, { type CaptchaValue } from "@/app/components/captcha";
 import { createClient } from "@/lib/supabase/client";
+import { useI18n } from "@/lib/i18n/client";
 
 type Step = "email" | "otp" | "password" | "success";
 
@@ -27,6 +28,7 @@ export default function ForgotPasswordFlow({
   initialCaptcha?: { token: string; image: string };
 }) {
   const router = useRouter();
+  const { L, lp, num, tm } = useI18n();
   const supabase = createClient();
   const embedded = Boolean(accountEmail);
 
@@ -62,7 +64,7 @@ export default function ForgotPasswordFlow({
     const trimmedEmail = email.trim();
 
     if (!trimmedEmail) {
-      setError("Please enter your email address.");
+      setError(L("Please enter your email address.", "আপনার ইমেইল ঠিকানা লিখুন।"));
       return;
     }
 
@@ -79,7 +81,7 @@ export default function ForgotPasswordFlow({
     const result = await res.json().catch(() => ({}));
 
     if (!res.ok) {
-      setError(result.error ?? "Couldn't send the code. Please try again.");
+      setError(tm(result.error) ?? L("Couldn't send the code. Please try again.", "কোড পাঠানো যায়নি। আবার চেষ্টা করুন।"));
       if (!embedded) setCaptchaKey((k) => k + 1);
       setLoading(false);
       return;
@@ -106,7 +108,7 @@ export default function ForgotPasswordFlow({
 
     if (cleanOtp.length !== OTP_LENGTH) {
       setError(
-        `Please enter the ${OTP_LENGTH}-digit verification code.`
+        L(`Please enter the ${OTP_LENGTH}-digit verification code.`, `${num(OTP_LENGTH)} অঙ্কের যাচাই কোডটি লিখুন।`)
       );
       return;
     }
@@ -120,7 +122,7 @@ export default function ForgotPasswordFlow({
     });
 
     if (error) {
-      setError(getAuthErrorMessage(error.message));
+      setError(getAuthErrorMessage(error.message, L));
       setLoading(false);
       return;
     }
@@ -144,7 +146,7 @@ export default function ForgotPasswordFlow({
       await supabase.auth.resetPasswordForEmail(email.trim());
 
     if (error) {
-      setError(getAuthErrorMessage(error.message));
+      setError(getAuthErrorMessage(error.message, L));
       setResending(false);
       return;
     }
@@ -167,12 +169,12 @@ export default function ForgotPasswordFlow({
     setError(null);
 
     if (password.length < 8) {
-      setError("Password must be at least 8 characters long.");
+      setError(L("Password must be at least 8 characters long.", "পাসওয়ার্ড কমপক্ষে ৮ অক্ষরের হতে হবে।"));
       return;
     }
 
     if (password !== confirmPassword) {
-      setError("Passwords do not match.");
+      setError(L("Passwords do not match.", "পাসওয়ার্ড দুটি মেলেনি।"));
       return;
     }
 
@@ -183,7 +185,7 @@ export default function ForgotPasswordFlow({
     });
 
     if (error) {
-      setError(getAuthErrorMessage(error.message));
+      setError(getAuthErrorMessage(error.message, L));
       setLoading(false);
       return;
     }
@@ -192,7 +194,7 @@ export default function ForgotPasswordFlow({
     setLoading(false);
 
     setTimeout(() => {
-      router.push(embedded ? "/settings?password=updated" : "/account");
+      router.push(lp(embedded ? "/settings?password=updated" : "/account"));
       router.refresh();
     }, 1500);
   }
@@ -206,30 +208,30 @@ export default function ForgotPasswordFlow({
   const header = {
     email: embedded
       ? {
-          title: "Reset your password",
-          description: "We'll email you a verification code to confirm it's you.",
+          title: L("Reset your password", "পাসওয়ার্ড রিসেট করুন"),
+          description: L("We'll email you a verification code to confirm it's you.", "আপনিই কি না নিশ্চিত হতে ইমেইলে একটি যাচাই কোড পাঠাব।"),
         }
       : {
-          title: "Forgot your password?",
+          title: L("Forgot your password?", "পাসওয়ার্ড ভুলে গেছেন?"),
           description:
-            "Enter your email, we'll send a verification code.",
+            L("Enter your email, we'll send a verification code.", "আপনার ইমেইল দিন, আমরা একটি যাচাই কোড পাঠাব।"),
         },
 
     otp: {
-      title: "Verify your email",
-      description: `Enter the code sent to ${email}.`,
+      title: L("Verify your email", "ইমেইল যাচাই করুন"),
+      description: L(`Enter the code sent to ${email}.`, `${email} ঠিকানায় পাঠানো কোডটি লিখুন।`),
     },
 
     password: {
-      title: "Create a new password",
+      title: L("Create a new password", "নতুন পাসওয়ার্ড দিন"),
       description:
-        "Your email has been verified. Choose a new password.",
+        L("Your email has been verified. Choose a new password.", "আপনার ইমেইল যাচাই হয়েছে। নতুন পাসওয়ার্ড বেছে নিন।"),
     },
 
     success: {
-      title: "Password updated",
+      title: L("Password updated", "পাসওয়ার্ড আপডেট হয়েছে"),
       description:
-        "Your password has been changed successfully.",
+        L("Your password has been changed successfully.", "আপনার পাসওয়ার্ড সফলভাবে বদলানো হয়েছে।"),
     },
   }[step];
 
@@ -249,7 +251,7 @@ export default function ForgotPasswordFlow({
                 N
               </span>
               <span className="font-bold text-neutral-950">
-                Nirdeshona
+                {L("Nirdeshona", "নির্দেশনা")}
               </span>
             </Link>
             <h1 className="mt-3 text-2xl font-semibold tracking-tight text-neutral-950">
@@ -272,13 +274,13 @@ export default function ForgotPasswordFlow({
             <form onSubmit={handleSendOtp} className="space-y-4">
               {embedded ? (
                 <div className="rounded-xl border border-neutral-200 bg-neutral-50 px-4 py-3">
-                  <p className="text-xs text-neutral-500">Code will be sent to</p>
+                  <p className="text-xs text-neutral-500">{L("Code will be sent to", "কোড পাঠানো হবে")}</p>
                   <p className="mt-0.5 break-all text-sm font-medium text-neutral-900">{email}</p>
                 </div>
               ) : (
                 <FloatingInput
                   id="email"
-                  label="Email address"
+                  label={L("Email address", "ইমেইল ঠিকানা")}
                   type="email"
                   value={email}
                   onChange={setEmail}
@@ -303,24 +305,24 @@ export default function ForgotPasswordFlow({
                   <Loader2 className="h-4 w-4 animate-spin" />
                 )}
 
-                {loading ? "Sending code..." : embedded ? "Send verification code" : "Send OTP"}
+                {loading ? L("Sending code...", "কোড পাঠানো হচ্ছে...") : embedded ? L("Send verification code", "যাচাই কোড পাঠান") : L("Send OTP", "OTP পাঠান")}
               </button>
 
               {embedded ? (
                 <p className="text-center text-sm text-neutral-500">
-                  Know your current password?{" "}
+                  {L("Know your current password?", "বর্তমান পাসওয়ার্ড জানেন?")}{" "}
                   <Link href="/settings" className="font-medium text-neutral-950 hover:underline">
-                    Change it in Settings
+                    {L("Change it in Settings", "সেটিংসে গিয়ে বদলান")}
                   </Link>
                 </p>
               ) : (
                 <p className="text-center text-sm text-neutral-500">
-                  Remember your password?{" "}
+                  {L("Remember your password?", "পাসওয়ার্ড মনে পড়েছে?")}{" "}
                   <Link
                     href="/login"
                     className="font-medium text-neutral-950 hover:underline"
                   >
-                    Log in
+                    {L("Log in", "লগ ইন")}
                   </Link>
                 </p>
               )}
@@ -348,7 +350,7 @@ export default function ForgotPasswordFlow({
 
               <FloatingInput
                 id="otp"
-                label="Verification code"
+                label={L("Verification code", "যাচাই কোড")}
                 type="text"
                 inputMode="numeric"
                 autoComplete="one-time-code"
@@ -375,11 +377,11 @@ export default function ForgotPasswordFlow({
                   <Loader2 className="h-4 w-4 animate-spin" />
                 )}
 
-                {loading ? "Verifying..." : "Verify OTP"}
+                {loading ? L("Verifying...", "যাচাই হচ্ছে...") : L("Verify OTP", "OTP যাচাই করুন")}
               </button>
 
               <div className="flex items-center justify-center gap-1 text-sm text-neutral-500">
-                <span>Didn't receive the code?</span>
+                <span>{L("Didn't receive the code?", "কোড পাননি?")}</span>
 
                 <button
                   type="button"
@@ -387,7 +389,7 @@ export default function ForgotPasswordFlow({
                   disabled={resending}
                   className="font-medium text-neutral-950 hover:underline disabled:opacity-50"
                 >
-                  {resending ? "Sending..." : "Resend OTP"}
+                  {resending ? L("Sending...", "পাঠানো হচ্ছে...") : L("Resend OTP", "আবার OTP পাঠান")}
                 </button>
               </div>
 
@@ -400,7 +402,7 @@ export default function ForgotPasswordFlow({
                 }}
                 className="block w-full text-center text-sm text-neutral-500 hover:text-neutral-950 hover:underline"
               >
-                Use a different email
+                {L("Use a different email", "অন্য ইমেইল ব্যবহার করুন")}
               </button>
             </form>
           )}
@@ -419,18 +421,18 @@ export default function ForgotPasswordFlow({
                   <Check className="h-4 w-4 text-green-600" />
 
                   <p className="text-sm font-medium text-green-800">
-                    Email verified
+                    {L("Email verified", "ইমেইল যাচাই হয়েছে")}
                   </p>
                 </div>
 
                 <p className="mt-0.5 pl-6 text-xs text-green-700">
-                  You can now create a new password.
+                  {L("You can now create a new password.", "এখন নতুন পাসওয়ার্ড দিতে পারেন।")}
                 </p>
               </div>
 
               <FloatingPasswordInput
                 id="password"
-                label="New password"
+                label={L("New password", "নতুন পাসওয়ার্ড")}
                 value={password}
                 onChange={setPassword}
                 showPassword={showPassword}
@@ -441,7 +443,7 @@ export default function ForgotPasswordFlow({
 
               <FloatingPasswordInput
                 id="confirmPassword"
-                label="Confirm new password"
+                label={L("Confirm new password", "নতুন পাসওয়ার্ড নিশ্চিত করুন")}
                 value={confirmPassword}
                 onChange={setConfirmPassword}
                 showPassword={showConfirmPassword}
@@ -451,7 +453,7 @@ export default function ForgotPasswordFlow({
               />
 
               <p className="text-xs text-neutral-400">
-                Password must be at least 8 characters.
+                {L("Password must be at least 8 characters.", "পাসওয়ার্ড কমপক্ষে ৮ অক্ষরের হতে হবে।")}
               </p>
 
               {error && <ErrorMessage message={error} />}
@@ -466,8 +468,8 @@ export default function ForgotPasswordFlow({
                 )}
 
                 {loading
-                  ? "Updating password..."
-                  : "Update password"}
+                  ? L("Updating password...", "পাসওয়ার্ড আপডেট হচ্ছে...")
+                  : L("Update password", "পাসওয়ার্ড আপডেট করুন")}
               </button>
             </form>
           )}
@@ -483,12 +485,14 @@ export default function ForgotPasswordFlow({
               </div>
 
               <h2 className="mt-4 text-lg font-semibold text-neutral-950">
-                Password updated
+                {L("Password updated", "পাসওয়ার্ড আপডেট হয়েছে")}
               </h2>
 
               <p className="mt-1.5 text-sm leading-6 text-neutral-500">
-                Your password has been changed successfully.
-                Redirecting you to your account...
+                {L(
+                  "Your password has been changed successfully. Redirecting you to your account...",
+                  "আপনার পাসওয়ার্ড সফলভাবে বদলানো হয়েছে। আপনাকে অ্যাকাউন্টে নিয়ে যাওয়া হচ্ছে...",
+                )}
               </p>
             </div>
           )}
@@ -581,6 +585,7 @@ function FloatingPasswordInput({
   disabled?: boolean;
   autoComplete?: string;
 }) {
+  const { L } = useI18n();
   return (
     <div className="relative">
       <input
@@ -607,7 +612,7 @@ function FloatingPasswordInput({
         onClick={() => setShowPassword((value) => !value)}
         disabled={disabled}
         aria-label={
-          showPassword ? "Hide password" : "Show password"
+          showPassword ? L("Hide password", "পাসওয়ার্ড লুকান") : L("Show password", "পাসওয়ার্ড দেখুন")
         }
         className="absolute right-2 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-lg text-neutral-400 transition hover:bg-neutral-100 hover:text-neutral-700"
       >
@@ -644,7 +649,7 @@ function ErrorMessage({ message }: { message: string }) {
  * =========================================================
  */
 
-function getAuthErrorMessage(message: string) {
+function getAuthErrorMessage(message: string, L: <T>(en: T, bn: T) => T) {
   const normalized = message.toLowerCase();
 
   if (
@@ -652,21 +657,21 @@ function getAuthErrorMessage(message: string) {
     (normalized.includes("expired") ||
       normalized.includes("invalid"))
   ) {
-    return "This verification code is invalid or has expired. Please request a new code.";
+    return L("This verification code is invalid or has expired. Please request a new code.", "যাচাই কোডটি ভুল বা মেয়াদোত্তীর্ণ। নতুন কোড চেয়ে নিন।");
   }
 
   if (
     normalized.includes("token") &&
     normalized.includes("expired")
   ) {
-    return "This verification code has expired. Please request a new code.";
+    return L("This verification code has expired. Please request a new code.", "যাচাই কোডের মেয়াদ শেষ। নতুন কোড চেয়ে নিন।");
   }
 
   if (
     normalized.includes("too many requests") ||
     normalized.includes("rate limit")
   ) {
-    return "Too many requests. Please wait a moment before trying again.";
+    return L("Too many requests. Please wait a moment before trying again.", "অনেক বেশি অনুরোধ। একটু অপেক্ষা করে আবার চেষ্টা করুন।");
   }
 
   if (normalized.includes("password")) {

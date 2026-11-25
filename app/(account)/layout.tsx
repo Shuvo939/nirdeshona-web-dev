@@ -7,13 +7,16 @@ import { syncClientAccessForUser } from "@/lib/clients/access";
 import { sql } from "@/lib/db";
 import { createClient } from "@/lib/supabase/server";
 import SubmitButton from "@/app/components/submit-button";
+import { getI18n } from "@/lib/i18n/server";
 
 async function signOut() {
   "use server";
   const supabase = await createClient();
   await supabase.auth.signOut();
   const { redirect } = await import("next/navigation");
-  redirect("/login");
+  const { localizePath } = await import("@/lib/i18n/config");
+  const { getLocale } = await import("@/lib/i18n/server");
+  redirect(localizePath(await getLocale(), "/login"));
 }
 
 export default async function AccountLayout({ children }: { children: ReactNode }) {
@@ -30,28 +33,29 @@ export default async function AccountLayout({ children }: { children: ReactNode 
     `,
   ]);
   const isClient = memberships.length > 0;
+  const { L } = await getI18n();
 
   const groups: SideNavGroup[] = [
     {
-      label: "Account",
+      label: L("Account", "অ্যাকাউন্ট"),
       links: [
-        { href: "/account", label: "Overview", icon: "dashboard", exact: true },
-        { href: "/notifications", label: "Notifications", icon: "bell", badge: counts.unread },
-        { href: "/profile", label: "Profile", icon: "user" },
-        { href: "/settings", label: "Settings", icon: "settings" },
+        { href: "/account", label: L("Overview", "সারসংক্ষেপ"), icon: "dashboard", exact: true },
+        { href: "/notifications", label: L("Notifications", "নোটিফিকেশন"), icon: "bell", badge: counts.unread },
+        { href: "/profile", label: L("Profile", "প্রোফাইল"), icon: "user" },
+        { href: "/settings", label: L("Settings", "সেটিংস"), icon: "settings" },
       ],
     },
     {
-      label: "Client portal",
+      label: L("Client portal", "ক্লায়েন্ট পোর্টাল"),
       links: isClient
         ? [
-            { href: "/client", label: "Projects & tickets", icon: "folder", exact: true, badge: counts.waiting },
-            { href: "/client/tickets/new", label: "New ticket", icon: "lifebuoy" },
+            { href: "/client", label: L("Projects & tickets", "প্রজেক্ট ও টিকেট"), icon: "folder", exact: true, badge: counts.waiting },
+            { href: "/client/tickets/new", label: L("New ticket", "নতুন টিকেট"), icon: "lifebuoy" },
           ]
-        : [{ href: "/client", label: "Client portal", icon: "folder", exact: true }],
+        : [{ href: "/client", label: L("Client portal", "ক্লায়েন্ট পোর্টাল"), icon: "folder", exact: true }],
     },
     ...(user.role === "ADMIN"
-      ? [{ label: "Workspace", links: [{ href: "/admin", label: "Admin panel", icon: "shield" as const }] }]
+      ? [{ label: L("Workspace", "ওয়ার্কস্পেস"), links: [{ href: "/admin", label: L("Admin panel", "অ্যাডমিন প্যানেল"), icon: "shield" as const }] }]
       : []),
   ];
 
@@ -60,10 +64,10 @@ export default async function AccountLayout({ children }: { children: ReactNode 
       <div className="mx-auto flex max-w-7xl gap-8 px-0 lg:px-8">
         <aside className="hidden w-60 shrink-0 lg:block">
           <div className="sticky top-[70px] flex max-h-[calc(100vh-70px)] flex-col gap-6 overflow-y-auto py-8">
-            <SideNav groups={groups} label="Account navigation" />
+            <SideNav groups={groups} label={L("Account navigation", "অ্যাকাউন্ট নেভিগেশন")} />
             <form action={signOut} className="border-t border-neutral-200 pt-4">
-              <SubmitButton pendingText="Logging out…" icon={<LogOut className="h-[18px] w-[18px]" strokeWidth={1.8} />} className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium text-red-600 transition hover:bg-red-50 disabled:opacity-70">
-                Log out
+              <SubmitButton pendingText={L("Logging out…", "লগ আউট হচ্ছে…")} icon={<LogOut className="h-[18px] w-[18px]" strokeWidth={1.8} />} className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium text-red-600 transition hover:bg-red-50 disabled:opacity-70">
+                {L("Log out", "লগ আউট")}
               </SubmitButton>
             </form>
           </div>
@@ -72,7 +76,7 @@ export default async function AccountLayout({ children }: { children: ReactNode 
         <div className="min-w-0 flex-1">
           <div className="sticky top-[65px] z-30 border-b border-neutral-200 bg-neutral-50/95 backdrop-blur lg:hidden">
             <div className="overflow-x-auto px-4 py-3 [scrollbar-width:none] sm:px-6 [&::-webkit-scrollbar]:hidden">
-              <SideNav groups={groups} mobile label="Account navigation" />
+              <SideNav groups={groups} mobile label={L("Account navigation", "অ্যাকাউন্ট নেভিগেশন")} />
             </div>
           </div>
           {children}

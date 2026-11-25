@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import Link from "@/app/components/locale-link";
 import {
   ArrowUpRight,
   Bell,
@@ -19,19 +19,17 @@ import AccountHeader from "@/app/components/account-header";
 import { PROJECT_STATUS, StatusBadge, TICKET_STATUS, formatDate } from "@/app/components/marketing";
 import { getClientMemberships, requireUser } from "@/lib/auth/session";
 import { sql } from "@/lib/db";
+import { timeAgo as timeAgoLocale } from "@/lib/i18n/config";
+import { getI18n, msg } from "@/lib/i18n/server";
 
-export const metadata: Metadata = { title: "My account — Nirdeshona Web", robots: { index: false } };
-
-function timeAgo(value: string) {
-  const s = (Date.now() - new Date(value).getTime()) / 1000;
-  if (s < 3600) return `${Math.max(1, Math.floor(s / 60))}m ago`;
-  if (s < 86400) return `${Math.floor(s / 3600)}h ago`;
-  if (s < 604800) return `${Math.floor(s / 86400)}d ago`;
-  return formatDate(value);
+export async function generateMetadata(): Promise<Metadata> {
+  return { title: await msg("My account — Nirdeshona Web", "আমার অ্যাকাউন্ট — নির্দেশনা ওয়েব"), robots: { index: false } };
 }
 
 export default async function AccountPage() {
   const user = await requireUser("/account");
+  const { L, locale, num } = await getI18n();
+  const timeAgo = (value: string) => timeAgoLocale(value, locale);
   const memberships = await getClientMemberships(user.id);
   const clientIds = memberships.map((m) => m.id);
 
@@ -63,20 +61,21 @@ export default async function AccountPage() {
   ]);
 
   const checklist = [
-    { done: Boolean(user.fullName), label: "Add your name", href: "/profile" },
-    { done: Boolean(user.avatarUrl), label: "Upload a profile photo", href: "/profile" },
-    { done: Boolean(user.phone), label: "Add a phone number", href: "/profile" },
-    { done: Boolean(user.company), label: "Add your organisation", href: "/profile" },
-    { done: Boolean(bio), label: "Write a short bio", href: "/profile" },
+    { done: Boolean(user.fullName), label: L("Add your name", "আপনার নাম যোগ করুন"), href: "/profile" },
+    { done: Boolean(user.avatarUrl), label: L("Upload a profile photo", "প্রোফাইল ছবি আপলোড করুন"), href: "/profile" },
+    { done: Boolean(user.phone), label: L("Add a phone number", "ফোন নম্বর যোগ করুন"), href: "/profile" },
+    { done: Boolean(user.company), label: L("Add your organisation", "আপনার প্রতিষ্ঠান যোগ করুন"), href: "/profile" },
+    { done: Boolean(bio), label: L("Write a short bio", "সংক্ষিপ্ত পরিচিতি লিখুন"), href: "/profile" },
   ];
   const completeness = Math.round((checklist.filter((c) => c.done).length / checklist.length) * 100);
   const firstName = user.fullName?.split(" ")[0];
   const hour = Number(new Date().toLocaleString("en-GB", { hour: "numeric", hour12: false, timeZone: "Asia/Dhaka" }));
-  const greeting = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
+  const greeting =
+    hour < 12 ? L("Good morning", "শুভ সকাল") : hour < 17 ? L("Good afternoon", "শুভ অপরাহ্ন") : L("Good evening", "শুভ সন্ধ্যা");
 
   return (
     <div className="flex flex-col gap-8 px-4 py-8 sm:px-6 lg:px-0">
-      <AccountHeader title={`${greeting}${firstName ? `, ${firstName}` : ""}`} description="Here's what's happening with your account." />
+      <AccountHeader title={`${greeting}${firstName ? `, ${firstName}` : ""}`} description={L("Here's what's happening with your account.", "আপনার অ্যাকাউন্টের সর্বশেষ অবস্থা এখানে।")} />
 
       {/* Identity card */}
       <div className="relative overflow-hidden rounded-3xl bg-neutral-950 p-6 text-white sm:p-8">
@@ -92,25 +91,25 @@ export default async function AccountPage() {
               )}
             </div>
             <div className="min-w-0">
-              <p className="truncate text-lg font-semibold">{user.fullName || "Add your name"}</p>
+              <p className="truncate text-lg font-semibold">{user.fullName || L("Add your name", "আপনার নাম যোগ করুন")}</p>
               <p className="truncate text-sm text-neutral-400">{user.email}</p>
               <div className="mt-2 flex flex-wrap gap-1.5">
-                <span className="rounded-full bg-white/10 px-2.5 py-0.5 text-[11px] font-medium capitalize">{user.role.toLowerCase()}</span>
+                <span className="rounded-full bg-white/10 px-2.5 py-0.5 text-[11px] font-medium capitalize">{user.role === "ADMIN" ? L("admin", "অ্যাডমিন") : L("member", "সদস্য")}</span>
                 {memberships.map((m) => (
                   <span key={m.id} className="rounded-full bg-emerald-400/15 px-2.5 py-0.5 text-[11px] font-medium text-emerald-300">
                     {m.name}
                   </span>
                 ))}
-                <span className="rounded-full bg-white/10 px-2.5 py-0.5 text-[11px] text-neutral-300">Joined {formatDate(user.createdAt)}</span>
+                <span className="rounded-full bg-white/10 px-2.5 py-0.5 text-[11px] text-neutral-300">{L("Joined", "যোগদান")} {formatDate(user.createdAt, false, locale)}</span>
               </div>
             </div>
           </div>
           <div className="flex gap-2">
             <Link href="/profile" className="inline-flex h-10 items-center gap-2 rounded-full bg-white px-4 text-sm font-semibold text-neutral-950 hover:bg-neutral-200">
-              <UserRound className="h-4 w-4" /> Edit profile
+              <UserRound className="h-4 w-4" /> {L("Edit profile", "প্রোফাইল এডিট")}
             </Link>
             <Link href="/settings" className="inline-flex h-10 items-center gap-2 rounded-full border border-white/15 px-4 text-sm font-semibold hover:bg-white/10">
-              <Settings className="h-4 w-4" /> <span className="hidden sm:inline">Settings</span>
+              <Settings className="h-4 w-4" /> <span className="hidden sm:inline">{L("Settings", "সেটিংস")}</span>
             </Link>
           </div>
         </div>
@@ -118,13 +117,13 @@ export default async function AccountPage() {
 
       {/* Stats */}
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <Stat icon={<MessageCircle className="h-4 w-4" />} label="Comments" value={stats.comments} />
-        <Stat icon={<Heart className="h-4 w-4" />} label="Likes received" value={stats.likes_received} />
-        <Stat icon={<Bell className="h-4 w-4" />} label="Unread updates" value={stats.unread} href="/notifications" />
+        <Stat icon={<MessageCircle className="h-4 w-4" />} label={L("Comments", "মন্তব্য")} value={num(stats.comments)} />
+        <Stat icon={<Heart className="h-4 w-4" />} label={L("Likes received", "পাওয়া লাইক")} value={num(stats.likes_received)} />
+        <Stat icon={<Bell className="h-4 w-4" />} label={L("Unread updates", "না-পড়া আপডেট")} value={num(stats.unread)} href="/notifications" />
         {clientIds.length ? (
-          <Stat icon={<LifeBuoy className="h-4 w-4" />} label="Open tickets" value={stats.open_tickets} href="/client" />
+          <Stat icon={<LifeBuoy className="h-4 w-4" />} label={L("Open tickets", "খোলা টিকেট")} value={num(stats.open_tickets)} href="/client" />
         ) : (
-          <Stat icon={<Newspaper className="h-4 w-4" />} label="Reactions given" value={stats.reactions} />
+          <Stat icon={<Newspaper className="h-4 w-4" />} label={L("Reactions given", "দেওয়া রিঅ্যাকশন")} value={num(stats.reactions)} />
         )}
       </div>
 
@@ -133,14 +132,14 @@ export default async function AccountPage() {
           {/* Client portal summary */}
           {clientIds.length > 0 ? (
             <Card
-              title="Client portal"
+              title={L("Client portal", "ক্লায়েন্ট পোর্টাল")}
               icon={<FolderKanban className="h-4 w-4" />}
-              action={<Link href="/client" className="text-xs font-semibold text-neutral-500 hover:text-neutral-950">Open portal →</Link>}
+              action={<Link href="/client" className="text-xs font-semibold text-neutral-500 hover:text-neutral-950">{L("Open portal →", "পোর্টাল খুলুন →")}</Link>}
             >
               <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
                 <div className="flex flex-col gap-3">
-                  <p className="text-xs font-medium uppercase tracking-wider text-neutral-400">Projects</p>
-                  {projects.length === 0 && <p className="text-sm text-neutral-500">No projects yet.</p>}
+                  <p className="text-xs font-medium uppercase tracking-wider text-neutral-400">{L("Projects", "প্রজেক্ট")}</p>
+                  {projects.length === 0 && <p className="text-sm text-neutral-500">{L("No projects yet.", "এখনো কোনো প্রজেক্ট নেই।")}</p>}
                   {projects.map((p) => (
                     <Link key={p.slug} href={`/projects/${p.slug}`} className="rounded-2xl border border-neutral-100 p-3 transition hover:border-neutral-200 hover:bg-neutral-50">
                       <div className="flex items-center justify-between gap-2">
@@ -154,19 +153,19 @@ export default async function AccountPage() {
                   ))}
                 </div>
                 <div className="flex flex-col gap-3">
-                  <p className="text-xs font-medium uppercase tracking-wider text-neutral-400">Recent tickets</p>
-                  {tickets.length === 0 && <p className="text-sm text-neutral-500">No tickets yet.</p>}
+                  <p className="text-xs font-medium uppercase tracking-wider text-neutral-400">{L("Recent tickets", "সাম্প্রতিক টিকেট")}</p>
+                  {tickets.length === 0 && <p className="text-sm text-neutral-500">{L("No tickets yet.", "এখনো কোনো টিকেট নেই।")}</p>}
                   {tickets.map((t) => (
                     <Link key={t.id} href={`/client/tickets/${t.id}`} className="flex items-center justify-between gap-2 rounded-2xl border border-neutral-100 p-3 transition hover:border-neutral-200 hover:bg-neutral-50">
                       <span className="min-w-0">
                         <span className="block truncate text-sm font-medium">{t.subject}</span>
-                        <span className="text-xs text-neutral-500">#{t.ticket_number} · {timeAgo(t.updated_at)}</span>
+                        <span className="text-xs text-neutral-500">#{num(t.ticket_number)} · {timeAgo(t.updated_at)}</span>
                       </span>
                       <StatusBadge map={TICKET_STATUS} value={t.status} />
                     </Link>
                   ))}
                   <Link href="/client/tickets/new" className="inline-flex items-center justify-center gap-2 rounded-2xl border border-dashed border-neutral-300 p-3 text-sm font-medium text-neutral-600 hover:bg-neutral-50">
-                    <LifeBuoy className="h-4 w-4" /> Open a new ticket
+                    <LifeBuoy className="h-4 w-4" /> {L("Open a new ticket", "নতুন টিকেট খুলুন")}
                   </Link>
                 </div>
               </div>
@@ -174,31 +173,46 @@ export default async function AccountPage() {
           ) : (
             <div className="flex flex-col gap-4 rounded-3xl border border-neutral-200 bg-white p-6 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <p className="font-semibold text-neutral-950">Working with us on a project?</p>
-                <p className="mt-1 text-sm text-neutral-600">Ask us to link your account to see progress, open tickets and share files.</p>
+                <p className="font-semibold text-neutral-950">{L("Working with us on a project?", "আমাদের সঙ্গে কোনো প্রজেক্টে কাজ করছেন?")}</p>
+                <p className="mt-1 text-sm text-neutral-600">
+                  {L(
+                    "Ask us to link your account to see progress, open tickets and share files.",
+                    "অগ্রগতি দেখা, টিকেট খোলা ও ফাইল শেয়ার করতে আপনার অ্যাকাউন্ট যুক্ত করার অনুরোধ করুন।",
+                  )}
+                </p>
               </div>
               <Link href="/contact?service=Not%20sure%20yet" className="inline-flex h-10 shrink-0 items-center justify-center rounded-full bg-neutral-950 px-4 text-sm font-semibold text-white hover:bg-neutral-800">
-                Request client access
+                {L("Request client access", "ক্লায়েন্ট অ্যাক্সেস চান")}
               </Link>
             </div>
           )}
 
           {/* My comments */}
-          <Card title="My recent comments" icon={<MessageCircle className="h-4 w-4" />} action={<Link href="/blog" className="text-xs font-semibold text-neutral-500 hover:text-neutral-950">Read the blog →</Link>}>
+          <Card title={L("My recent comments", "আমার সাম্প্রতিক মন্তব্য")} icon={<MessageCircle className="h-4 w-4" />} action={<Link href="/blog" className="text-xs font-semibold text-neutral-500 hover:text-neutral-950">{L("Read the blog →", "ব্লগ পড়ুন →")}</Link>}>
             {myComments.length === 0 ? (
-              <p className="text-sm text-neutral-500">You haven&apos;t commented yet. Join the conversation on the blog.</p>
+              <p className="text-sm text-neutral-500">
+                {L("You haven't commented yet. Join the conversation on the blog.", "আপনি এখনো কোনো মন্তব্য করেননি। ব্লগের আলোচনায় যোগ দিন।")}
+              </p>
             ) : (
               <ul className="flex flex-col gap-2">
                 {myComments.map((c) => (
                   <li key={c.id}>
                     <Link href={`/blog/${c.slug}#comment-${c.id}`} className="group block rounded-2xl border border-neutral-100 p-4 transition hover:border-neutral-200 hover:bg-neutral-50">
                       <p className="text-xs text-neutral-500">
-                        {c.parent_id ? "Replied on" : "Commented on"} <span className="font-medium text-neutral-800">{c.title}</span> · {timeAgo(c.created_at)}
+                        {L(
+                          <>
+                            {c.parent_id ? "Replied on" : "Commented on"} <span className="font-medium text-neutral-800">{c.title}</span>
+                          </>,
+                          <>
+                            <span className="font-medium text-neutral-800">{c.title}</span> লেখায় {c.parent_id ? "উত্তর দিয়েছেন" : "মন্তব্য করেছেন"}
+                          </>,
+                        )}{" "}
+                        · {timeAgo(c.created_at)}
                       </p>
                       <p className="mt-1.5 line-clamp-2 text-sm text-neutral-700">{c.content}</p>
                       <p className="mt-2 flex items-center gap-3 text-xs text-neutral-500">
-                        <span>👍 {c.likes}</span>
-                        {!c.parent_id && <span>💬 {c.replies} {c.replies === 1 ? "reply" : "replies"}</span>}
+                        <span>👍 {num(c.likes)}</span>
+                        {!c.parent_id && <span>💬 {num(c.replies)} {L(c.replies === 1 ? "reply" : "replies", "উত্তর")}</span>}
                         <ArrowUpRight className="ml-auto h-3.5 w-3.5 opacity-0 transition group-hover:opacity-100" />
                       </p>
                     </Link>
@@ -211,9 +225,9 @@ export default async function AccountPage() {
 
         <aside className="flex flex-col gap-6">
           {completeness < 100 && (
-            <Card title="Complete your profile" icon={<UserRound className="h-4 w-4" />}>
+            <Card title={L("Complete your profile", "প্রোফাইল সম্পূর্ণ করুন")} icon={<UserRound className="h-4 w-4" />}>
               <div className="mb-3 flex justify-between text-xs text-neutral-500">
-                <span>{completeness}% complete</span>
+                <span>{L(`${completeness}% complete`, `${num(completeness)}% সম্পূর্ণ`)}</span>
               </div>
               <div className="h-2 overflow-hidden rounded-full bg-neutral-100">
                 <div className="h-full rounded-full bg-emerald-500" style={{ width: `${completeness}%` }} />
@@ -231,9 +245,9 @@ export default async function AccountPage() {
             </Card>
           )}
 
-          <Card title="Notifications" icon={<Bell className="h-4 w-4" />} action={<Link href="/notifications" className="text-xs font-semibold text-neutral-500 hover:text-neutral-950">All →</Link>}>
+          <Card title={L("Notifications", "নোটিফিকেশন")} icon={<Bell className="h-4 w-4" />} action={<Link href="/notifications" className="text-xs font-semibold text-neutral-500 hover:text-neutral-950">{L("All →", "সব →")}</Link>}>
             {notifications.length === 0 ? (
-              <p className="text-sm text-neutral-500">No updates yet.</p>
+              <p className="text-sm text-neutral-500">{L("No updates yet.", "এখনো কোনো আপডেট নেই।")}</p>
             ) : (
               <ul className="flex flex-col gap-1">
                 {notifications.map((n) => (
@@ -257,8 +271,8 @@ export default async function AccountPage() {
                 <ShieldCheck className="h-5 w-5" />
               </span>
               <span>
-                <span className="block text-sm font-semibold text-neutral-950">Admin panel</span>
-                <span className="text-xs text-neutral-500">Manage content, clients and users</span>
+                <span className="block text-sm font-semibold text-neutral-950">{L("Admin panel", "অ্যাডমিন প্যানেল")}</span>
+                <span className="text-xs text-neutral-500">{L("Manage content, clients and users", "কনটেন্ট, ক্লায়েন্ট ও ইউজার পরিচালনা")}</span>
               </span>
             </Link>
           )}
@@ -268,7 +282,7 @@ export default async function AccountPage() {
   );
 }
 
-function Stat({ icon, label, value, href }: { icon: React.ReactNode; label: string; value: number; href?: string }) {
+function Stat({ icon, label, value, href }: { icon: React.ReactNode; label: string; value: string; href?: string }) {
   const body = (
     <>
       <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-neutral-100 text-neutral-600">{icon}</span>

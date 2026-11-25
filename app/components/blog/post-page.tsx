@@ -1,6 +1,8 @@
 import { getSessionUser } from "@/lib/auth/session";
 import { getPostComments, getPostReactionSummary } from "@/lib/comments";
 import { sql } from "@/lib/db";
+import { getLocale } from "@/lib/i18n/server";
+import { tcol } from "@/lib/i18n/sql";
 
 import CommentsSection from "./comments-section";
 import PostContent from "./post-content";
@@ -12,11 +14,12 @@ import type { Post, Tag } from "./types";
 
 export default async function PostPage({ post, tags }: { post: Post; tags: Tag[] }) {
   const user = await getSessionUser();
+  const locale = await getLocale();
   const [comments, reactions, related] = await Promise.all([
     getPostComments(post.id, user?.id ?? null),
     getPostReactionSummary(post.id, user?.id ?? null),
     sql`
-      select p.slug, p.title, p.excerpt, p.cover_image_url, p.published_at
+      select p.slug, ${tcol(locale, "p.title")} as title, ${tcol(locale, "p.excerpt")} as excerpt, p.cover_image_url, p.published_at
       from posts p
       where p.status = 'published' and p.id <> ${post.id}
       order by (p.category_id is not distinct from ${post.category_id}::uuid) desc,

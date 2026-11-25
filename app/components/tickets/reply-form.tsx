@@ -5,11 +5,13 @@ import { Loader2, Send } from "lucide-react";
 
 import type { FormState } from "@/app/(account)/client/actions";
 
+import { useI18n } from "@/lib/i18n/client";
+
 import AttachmentPicker from "./attachment-picker";
 
 export default function ReplyForm({
   action,
-  placeholder = "Write a reply…",
+  placeholder,
   disabled = false,
   disabledText,
   ticketId,
@@ -20,6 +22,7 @@ export default function ReplyForm({
   disabled?: boolean;
   disabledText?: string;
 }) {
+  const { L, tm } = useI18n();
   const [state, formAction, pending] = useActionState(action, {});
   const formRef = useRef<HTMLFormElement>(null);
   const [uploading, setUploading] = useState(false);
@@ -43,7 +46,7 @@ export default function ReplyForm({
   return (
     <form ref={formRef} action={formAction} className="rounded-2xl border border-neutral-200 bg-white p-3 shadow-sm focus-within:border-neutral-400">
       <label htmlFor="reply-message" className="sr-only">
-        Message
+        {L("Message", "বার্তা")}
       </label>
       <textarea
         id="reply-message"
@@ -51,7 +54,7 @@ export default function ReplyForm({
         rows={4}
         required
         maxLength={5000}
-        placeholder={placeholder}
+        placeholder={placeholder ?? L("Write a reply…", "উত্তর লিখুন…")}
         onKeyDown={(event) => {
           if (event.key === "Enter" && (event.metaKey || event.ctrlKey)) {
             event.currentTarget.form?.requestSubmit();
@@ -65,9 +68,9 @@ export default function ReplyForm({
       <div className="mt-2 flex items-center justify-between gap-3 border-t border-neutral-100 pt-3">
         <p className="text-xs text-neutral-400">
           {state.error || state.fieldErrors?.message ? (
-            <span className="text-red-600">{state.error || state.fieldErrors?.message}</span>
+            <span className="text-red-600">{tm(state.error || state.fieldErrors?.message)}</span>
           ) : (
-            <span className="hidden sm:inline">Ctrl + Enter to send</span>
+            <span className="hidden sm:inline">{L("Ctrl + Enter to send", "পাঠাতে Ctrl + Enter")}</span>
           )}
         </p>
         <button
@@ -76,7 +79,7 @@ export default function ReplyForm({
           className="inline-flex h-10 items-center gap-2 rounded-full bg-neutral-950 px-5 text-sm font-semibold text-white transition hover:bg-neutral-800 disabled:opacity-60"
         >
           {pending || uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-          {uploading ? "Uploading…" : pending ? "Sending…" : "Send"}
+          {uploading ? L("Uploading…", "আপলোড হচ্ছে…") : pending ? L("Sending…", "পাঠানো হচ্ছে…") : L("Send", "পাঠান")}
         </button>
       </div>
     </form>

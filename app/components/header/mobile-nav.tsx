@@ -1,8 +1,10 @@
 "use client";
 
 import { ServiceIcon } from "@/app/components/marketing";
-import { services as siteServices } from "@/lib/site";
-import Link from "next/link";
+import { LanguageSwitcherFull } from "@/app/components/language-switcher";
+import { getContent } from "@/lib/content";
+import { useI18n } from "@/lib/i18n/client";
+import Link from "@/app/components/locale-link";
 import { useEffect, useState } from "react";
 import {
   ArrowUpRight,
@@ -23,18 +25,18 @@ type Props = {
   role: string | null;
 };
 
-const services = siteServices.map((s) => ({
-  title: s.title,
-  description: s.short,
-  href: `/services/${s.slug}`,
-  icon: s.icon,
-}));
-
 export default function MobileNav({
   authenticated,
   role,
 }: Props) {
   const [open, setOpen] = useState(false);
+  const { L, locale } = useI18n();
+  const services = getContent(locale).services.map((s) => ({
+    title: s.title,
+    description: s.short,
+    href: `/services/${s.slug}`,
+    icon: s.icon,
+  }));
 
   useEffect(() => {
     if (!open) return;
@@ -60,7 +62,7 @@ export default function MobileNav({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        aria-label="Open navigation"
+        aria-label={L("Open navigation", "মেনু খুলুন")}
         aria-expanded={open}
         className="
           flex h-10 w-10 items-center justify-center
@@ -111,11 +113,11 @@ export default function MobileNav({
 
                 <div>
                   <p className="text-[15px] font-bold tracking-tight">
-                    Nirdeshona
+                    {L("Nirdeshona", "নির্দেশনা")}
                   </p>
 
                   <p className="text-[9px] font-semibold uppercase tracking-[0.2em] text-neutral-400">
-                    Web Development
+                    {L("Web Development", "ওয়েব ডেভেলপমেন্ট")}
                   </p>
                 </div>
               </Link>
@@ -123,7 +125,7 @@ export default function MobileNav({
               <button
                 type="button"
                 onClick={close}
-                aria-label="Close navigation"
+                aria-label={L("Close navigation", "মেনু বন্ধ করুন")}
                 className="
                   flex h-10 w-10 items-center justify-center
                   rounded-xl border border-neutral-200
@@ -151,48 +153,48 @@ export default function MobileNav({
 
                 <MobileLink
                   href="/"
-                  label="Home"
-                  description="Nirdeshona homepage"
+                  label={L("Home", "হোম")}
+                  description={L("Nirdeshona homepage", "নির্দেশনার হোমপেজ")}
                   icon={<Sparkles className="h-4 w-4" />}
                   onClick={close}
                 />
 
                 <MobileLink
                   href="/projects"
-                  label="Our Work"
-                  description="Explore our projects"
+                  label={L("Our Work", "আমাদের কাজ")}
+                  description={L("Explore our projects", "আমাদের প্রজেক্টগুলো দেখুন")}
                   icon={<FileText className="h-4 w-4" />}
                   onClick={close}
                 />
 
                 <MobileLink
                   href="/pricing"
-                  label="Pricing"
-                  description="Packages and care plans"
+                  label={L("Pricing", "প্রাইসিং")}
+                  description={L("Packages and care plans", "প্যাকেজ ও কেয়ার প্ল্যান")}
                   icon={<Tag className="h-4 w-4" />}
                   onClick={close}
                 />
 
                 <MobileLink
                   href="/blog"
-                  label="Blog"
-                  description="Guides and articles"
+                  label={L("Blog", "ব্লগ")}
+                  description={L("Guides and articles", "গাইড ও লেখা")}
                   icon={<Newspaper className="h-4 w-4" />}
                   onClick={close}
                 />
 
                 <MobileLink
                   href="/about"
-                  label="About"
-                  description="Learn about Nirdeshona"
+                  label={L("About", "আমাদের সম্পর্কে")}
+                  description={L("Learn about Nirdeshona", "নির্দেশনা সম্পর্কে জানুন")}
                   icon={<Globe2 className="h-4 w-4" />}
                   onClick={close}
                 />
 
                 <MobileLink
                   href="/contact"
-                  label="Contact"
-                  description="Let's discuss your project"
+                  label={L("Contact", "যোগাযোগ")}
+                  description={L("Let's discuss your project", "আপনার প্রজেক্ট নিয়ে কথা বলি")}
                   icon={<ArrowUpRight className="h-4 w-4" />}
                   onClick={close}
                 />
@@ -204,7 +206,7 @@ export default function MobileNav({
               <section className="mt-8">
                 <div className="mb-3 flex items-center justify-between px-1">
                   <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-neutral-400">
-                    Services
+                    {L("Services", "সার্ভিস")}
                   </p>
 
                   <Link
@@ -216,7 +218,7 @@ export default function MobileNav({
                       transition hover:text-neutral-900
                     "
                   >
-                    View all
+                    {L("View all", "সব দেখুন")}
                     <ArrowUpRight className="h-3 w-3" />
                   </Link>
                 </div>
@@ -301,12 +303,11 @@ export default function MobileNav({
 
                       <div>
                         <p className="text-sm font-semibold text-neutral-950">
-                          Your account is ready
+                          {L("Your account is ready", "আপনার অ্যাকাউন্ট প্রস্তুত")}
                         </p>
 
                         <p className="mt-1 text-xs leading-5 text-neutral-500">
-                          Use your profile button in the header to access
-                          your account and workspace.
+                          {L("Use your profile button in the header to access your account and workspace.", "অ্যাকাউন্ট ও কাজের জায়গায় যেতে হেডারের প্রোফাইল বাটন ব্যবহার করুন।")}
                         </p>
                       </div>
                     </div>
@@ -328,7 +329,7 @@ export default function MobileNav({
                             hover:bg-neutral-100
                           "
                         >
-                          My account
+                          {L("My account", "আমার অ্যাকাউন্ট")}
                           <ArrowUpRight className="h-3 w-3" />
                         </Link>
                       )}
@@ -349,7 +350,7 @@ export default function MobileNav({
                             hover:bg-neutral-100
                           "
                         >
-                          Admin Panel
+                          {L("Admin Panel", "অ্যাডমিন প্যানেল")}
                           <ArrowUpRight className="h-3 w-3" />
                         </Link>
                       )}
@@ -367,7 +368,7 @@ export default function MobileNav({
                           hover:bg-neutral-800
                         "
                       >
-                        Profile
+                        {L("Profile", "প্রোফাইল")}
                         <ArrowUpRight className="h-3 w-3" />
                       </Link>
                     </div>
@@ -384,12 +385,11 @@ export default function MobileNav({
                     <div className="flex items-start justify-between gap-4">
                       <div>
                         <p className="text-sm font-semibold">
-                          Ready to build?
+                          {L("Ready to build?", "বানাতে প্রস্তুত?")}
                         </p>
 
                         <p className="mt-1 text-xs leading-5 text-neutral-400">
-                          Start a conversation about your next digital
-                          project.
+                          {L("Start a conversation about your next digital project.", "আপনার পরের ডিজিটাল প্রজেক্ট নিয়ে কথা শুরু করুন।")}
                         </p>
                       </div>
 
@@ -409,7 +409,7 @@ export default function MobileNav({
                           transition hover:bg-white/10
                         "
                       >
-                        Log in
+                        {L("Log in", "লগইন")}
                       </Link>
 
                       <Link
@@ -423,7 +423,7 @@ export default function MobileNav({
                           transition hover:bg-neutral-100
                         "
                       >
-                        Get started
+                        {L("Get started", "শুরু করুন")}
                       </Link>
                     </div>
                   </div>
@@ -433,13 +433,16 @@ export default function MobileNav({
               {/* =================================================
                   FOOTER
               ================================================== */}
-              <div className="pb-8 pt-10 text-center">
+              <div className="flex justify-center pt-8">
+                <LanguageSwitcherFull />
+              </div>
+              <div className="pb-8 pt-6 text-center">
                 <p className="text-[11px] text-neutral-400">
-                  Nirdeshona Web Development
+                  {L("Nirdeshona Web Development", "নির্দেশনা ওয়েব ডেভেলপমেন্ট")}
                 </p>
 
                 <p className="mt-1 text-[10px] text-neutral-300">
-                  Digital solutions built with purpose.
+                  {L("Digital solutions built with purpose.", "উদ্দেশ্য নিয়ে তৈরি ডিজিটাল সমাধান।")}
                 </p>
               </div>
             </div>

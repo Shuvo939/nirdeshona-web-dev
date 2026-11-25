@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+
+import { useI18n } from "@/lib/i18n/client";
 import { FileText, ImageIcon, Loader2, Paperclip, X } from "lucide-react";
 
 import { compressImage, isCompressibleImage } from "@/lib/image-compress";
@@ -40,6 +42,7 @@ export default function AttachmentPicker({
   ticketId?: string;
   onBusyChange?: (busy: boolean) => void;
 }) {
+  const { L, num, tm } = useI18n();
   const [items, setItems] = useState<Item[]>([]);
   const [error, setError] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -58,10 +61,10 @@ export default function AttachmentPicker({
       const file = isCompressibleImage(original)
         ? await compressImage(original, { onProgress: (p) => patch(id, { progress: p }) })
         : original;
-      if (file.size > MAX_ATTACHMENT_SIZE) throw new Error("File is larger than 10 MB.");
+      if (file.size > MAX_ATTACHMENT_SIZE) throw new Error(L("File is larger than 10 MB.", "ফাইলটি ১০ MB-এর বড়।"));
       patch(id, { file, name: file.name, size: file.size, type: file.type, phase: "ready", progress: 0 });
     } catch (e) {
-      patch(id, { error: e instanceof Error ? e.message : "Couldn't process this file." });
+      patch(id, { error: e instanceof Error ? e.message : L("Couldn't process this file.", "ফাইলটি প্রসেস করা যায়নি।") });
     }
   }
 
@@ -74,14 +77,14 @@ export default function AttachmentPicker({
       body: JSON.stringify({ ticketId, fileName: file.name, contentType: file.type, size: file.size }),
     });
     const json = await res.json().catch(() => ({}));
-    if (!res.ok) throw new Error(json.error ?? "Upload failed.");
+    if (!res.ok) throw new Error(tm(json.error) ?? L("Upload failed.", "আপলোড ব্যর্থ হয়েছে।"));
     await new Promise<void>((resolve, reject) => {
       const xhr = new XMLHttpRequest();
       xhr.open("PUT", json.uploadUrl);
       xhr.setRequestHeader("Content-Type", file.type);
       xhr.upload.onprogress = (e) => e.lengthComputable && patch(item.id, { progress: Math.round((e.loaded / e.total) * 100) });
-      xhr.onload = () => (xhr.status >= 200 && xhr.status < 300 ? resolve() : reject(new Error("Upload failed.")));
-      xhr.onerror = () => reject(new Error("Upload failed. Check your connection."));
+      xhr.onload = () => (xhr.status >= 200 && xhr.status < 300 ? resolve() : reject(new Error(L("Upload failed.", "আপলোড ব্যর্থ হয়েছে।"))));
+      xhr.onerror = () => reject(new Error(L("Upload failed. Check your connection.", "আপলোড ব্যর্থ হয়েছে। ইন্টারনেট সংযোগ দেখুন।")));
       xhr.send(file);
     });
     patch(item.id, { phase: "uploaded", progress: 100, key: json.key });
@@ -100,7 +103,7 @@ export default function AttachmentPicker({
       }
       if (pending.some((it) => it.phase === "optimizing")) {
         event.preventDefault();
-        setError("Please wait — still preparing your files.");
+        setError(L("Please wait — still preparing your files.", "একটু অপেক্ষা করুন — ফাইলগুলো এখনো প্রস্তুত হচ্ছে।"));
         return;
       }
       event.preventDefault();
@@ -116,7 +119,7 @@ export default function AttachmentPicker({
         if (hiddenRef.current) hiddenRef.current.value = "[]";
         setItems((prev) => prev.map((it) => (it.error ? it : { ...it, phase: "ready", key: undefined, progress: 0 })));
       } catch (e) {
-        setError(e instanceof Error ? e.message : "Upload failed.");
+        setError(e instanceof Error ? e.message : L("Upload failed.", "আপলোড ব্যর্থ হয়েছে।"));
         setItems((prev) => prev.map((it) => (it.phase === "uploading" ? { ...it, phase: "ready", progress: 0 } : it)));
       } finally {
         onBusyChange?.(false);
@@ -132,7 +135,7 @@ export default function AttachmentPicker({
     if (!list) return;
     const files = Array.from(list);
     if (items.length + files.length > MAX_ATTACHMENTS_PER_MESSAGE) {
-      setError(`You can attach up to ${MAX_ATTACHMENTS_PER_MESSAGE} files.`);
+      setError(L(`You can attach up to ${MAX_ATTACHMENTS_PER_MESSAGE} files.`, `সর্বোচ্চ ${num(MAX_ATTACHMENTS_PER_MESSAGE)}টি ফাইল যুক্ত করা যাবে।`));
       return;
     }
     for (const file of files) {
@@ -167,7 +170,7 @@ export default function AttachmentPicker({
               <ItemStatus item={it} />
               <button
                 type="button"
-                aria-label={`Remove ${it.name}`}
+                aria-label={L(`Remove ${it.name}`, `${it.name} সরান`)}
                 disabled={it.phase === "uploading"}
                 onClick={() => setItems((prev) => prev.filter((x) => x.id !== it.id))}
                 className="shrink-0 rounded-full p-0.5 hover:bg-neutral-200"
@@ -186,7 +189,7 @@ export default function AttachmentPicker({
           disabled={items.length >= MAX_ATTACHMENTS_PER_MESSAGE}
           className="inline-flex items-center gap-1.5 rounded-full px-2 py-1 text-xs font-medium text-neutral-500 transition hover:bg-neutral-100 hover:text-neutral-950 disabled:opacity-50"
         >
-          <Paperclip className="h-3.5 w-3.5" /> Attach files
+          <Paperclip className="h-3.5 w-3.5" /> {L("Attach files", "ফাইল যুক্ত করুন")}
         </button>
         {error && <span className="text-xs text-red-600">{error}</span>}
       </div>
@@ -206,18 +209,19 @@ export default function AttachmentPicker({
 }
 
 function ItemStatus({ item }: { item: Item }) {
+  const { L, num } = useI18n();
   const shown = useSmoothProgress(item.phase === "optimizing" || item.phase === "uploading" ? item.progress : null);
   if (item.error) return <span className="shrink-0">{item.error}</span>;
   if (item.phase === "optimizing")
     return (
       <span className="flex shrink-0 items-center gap-1 text-neutral-400">
-        <Loader2 className="h-3 w-3 animate-spin" /> Optimizing {shown}%
+        <Loader2 className="h-3 w-3 animate-spin" /> {L("Optimizing", "অপ্টিমাইজ হচ্ছে")} {num(shown)}%
       </span>
     );
   if (item.phase === "uploading")
     return (
       <span className="flex shrink-0 items-center gap-1 text-neutral-500">
-        <Loader2 className="h-3 w-3 animate-spin" /> Uploading {shown}%
+        <Loader2 className="h-3 w-3 animate-spin" /> {L("Uploading", "আপলোড হচ্ছে")} {num(shown)}%
       </span>
     );
   return <span className="shrink-0 text-neutral-400">{formatBytes(item.size)}</span>;

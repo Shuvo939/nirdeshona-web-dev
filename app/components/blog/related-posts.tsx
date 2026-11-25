@@ -1,13 +1,16 @@
-import Link from "next/link";
+import Link from "@/app/components/locale-link";
 import { Newspaper } from "lucide-react";
+
+import { getI18n } from "@/lib/i18n/server";
 
 type Related = { slug: string; title: string; excerpt: string | null; cover_image_url: string | null };
 
-export default function RelatedPosts({ posts }: { posts: Related[] }) {
+export default async function RelatedPosts({ posts }: { posts: Related[] }) {
   if (posts.length === 0) return null;
+  const { L } = await getI18n();
   return (
     <section className="mt-16 border-t border-neutral-200 pt-10">
-      <h2 className="text-xl font-bold tracking-tight text-neutral-950">Keep reading</h2>
+      <h2 className="text-xl font-bold tracking-tight text-neutral-950">{L("Keep reading", "আরও পড়ুন")}</h2>
       <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-3">
         {posts.map((p) => (
           <Link key={p.slug} href={`/blog/${p.slug}`} className="group overflow-hidden rounded-2xl border border-neutral-200 bg-white transition hover:-translate-y-0.5 hover:shadow-lg">

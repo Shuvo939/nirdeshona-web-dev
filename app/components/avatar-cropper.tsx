@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import Cropper, { type Area } from "react-easy-crop";
 import { FlipHorizontal2, Loader2, RotateCcw, RotateCw, Undo2, X, ZoomIn, ZoomOut } from "lucide-react";
+import { useI18n } from "@/lib/i18n/client";
 
 const OUTPUT_SIZE = 640;
 
@@ -53,6 +54,12 @@ async function cropToBlob(src: string, area: Area, rotation: number, flip: boole
   );
 }
 
+const CROP_ERRORS_BN: Record<string, string> = {
+  "Couldn't read that image.": "ছবিটি পড়া যায়নি।",
+  "Your browser can't edit images.": "আপনার ব্রাউজারে ছবি এডিট করা যায় না।",
+  "Couldn't save the image.": "ছবিটি সেভ করা যায়নি।",
+};
+
 export default function AvatarCropper({
   src,
   onCancel,
@@ -62,6 +69,8 @@ export default function AvatarCropper({
   onCancel: () => void;
   onSave: (file: File) => Promise<void> | void;
 }) {
+  const { L, num, bn } = useI18n();
+  const tmLocal = (m: string) => (bn ? CROP_ERRORS_BN[m] ?? m : m);
   const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
   const [rotation, setRotation] = useState(0);
@@ -104,7 +113,7 @@ export default function AvatarCropper({
       const ext = blob.type === "image/webp" ? "webp" : "jpg";
       await onSave(new File([blob], `avatar.${ext}`, { type: blob.type }));
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Couldn't save the image.");
+      setError(e instanceof Error ? tmLocal(e.message) : L("Couldn't save the image.", "ছবিটি সেভ করা যায়নি।"));
       setSaving(false);
     }
   }
@@ -117,9 +126,9 @@ export default function AvatarCropper({
       <div className="flex max-h-[100dvh] w-full max-w-lg flex-col overflow-hidden rounded-t-3xl bg-white shadow-2xl sm:rounded-3xl">
         <div className="flex items-center justify-between border-b border-neutral-100 px-5 py-4">
           <h2 id="crop-title" className="text-base font-semibold text-neutral-950">
-            Edit profile photo
+            {L("Edit profile photo", "প্রোফাইল ছবি এডিট করুন")}
           </h2>
-          <button type="button" onClick={onCancel} disabled={saving} aria-label="Close" className="rounded-full p-1.5 text-neutral-500 hover:bg-neutral-100">
+          <button type="button" onClick={onCancel} disabled={saving} aria-label={L("Close", "বন্ধ করুন")} className="rounded-full p-1.5 text-neutral-500 hover:bg-neutral-100">
             <X className="h-5 w-5" />
           </button>
         </div>
@@ -145,7 +154,7 @@ export default function AvatarCropper({
 
         <div className="flex flex-col gap-4 overflow-y-auto px-5 py-4">
           <div className="flex items-center gap-3">
-            <button type="button" aria-label="Zoom out" onClick={() => setZoom((z) => Math.max(1, +(z - 0.2).toFixed(2)))} className="text-neutral-500 hover:text-neutral-950">
+            <button type="button" aria-label={L("Zoom out", "ছোট করুন")} onClick={() => setZoom((z) => Math.max(1, +(z - 0.2).toFixed(2)))} className="text-neutral-500 hover:text-neutral-950">
               <ZoomOut className="h-4 w-4" />
             </button>
             <input
@@ -155,16 +164,16 @@ export default function AvatarCropper({
               step={0.01}
               value={zoom}
               onChange={(e) => setZoom(Number(e.target.value))}
-              aria-label="Zoom"
+              aria-label={L("Zoom", "জুম")}
               className="h-1.5 min-w-0 flex-1 cursor-pointer accent-neutral-950"
             />
-            <button type="button" aria-label="Zoom in" onClick={() => setZoom((z) => Math.min(4, +(z + 0.2).toFixed(2)))} className="text-neutral-500 hover:text-neutral-950">
+            <button type="button" aria-label={L("Zoom in", "বড় করুন")} onClick={() => setZoom((z) => Math.min(4, +(z + 0.2).toFixed(2)))} className="text-neutral-500 hover:text-neutral-950">
               <ZoomIn className="h-4 w-4" />
             </button>
           </div>
 
           <div className="flex items-center gap-3">
-            <span className="w-16 shrink-0 text-xs font-medium text-neutral-500">Straighten</span>
+            <span className="w-16 shrink-0 text-xs font-medium text-neutral-500">{L("Straighten", "সোজা করুন")}</span>
             <input
               type="range"
               min={-180}
@@ -172,35 +181,35 @@ export default function AvatarCropper({
               step={1}
               value={rotation}
               onChange={(e) => setRotation(Number(e.target.value))}
-              aria-label="Rotation angle"
+              aria-label={L("Rotation angle", "ঘোরানোর কোণ")}
               className="h-1.5 min-w-0 flex-1 cursor-pointer accent-neutral-950"
             />
-            <span className="w-10 shrink-0 text-right text-xs tabular-nums text-neutral-600">{rotation}°</span>
+            <span className="w-10 shrink-0 text-right text-xs tabular-nums text-neutral-600">{num(rotation)}°</span>
           </div>
 
           <div className="flex items-center justify-center gap-2">
-            <button type="button" onClick={() => turn(-90)} aria-label="Rotate left" title="Rotate left" className={iconBtn}>
+            <button type="button" onClick={() => turn(-90)} aria-label={L("Rotate left", "বাঁয়ে ঘোরান")} title={L("Rotate left", "বাঁয়ে ঘোরান")} className={iconBtn}>
               <RotateCcw className="h-4 w-4" />
             </button>
-            <button type="button" onClick={() => turn(90)} aria-label="Rotate right" title="Rotate right" className={iconBtn}>
+            <button type="button" onClick={() => turn(90)} aria-label={L("Rotate right", "ডানে ঘোরান")} title={L("Rotate right", "ডানে ঘোরান")} className={iconBtn}>
               <RotateCw className="h-4 w-4" />
             </button>
             <button
               type="button"
               onClick={() => setFlip((f) => !f)}
-              aria-label="Flip horizontally"
+              aria-label={L("Flip horizontally", "আড়াআড়ি উল্টান")}
               aria-pressed={flip}
-              title="Flip"
+              title={L("Flip", "উল্টান")}
               className={`${iconBtn} ${flip ? "border-neutral-950 bg-neutral-950 text-white hover:bg-neutral-800" : ""}`}
             >
               <FlipHorizontal2 className="h-4 w-4" />
             </button>
-            <button type="button" onClick={reset} aria-label="Reset" title="Reset" className={iconBtn}>
+            <button type="button" onClick={reset} aria-label={L("Reset", "রিসেট")} title={L("Reset", "রিসেট")} className={iconBtn}>
               <Undo2 className="h-4 w-4" />
             </button>
           </div>
 
-          <p className="text-center text-xs text-neutral-400">Drag to reposition · pinch or scroll to zoom</p>
+          <p className="text-center text-xs text-neutral-400">{L("Drag to reposition · pinch or scroll to zoom", "সরাতে টানুন · জুম করতে পিঞ্চ বা স্ক্রল করুন")}</p>
           {error && <p className="text-center text-xs text-red-600">{error}</p>}
         </div>
 
@@ -211,7 +220,7 @@ export default function AvatarCropper({
             disabled={saving}
             className="h-11 flex-1 rounded-full border border-neutral-200 text-sm font-semibold text-neutral-700 hover:bg-neutral-50 disabled:opacity-60"
           >
-            Cancel
+            {L("Cancel", "বাতিল")}
           </button>
           <button
             type="button"
@@ -220,7 +229,7 @@ export default function AvatarCropper({
             className="inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-full bg-neutral-950 text-sm font-semibold text-white hover:bg-neutral-800 disabled:opacity-60"
           >
             {saving && <Loader2 className="h-4 w-4 animate-spin" />}
-            {saving ? "Saving…" : "Save photo"}
+            {saving ? L("Saving…", "সেভ হচ্ছে…") : L("Save photo", "ছবি সেভ করুন")}
           </button>
         </div>
       </div>

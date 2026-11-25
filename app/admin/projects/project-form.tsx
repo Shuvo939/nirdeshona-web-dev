@@ -26,6 +26,9 @@ export type ProjectFormValues = {
   slug?: string;
   short_description?: string;
   description?: string;
+  title_bn?: string;
+  short_description_bn?: string;
+  description_bn?: string;
   category?: string;
   client_id?: string;
   status?: string;
@@ -123,6 +126,19 @@ export default function ProjectForm({
           <Field id="description" label="Full description" error={e.description} hint="Use the toolbar for headings, lists and links — Preview shows how it will look.">
             <MarkdownEditor name="description" defaultValue={v.description} rows={12} placeholder="Describe the project, its goals, features and outcomes…" />
           </Field>
+          <fieldset lang="bn" className="flex flex-col gap-4 rounded-2xl border border-emerald-200 bg-emerald-50/40 p-4">
+            <legend className="px-2 text-sm font-semibold text-emerald-900">Bangla version (বাংলা)</legend>
+            <p className="text-xs text-neutral-500">Shown on /bn pages. Empty fields fall back to the English text.</p>
+            <Field id="title_bn" label="Title (Bangla)" error={e.title_bn}>
+              <input id="title_bn" name="title_bn" defaultValue={v.title_bn} maxLength={200} placeholder="যেমন: নির্দেশনা ওয়েবসাইট" className={inputClass} />
+            </Field>
+            <Field id="short_description_bn" label="Short description (Bangla)" error={e.short_description_bn}>
+              <input id="short_description_bn" name="short_description_bn" defaultValue={v.short_description_bn} maxLength={300} className={inputClass} />
+            </Field>
+            <Field id="description_bn" label="Full description (Bangla)" error={e.description_bn}>
+              <MarkdownEditor name="description_bn" defaultValue={v.description_bn} rows={10} placeholder="প্রজেক্টের লক্ষ্য, ফিচার ও ফলাফল লিখুন…" />
+            </Field>
+          </fieldset>
         </div>
       </Section>
 

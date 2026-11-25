@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import Link from "@/app/components/locale-link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import {
@@ -11,9 +11,11 @@ import {
   LockKeyhole,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { useI18n } from "@/lib/i18n/client";
 
 export default function ResetPasswordPage() {
   const router = useRouter();
+  const { L, lp } = useI18n();
   const supabase = createClient();
 
   const [password, setPassword] = useState("");
@@ -33,12 +35,12 @@ export default function ResetPasswordPage() {
     setError(null);
 
     if (password.length < 8) {
-      setError("Password must be at least 8 characters long.");
+      setError(L("Password must be at least 8 characters long.", "পাসওয়ার্ড কমপক্ষে ৮ অক্ষরের হতে হবে।"));
       return;
     }
 
     if (password !== confirmPassword) {
-      setError("Passwords do not match.");
+      setError(L("Passwords do not match.", "পাসওয়ার্ড দুটি মেলেনি।"));
       return;
     }
 
@@ -58,7 +60,7 @@ export default function ResetPasswordPage() {
     setLoading(false);
 
     setTimeout(() => {
-      router.push("/client");
+      router.push(lp("/client"));
       router.refresh();
     }, 1500);
   }
@@ -75,15 +77,15 @@ export default function ResetPasswordPage() {
               N
             </span>
 
-            <span className="font-bold">Nirdeshona</span>
+            <span className="font-bold">{L("Nirdeshona", "নির্দেশনা")}</span>
           </Link>
 
           <h1 className="mt-8 text-2xl font-semibold">
-            Create a new password
+            {L("Create a new password", "নতুন পাসওয়ার্ড দিন")}
           </h1>
 
           <p className="mt-2 text-sm text-neutral-500">
-            Choose a strong password for your account.
+            {L("Choose a strong password for your account.", "আপনার অ্যাকাউন্টের জন্য একটি শক্তিশালী পাসওয়ার্ড বেছে নিন।")}
           </p>
         </div>
 
@@ -95,11 +97,11 @@ export default function ResetPasswordPage() {
               </div>
 
               <h2 className="mt-5 text-lg font-semibold">
-                Password updated
+                {L("Password updated", "পাসওয়ার্ড আপডেট হয়েছে")}
               </h2>
 
               <p className="mt-2 text-sm text-neutral-500">
-                Your password has been changed successfully.
+                {L("Your password has been changed successfully.", "আপনার পাসওয়ার্ড সফলভাবে বদলানো হয়েছে।")}
               </p>
             </div>
           ) : (
@@ -109,7 +111,7 @@ export default function ResetPasswordPage() {
                   htmlFor="password"
                   className="mb-1.5 block text-sm font-medium"
                 >
-                  New password
+                  {L("New password", "নতুন পাসওয়ার্ড")}
                 </label>
 
                 <div className="relative">
@@ -144,7 +146,7 @@ export default function ResetPasswordPage() {
                   htmlFor="confirmPassword"
                   className="mb-1.5 block text-sm font-medium"
                 >
-                  Confirm password
+                  {L("Confirm password", "পাসওয়ার্ড নিশ্চিত করুন")}
                 </label>
 
                 <div className="relative">
@@ -194,10 +196,10 @@ export default function ResetPasswordPage() {
                 {loading ? (
                   <>
                     <Loader2 className="h-4 w-4 animate-spin" />
-                    Updating...
+                    {L("Updating...", "আপডেট হচ্ছে...")}
                   </>
                 ) : (
-                  "Update password"
+                  L("Update password", "পাসওয়ার্ড আপডেট করুন")
                 )}
               </button>
             </form>

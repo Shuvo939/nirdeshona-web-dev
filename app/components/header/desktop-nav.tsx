@@ -1,9 +1,10 @@
 "use client";
 
-import Link from "next/link";
+import Link from "@/app/components/locale-link";
 import { useState } from "react";
 import { ServiceIcon } from "@/app/components/marketing";
-import { services } from "@/lib/site";
+import { getContent } from "@/lib/content";
+import { useI18n } from "@/lib/i18n/client";
 import {
   ArrowRight,
   ArrowUpRight,
@@ -24,6 +25,8 @@ type Props = {
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export default function DesktopNav({ role }: Props) {
   const [servicesOpen, setServicesOpen] = useState(false);
+  const { L, locale } = useI18n();
+  const { services } = getContent(locale);
 
   const navClass = `
     relative rounded-xl px-3.5 py-2.5
@@ -63,8 +66,7 @@ export default function DesktopNav({ role }: Props) {
               }
             `}
           >
-            Services
-
+            {L("Services", "সার্ভিস")}
             <ChevronDown
               className={`
                 h-3.5 w-3.5
@@ -79,7 +81,7 @@ export default function DesktopNav({ role }: Props) {
               {/* Outside click */}
               <button
                 type="button"
-                aria-label="Close services menu"
+                aria-label={L("Close services menu", "সার্ভিস মেনু বন্ধ করুন")}
                 onClick={() => setServicesOpen(false)}
                 className="fixed inset-0 z-40 cursor-default"
               />
@@ -104,11 +106,11 @@ export default function DesktopNav({ role }: Props) {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-neutral-400">
-                        What we do
+                        {L("What we do", "আমরা যা করি")}
                       </p>
 
                       <p className="mt-1 text-sm font-semibold tracking-tight text-neutral-950">
-                        Digital solutions for real needs
+                        {L("Digital solutions for real needs", "বাস্তব প্রয়োজনের ডিজিটাল সমাধান")}
                       </p>
                     </div>
 
@@ -158,11 +160,11 @@ export default function DesktopNav({ role }: Props) {
 
                     <div className="min-w-0 flex-1">
                       <p className="text-sm font-semibold">
-                        Need something custom?
+                        {L("Need something custom?", "কাস্টম কিছু দরকার?")}
                       </p>
 
                       <p className="mt-0.5 text-xs text-neutral-400">
-                        Tell us what you are trying to build.
+                        {L("Tell us what you are trying to build.", "কী বানাতে চান, আমাদের জানান।")}
                       </p>
                     </div>
 
@@ -174,7 +176,7 @@ export default function DesktopNav({ role }: Props) {
                 <div className="flex items-center justify-between border-t border-neutral-100 bg-neutral-50/70 px-5 py-3">
                   <div className="flex items-center gap-2 text-[10px] font-medium uppercase tracking-[0.12em] text-neutral-400">
                     <Layers3 className="h-3 w-3" />
-                    Web · Design · Technology
+                    {L("Web · Design · Technology", "ওয়েব · ডিজাইন · প্রযুক্তি")}
                   </div>
 
                   <Link
@@ -182,7 +184,7 @@ export default function DesktopNav({ role }: Props) {
                     onClick={() => setServicesOpen(false)}
                     className="group flex items-center gap-1 text-xs font-medium text-neutral-600 hover:text-neutral-950"
                   >
-                    All services
+                    {L("All services", "সব সার্ভিস")}
                     <ArrowRight className="h-3 w-3 transition group-hover:translate-x-0.5" />
                   </Link>
                 </div>
@@ -195,29 +197,29 @@ export default function DesktopNav({ role }: Props) {
             OUR WORK
         ====================================================== */}
         <Link href="/projects" className={navClass}>
-          Our Work
+          {L("Our Work", "আমাদের কাজ")}
         </Link>
 
         {/* =====================================================
             ABOUT
         ====================================================== */}
         <Link href="/pricing" className={navClass}>
-          Pricing
+          {L("Pricing", "প্রাইসিং")}
         </Link>
 
         <Link href="/blog" className={navClass}>
-          Blog
+          {L("Blog", "ব্লগ")}
         </Link>
 
         <Link href="/about" className={navClass}>
-          About
+          {L("About", "আমাদের সম্পর্কে")}
         </Link>
 
         {/* =====================================================
             CONTACT
         ====================================================== */}
         <Link href="/contact" className={navClass}>
-          Contact
+          {L("Contact", "যোগাযোগ")}
         </Link>
       </nav>
 

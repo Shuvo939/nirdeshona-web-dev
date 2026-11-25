@@ -1,7 +1,9 @@
-import Link from "next/link";
+import Link from "@/app/components/locale-link";
 import { ArrowUpRight, Layers3, Star } from "lucide-react";
 
 import { PROJECT_STATUS, StatusBadge } from "@/app/components/marketing";
+import T from "@/app/components/t";
+import { categoryLabel } from "@/lib/projects/categories";
 
 export type ProjectCardData = {
   id: string;
@@ -42,7 +44,7 @@ export default function ProjectCard({ project }: { project: ProjectCardData }) {
             <StatusBadge map={PROJECT_STATUS} value={project.status} />
             {project.featured && (
               <span className="inline-flex items-center gap-1 rounded-full bg-neutral-950/85 px-2.5 py-1 text-[11px] font-semibold text-white backdrop-blur">
-                <Star className="h-3 w-3 fill-amber-300 text-amber-300" /> Featured
+                <Star className="h-3 w-3 fill-amber-300 text-amber-300" /> <T en="Featured" bn="ফিচার্ড" />
               </span>
             )}
           </div>
@@ -70,7 +72,7 @@ export default function ProjectCard({ project }: { project: ProjectCardData }) {
         <div className="mt-5 flex items-center justify-between gap-3">
           {project.category ? (
             <span className="rounded-lg bg-neutral-100 px-2.5 py-1 text-xs font-medium text-neutral-600">
-              {project.category}
+              <T en={project.category} bn={categoryLabel(project.category, "bn")} />
             </span>
           ) : (
             <span />

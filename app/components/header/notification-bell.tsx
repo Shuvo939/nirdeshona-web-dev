@@ -1,25 +1,21 @@
 "use client";
 
+import { timeAgo } from "@/lib/i18n/config";
+import { useI18n } from "@/lib/i18n/client";
+
 import { startNavigationProgress } from "@/app/components/navigation-progress";
-import Link from "next/link";
+import Link from "@/app/components/locale-link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Bell, CheckCheck, Loader2 } from "lucide-react";
 
 type Item = { id: string; title: string; message: string | null; link: string | null; read_at: string | null; created_at: string };
 
-function timeAgo(value: string) {
-  const diff = (Date.now() - new Date(value).getTime()) / 1000;
-  if (diff < 60) return "just now";
-  if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
-  if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
-  if (diff < 604800) return `${Math.floor(diff / 86400)}d ago`;
-  return new Date(value).toLocaleDateString("en-GB", { day: "numeric", month: "short" });
-}
 
 export default function NotificationBell({ initialUnread }: { initialUnread: number }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
+  const { L, locale } = useI18n();
   const [unread, setUnread] = useState(initialUnread);
   const [items, setItems] = useState<Item[] | null>(null);
   const [loading, setLoading] = useState(false);
@@ -87,7 +83,7 @@ export default function NotificationBell({ initialUnread }: { initialUnread: num
     <div ref={ref} className="relative">
       <button
         type="button"
-        aria-label={unread ? `Notifications (${unread} unread)` : "Notifications"}
+        aria-label={unread ? L(`Notifications (${unread} unread)`, `নোটিফিকেশন (${unread}টি অপঠিত)`) : L("Notifications", "নোটিফিকেশন")}
         aria-expanded={open}
         onClick={() => {
           setOpen((v) => !v);
@@ -106,10 +102,10 @@ export default function NotificationBell({ initialUnread }: { initialUnread: num
       {open && (
         <div className="fixed inset-x-3 top-[70px] z-50 overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-[0_24px_70px_rgba(0,0,0,0.14)] sm:absolute sm:inset-x-auto sm:right-0 sm:top-full sm:mt-3 sm:w-[360px]">
           <div className="flex items-center justify-between border-b border-neutral-100 px-4 py-3">
-            <p className="text-sm font-semibold text-neutral-950">Notifications</p>
+            <p className="text-sm font-semibold text-neutral-950">{L("Notifications", "নোটিফিকেশন")}</p>
             {unread > 0 && (
               <button type="button" onClick={markAll} className="inline-flex items-center gap-1 text-xs font-medium text-neutral-500 hover:text-neutral-950">
-                <CheckCheck className="h-3.5 w-3.5" /> Mark all read
+                <CheckCheck className="h-3.5 w-3.5" /> {L("Mark all read", "সব পড়া হয়েছে")}
               </button>
             )}
           </div>
@@ -121,7 +117,7 @@ export default function NotificationBell({ initialUnread }: { initialUnread: num
             ) : items.length === 0 ? (
               <div className="px-4 py-10 text-center">
                 <Bell className="mx-auto h-6 w-6 text-neutral-300" />
-                <p className="mt-2 text-sm text-neutral-500">You&apos;re all caught up.</p>
+                <p className="mt-2 text-sm text-neutral-500">{L("You're all caught up.", "নতুন কিছু নেই।")}</p>
               </div>
             ) : (
               <ul className="flex flex-col p-1.5">
@@ -136,7 +132,7 @@ export default function NotificationBell({ initialUnread }: { initialUnread: num
                       <span className="min-w-0">
                         <span className="block text-sm font-medium text-neutral-900">{n.title}</span>
                         {n.message && <span className="mt-0.5 line-clamp-2 block text-xs text-neutral-500">{n.message}</span>}
-                        <span className="mt-1 block text-[11px] text-neutral-400">{timeAgo(n.created_at)}</span>
+                        <span className="mt-1 block text-[11px] text-neutral-400">{timeAgo(n.created_at, locale)}</span>
                       </span>
                     </button>
                   </li>
@@ -146,7 +142,7 @@ export default function NotificationBell({ initialUnread }: { initialUnread: num
             {loading && items !== null && <div className="h-0.5 animate-pulse bg-neutral-200" />}
           </div>
           <Link href="/notifications" onClick={() => setOpen(false)} className="block border-t border-neutral-100 px-4 py-3 text-center text-xs font-semibold text-neutral-700 hover:bg-neutral-50">
-            View all notifications
+            {L("View all notifications", "সব নোটিফিকেশন দেখুন")}
           </Link>
         </div>
       )}
