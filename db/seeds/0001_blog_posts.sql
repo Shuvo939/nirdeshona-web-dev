@@ -1,4 +1,6 @@
 -- Seed: 20 bilingual blog posts (English + Bangla). Requires migration 0010.
+-- Note: production copies were later expanded into long-form articles (Nov 2026);
+-- this file keeps the shorter originals for local development.
 
 -- Idempotent: existing slugs are left untouched.
 
