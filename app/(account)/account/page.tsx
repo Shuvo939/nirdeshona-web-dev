@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "@/app/components/locale-link";
 import {
+  ReceiptText,
   ArrowUpRight,
   Bell,
   CheckCircle2,
@@ -33,6 +34,20 @@ export default async function AccountPage() {
   const memberships = await getClientMemberships(user.id);
   const clientIds = memberships.map((m) => m.id);
 
+  // Quote requests (migration 0011) — tolerate the table being absent.
+  const quotes = (await sql`
+    select reference, plan, estimate_low, estimate_high, monthly, status, created_at
+    from quote_requests
+    where user_id = ${user.id} or lower(email) = lower(${user.email})
+    order by created_at desc limit 3
+  `.catch(() => [])) as unknown as { reference: string; plan: string; estimate_low: number; estimate_high: number; monthly: number; status: string; created_at: string }[];
+  const QUOTE_STATUS: Record<string, [string, string]> = {
+    new: ["Received", "গৃহীত"],
+    contacted: ["We've been in touch", "যোগাযোগ করা হয়েছে"],
+    quoted: ["Quote sent", "কোটেশন পাঠানো হয়েছে"],
+    accepted: ["Accepted", "গৃহীত ও চূড়ান্ত"],
+    declined: ["Closed", "বন্ধ"],
+  };
   const [[stats], myComments, notifications, projects, tickets, [{ bio }]] = await Promise.all([
     sql`
       select
@@ -185,6 +200,33 @@ export default async function AccountPage() {
                 {L("Request client access", "ক্লায়েন্ট অ্যাক্সেস চান")}
               </Link>
             </div>
+          )}
+
+          {quotes.length > 0 && (
+            <Card
+              title={L("My quote requests", "আমার কোটেশন অনুরোধ")}
+              icon={<ReceiptText className="h-4 w-4" />}
+              action={<Link href="/pricing#order" className="text-xs font-semibold text-neutral-500 hover:text-neutral-950">{L("New request →", "নতুন অনুরোধ →")}</Link>}
+            >
+              <ul className="flex flex-col divide-y divide-neutral-100">
+                {quotes.map((q) => (
+                  <li key={q.reference} className="flex items-center justify-between gap-3 py-3 first:pt-0 last:pb-0">
+                    <div className="min-w-0">
+                      <p className="font-mono text-sm font-semibold text-neutral-950">{q.reference}</p>
+                      <p className="text-xs text-neutral-500">
+                        {q.plan === "care"
+                          ? L(`৳${q.monthly.toLocaleString("en-IN")}/month`, `মাসে ৳${num(q.monthly)}`)
+                          : `৳${num(q.estimate_low)} – ৳${num(q.estimate_high)}`}{" "}
+                        · {timeAgo(q.created_at)}
+                      </p>
+                    </div>
+                    <span className="shrink-0 rounded-full bg-neutral-100 px-2.5 py-1 text-[11px] font-semibold text-neutral-700">
+                      {L(...(QUOTE_STATUS[q.status] ?? [q.status, q.status]))}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </Card>
           )}
 
           {/* My comments */}

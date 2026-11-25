@@ -325,7 +325,7 @@ export const faqGroups: { title: string; items: { q: string; a: string }[] }[] =
   {
     title: "Getting started",
     items: [
-      { q: "How do we start a project?", a: "Send us a message through the contact page with a short description of what you need. We'll reply within one business day to schedule a quick call and then send a written scope and quote." },
+      { q: "How do we start a project?", a: "Build your quote on the pricing page — choose a plan, add your details and confirm — or send us a message through the contact page. We'll reply within one business day with a written scope and a fixed quote." },
       { q: "What do you need from me?", a: "Your goals, any content you already have (text, logo, photos) and examples of sites you like. We'll guide you through the rest." },
       { q: "How long does a website take?", a: "A simple site typically takes 2–4 weeks; larger sites and web apps take 4–12 weeks depending on scope and how quickly feedback comes back." },
     ],

@@ -58,10 +58,16 @@ export default async function ServiceDetailPage({
         breadcrumbs={[{ label: L("Services", "সার্ভিস"), href: "/services" }, { label: service.title }]}
       >
         <div className="flex flex-col gap-3 sm:flex-row">
-          <PrimaryButton href={`/contact?service=${encodeURIComponent(englishTitle)}`}>
-            {L("Get a quote", "কোটেশন নিন")}
+          <PrimaryButton
+            href={
+              service.slug === "maintenance"
+                ? "/pricing?plan=care&care=0#order"
+                : `/pricing?plan=${service.slug === "custom-development" ? "custom" : "starter"}&service=${service.slug}#order`
+            }
+          >
+            {L("Build your quote", "কোটেশন সাজান")}
           </PrimaryButton>
-          <SecondaryButton href="/projects">{L("See our work", "আমাদের কাজ দেখুন")}</SecondaryButton>
+          <SecondaryButton href={`/contact?service=${encodeURIComponent(englishTitle)}`}>{L("Ask a question", "প্রশ্ন করুন")}</SecondaryButton>
         </div>
       </PageHero>
 

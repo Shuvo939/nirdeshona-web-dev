@@ -3,14 +3,18 @@ import Link from "@/app/components/locale-link";
 import { ArrowUpRight, Banknote, CalendarCheck, Check, FileSignature, Landmark, ShieldCheck, Sparkles, X } from "lucide-react";
 
 import { FaqList, PageHero, SectionHeading, ServiceIcon } from "@/app/components/marketing";
-import PriceEstimator from "@/app/components/pricing/estimator";
+import { Suspense } from "react";
+
+import OrderBuilder, { type BuilderPlan } from "@/app/components/pricing/order-builder";
+import { getSessionUser } from "@/lib/auth/session";
+import { createCaptcha } from "@/lib/captcha";
+import { ORDER_SERVICES, toTaka } from "@/lib/pricing";
 import { getContent } from "@/lib/content";
 import { getI18n, localeAlternates } from "@/lib/i18n/server";
 import { type Package } from "@/lib/site";
 
 const TERM_ICONS = [FileSignature, CalendarCheck, Landmark, Banknote];
 
-const toNumber = (price: string) => Number(price.replace(/[^0-9]/g, "")) || 0;
 
 export async function generateMetadata(): Promise<Metadata> {
   const { L, locale } = await getI18n();
@@ -30,6 +34,25 @@ export default async function PricingPage() {
   const en = getContent("en"); // prices as plain numbers for the estimator
   const pricingFaq = faqGroups[1]?.items ?? [];
   const labels = { popular: L("Most popular", "সবচেয়ে জনপ্রিয়"), from: L("starting from", "শুরু") };
+  const user = await getSessionUser().catch(() => null);
+  const planIds = ["starter", "business", "custom"] as const;
+  const builderPlans: BuilderPlan[] = [
+    ...packages.map((p, i) => ({
+      id: planIds[i],
+      name: p.name,
+      description: p.description,
+      price: i === 2 ? L("from ৳40,000", "৳৪০,০০০ থেকে") : p.price,
+      highlights: p.features.slice(0, 4),
+    })),
+    {
+      id: "care" as const,
+      name: L("Care plan only", "শুধু কেয়ার প্ল্যান"),
+      description: L("Already have a website? We'll look after it every month.", "ওয়েবসাইট আগে থেকেই আছে? প্রতি মাসে আমরা এর দেখভাল করব।"),
+      price: carePlans[0]?.price ?? "",
+      period: carePlans[0]?.period,
+      highlights: carePlans[0]?.features ?? [],
+    },
+  ];
 
   return (
     <>
@@ -50,8 +73,8 @@ export default async function PricingPage() {
 
       <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
-          {packages.map((item) => (
-            <PlanCard key={item.name} plan={item} labels={labels} />
+          {packages.map((item, i) => (
+            <PlanCard key={item.name} plan={item} labels={labels} href={`/pricing?plan=${planIds[i]}#order`} />
           ))}
         </div>
         <p className="mt-6 text-center text-xs text-neutral-500">
@@ -146,27 +169,39 @@ export default async function PricingPage() {
             description={L("Keep your site secure, backed up and improving. Includes access to the client support portal.", "আপনার সাইট নিরাপদ, ব্যাকআপসহ ও প্রতিনিয়ত উন্নত রাখুন। ক্লায়েন্ট সাপোর্ট পোর্টালের অ্যাক্সেসসহ।")}
           />
           <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-            {carePlans.map((item) => (
-              <PlanCard key={item.name} plan={item} compact labels={labels} />
+            {carePlans.map((item, i) => (
+              <PlanCard key={item.name} plan={item} compact labels={labels} href={`/pricing?plan=care&care=${i}#order`} />
             ))}
           </div>
         </div>
       </section>
 
-      <section id="estimate" className="mx-auto max-w-7xl scroll-mt-24 px-4 py-16 sm:px-6 lg:px-8">
+      <section id="order" className="mx-auto max-w-7xl scroll-mt-20 px-4 py-16 sm:px-6 lg:px-8">
         <SectionHeading
-          eyebrow={L("Estimator", "খরচের হিসাব")}
-          title={L("Estimate your project in a minute", "এক মিনিটে আপনার প্রজেক্টের খরচ আন্দাজ করুন")}
-          description={L("Pick a service, the number of pages and any add-ons. We'll send you an exact, fixed quote after a short chat.", "একটি সার্ভিস, পেজের সংখ্যা ও প্রয়োজনীয় অ্যাড-অন বেছে নিন। ছোট আলোচনার পর আমরা নির্দিষ্ট কোটেশন পাঠাব।")}
+          eyebrow={L("Build your quote", "কোটেশন সাজান")}
+          title={L("Choose, review and confirm — in three steps", "তিন ধাপে বাছাই, পর্যালোচনা ও নিশ্চিত করুন")}
+          description={L(
+            "Pick a plan and what you need, add your details, and confirm. We'll reply within one business day with a written scope and a fixed quote.",
+            "প্ল্যান ও প্রয়োজনীয় সবকিছু বেছে নিন, আপনার তথ্য দিন, তারপর নিশ্চিত করুন। এক কর্মদিবসের মধ্যে লিখিত পরিসর ও নির্দিষ্ট কোটেশনসহ উত্তর দেব।",
+          )}
         />
         <div className="mt-10">
-          <PriceEstimator
-            services={services
-              .map((s, i) => ({ slug: s.slug, title: s.title, englishTitle: en.services[i].title, base: toNumber(en.services[i].startingFrom), timeline: s.timeline }))
-              .filter((s) => s.slug !== "maintenance")}
-            addOns={addOns}
-            carePlans={carePlans.map((c, i) => ({ name: c.name, price: toNumber(en.carePlans[i].price) }))}
-          />
+          <Suspense>
+            <OrderBuilder
+              plans={builderPlans}
+              services={services
+                .filter((s) => ORDER_SERVICES.some((o) => o.slug === s.slug))
+                .map((s) => ({ slug: s.slug, title: s.title, short: s.short, from: ORDER_SERVICES.find((o) => o.slug === s.slug)!.from, timeline: s.timeline }))}
+              addOns={addOns}
+              carePlans={carePlans.map((c, i) => ({ name: c.name, price: toTaka(en.carePlans[i].price), features: c.features }))}
+              user={
+                user
+                  ? { name: user.fullName ?? "", email: user.email, phone: user.phone ?? "", organisation: user.company ?? "" }
+                  : null
+              }
+              initialCaptcha={createCaptcha()}
+            />
+          </Suspense>
         </div>
       </section>
 
@@ -214,7 +249,17 @@ export default async function PricingPage() {
   );
 }
 
-function PlanCard({ plan, compact = false, labels }: { plan: Package; compact?: boolean; labels: { popular: string; from: string } }) {
+function PlanCard({
+  plan,
+  compact = false,
+  labels,
+  href,
+}: {
+  plan: Package;
+  compact?: boolean;
+  labels: { popular: string; from: string };
+  href: string;
+}) {
   const dark = plan.highlighted;
   return (
     <div
@@ -245,7 +290,7 @@ function PlanCard({ plan, compact = false, labels }: { plan: Package; compact?: 
         ))}
       </ul>
       <Link
-        href={`/contact?service=${encodeURIComponent(compact ? "Care & Maintenance" : "Not sure yet")}`}
+        href={href}
         className={`mt-8 inline-flex h-11 items-center justify-center rounded-full text-sm font-semibold transition ${
           dark ? "bg-white text-neutral-950 hover:bg-neutral-200" : "bg-neutral-950 text-white hover:bg-neutral-800"
         }`}

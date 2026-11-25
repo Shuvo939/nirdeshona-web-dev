@@ -36,6 +36,8 @@ export function makeI18n(locale: Locale) {
     L: <T,>(en: T, bnValue: T): T => (bn ? bnValue : en),
     lp: (href: string) => localizePath(locale, href),
     num: (n: number) => numberFmt.format(n),
+    /** Digits only, no thousands separator — for years and IDs. */
+    digits: (n: number | string) => (bn ? String(n).replace(/[0-9]/g, (d) => "০১২৩৪৫৬৭৮৯"[Number(d)]) : String(n)),
     date: (value: string | Date | null | undefined, options: Intl.DateTimeFormatOptions = { day: "numeric", month: "short", year: "numeric" }) =>
       value ? new Intl.DateTimeFormat(bn ? "bn-BD" : "en-GB", { timeZone: "Asia/Dhaka", ...options }).format(new Date(value)) : "",
   };

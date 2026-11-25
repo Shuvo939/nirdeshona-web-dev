@@ -22,7 +22,7 @@ export async function generateMetadata(): Promise<Metadata> {
 const VALUE_ICONS = [Compass, Smartphone, Layers3, HeartHandshake];
 
 export default async function AboutPage() {
-  const { L, locale, num } = await getI18n();
+  const { L, locale, num, digits } = await getI18n();
   const { comparison, faqGroups, milestones, processSteps, services, site, team, techCategories, values } = getContent(locale);
   const [[stats], clients] = await Promise.all([
     sql`
@@ -53,7 +53,7 @@ export default async function AboutPage() {
         title={L("A small studio that cares about the details.", "খুঁটিনাটির যত্ন নেওয়া একটি ছোট স্টুডিও।")}
         description={L(
           `${site.legalName} is part of Nirdeshona — an initiative started in ${site.founded} to help people and organisations find direction. We bring that same spirit to the web: clear guidance, honest advice and software that works.`,
-          `${site.legalName} নির্দেশনার অংশ — ${num(site.founded)} সালে শুরু হওয়া একটি উদ্যোগ, যার লক্ষ্য মানুষ ও প্রতিষ্ঠানকে সঠিক দিকনির্দেশনা দেওয়া। সেই একই চেতনা আমরা ওয়েবেও আনি: স্পষ্ট দিকনির্দেশনা, সৎ পরামর্শ আর কাজের সফটওয়্যার।`,
+          `${site.legalName} নির্দেশনার অংশ — ${digits(site.founded)} সালে শুরু হওয়া একটি উদ্যোগ, যার লক্ষ্য মানুষ ও প্রতিষ্ঠানকে সঠিক দিকনির্দেশনা দেওয়া। সেই একই চেতনা আমরা ওয়েবেও আনি: স্পষ্ট দিকনির্দেশনা, সৎ পরামর্শ আর কাজের সফটওয়্যার।`,
         )}
         breadcrumbs={[{ label: L("About", "আমাদের সম্পর্কে") }]}
       >

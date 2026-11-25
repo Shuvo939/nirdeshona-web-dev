@@ -35,7 +35,7 @@ export default async function ServicesPage() {
         breadcrumbs={[{ label: L("Services", "সার্ভিস") }]}
       >
         <div className="flex flex-col gap-3 sm:flex-row">
-          <PrimaryButton href="/contact">{L("Get a free quote", "ফ্রি কোটেশন নিন")}</PrimaryButton>
+          <PrimaryButton href="/pricing#order">{L("Build your quote", "কোটেশন সাজান")}</PrimaryButton>
           <SecondaryButton href="/pricing">{L("View pricing", "প্রাইসিং দেখুন")}</SecondaryButton>
         </div>
       </PageHero>
