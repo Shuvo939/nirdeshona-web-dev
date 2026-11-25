@@ -78,7 +78,7 @@ export function renderMarkdown(markdown: string) {
   );
 
   html = html.replace(
-    /^\d+\. (.+)$/gm,
+    /^[\d০-৯]+\. (.+)$/gm,
     '<li class="ml-6 list-decimal leading-8 text-neutral-700">$1</li>'
   );
 
@@ -96,6 +96,12 @@ export function renderMarkdown(markdown: string) {
       } class="my-8 w-full rounded-2xl border border-neutral-200 object-cover" loading="lazy" />`);
     }
   );
+
+  // Internal links (e.g. [pricing](/pricing)) open in the same tab; the proxy
+  // adds the visitor's language prefix.
+  html = html.replace(/\[([^\]]+)\]\((\/(?!\/)[^)\s]*)\)/g, (_, text, path) => {
+    return `${park(`<a href="${path}" class="font-medium text-neutral-950 underline decoration-neutral-300 underline-offset-4 transition hover:decoration-neutral-800">`)}${text}</a>`;
+  });
 
   html = html.replace(
     /\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g,
@@ -142,13 +148,19 @@ export function renderMarkdown(markdown: string) {
         return "";
       }
 
+      // A block of list items becomes its own list, so numbering restarts per list.
+      if (trimmed.startsWith("<li")) {
+        const ordered = trimmed.startsWith('<li class="ml-6 list-decimal');
+        const tag = ordered ? "ol" : "ul";
+        return `<${tag} class="mb-5">${trimmed.replace(/<\/li>\n/g, "</li>")}</${tag}>`;
+      }
+
       if (
         trimmed.startsWith("<h1") ||
         trimmed.startsWith("<h2") ||
         trimmed.startsWith("<h3") ||
         trimmed.startsWith("<pre") ||
         trimmed.startsWith("<blockquote") ||
-        trimmed.startsWith("<li") ||
         trimmed.startsWith("<hr") ||
         trimmed.startsWith("<img")
       ) {
