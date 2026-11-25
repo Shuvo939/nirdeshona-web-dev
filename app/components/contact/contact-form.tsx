@@ -1,7 +1,10 @@
 "use client";
 
 import Captcha, { type CaptchaValue } from "@/app/components/captcha";
+import Link from "@/app/components/locale-link";
 import { useI18n } from "@/lib/i18n/client";
+import { BUDGET_RANGES } from "@/lib/pricing";
+import { services as siteServices } from "@/lib/site";
 import { useSmoothProgress } from "@/lib/use-smooth-progress";
 import { compressImage, isCompressibleImage } from "@/lib/image-compress";
 import {
@@ -42,24 +45,20 @@ const ALLOWED_FILE_TYPES = [
 ];
 
 // Values stay in English (they're stored and emailed); labels are localized.
-const services: [string, string][] = [
-  ["Web Development", "ওয়েব ডেভেলপমেন্ট"],
-  ["WordPress Solutions", "ওয়ার্ডপ্রেস সমাধান"],
-  ["UI / UX Design", "ইউআই / ইউএক্স ডিজাইন"],
-  ["Custom Development", "কাস্টম ডেভেলপমেন্ট"],
-  ["E-commerce", "ই-কমার্স"],
-  ["Care & Maintenance", "কেয়ার ও রক্ষণাবেক্ষণ"],
-  ["Website Redesign", "ওয়েবসাইট রিডিজাইন"],
-  ["Not sure yet", "এখনো নিশ্চিত নই"],
-];
+// Services and prices come from lib/site so they always match the pricing page.
+const SERVICE_BN: Record<string, string> = {
+  "Web Development": "ওয়েব ডেভেলপমেন্ট",
+  "WordPress Solutions": "ওয়ার্ডপ্রেস সমাধান",
+  "UI / UX Design": "ইউআই / ইউএক্স ডিজাইন",
+  "Custom Development": "কাস্টম ডেভেলপমেন্ট",
+  "E-commerce": "ই-কমার্স",
+  "Care & Maintenance": "কেয়ার ও রক্ষণাবেক্ষণ",
+};
 
-const budgets: [string, string][] = [
-  ["Under $500", "$৫০০-এর কম"],
-  ["$500 – $1,000", "$৫০০ – $১,০০০"],
-  ["$1,000 – $2,500", "$১,০০০ – $২,৫০০"],
-  ["$2,500 – $5,000", "$২,৫০০ – $৫,০০০"],
-  ["$5,000+", "$৫,০০০+"],
-  ["Let's discuss", "আলোচনা সাপেক্ষে"],
+const services: { value: string; bn: string; from?: string; timeline?: string }[] = [
+  ...siteServices.map((s) => ({ value: s.title, bn: SERVICE_BN[s.title] ?? s.title, from: s.startingFrom, timeline: s.timeline })),
+  { value: "Website Redesign", bn: "ওয়েবসাইট রিডিজাইন" },
+  { value: "Not sure yet", bn: "এখনো নিশ্চিত নই" },
 ];
 
 export default function ContactForm({
@@ -74,6 +73,8 @@ export default function ContactForm({
   const { L, num } = useI18n();
   const [captcha, setCaptcha] = useState<CaptchaValue>({ token: initialCaptcha.token, answer: "" });
   const [captchaKey, setCaptchaKey] = useState(0);
+  const [serviceValue, setServiceValue] = useState(services.some((s) => s.value === defaultService) ? defaultService : "");
+  const selectedService = services.find((s) => s.value === serviceValue);
   const [status, setStatus] =
     useState<Status>("idle");
 
@@ -400,6 +401,7 @@ export default function ContactForm({
       setMessageLength(0);
 
       form.reset();
+      setServiceValue("");
 
       if (fileInputRef.current) {
         fileInputRef.current.value = "";
@@ -536,7 +538,8 @@ export default function ContactForm({
             id="service"
             name="service"
             required
-            defaultValue={services.some(([value]) => value === defaultService) ? defaultService : ""}
+            value={serviceValue}
+            onChange={(e) => setServiceValue(e.target.value)}
             className="h-12 w-full rounded-xl border border-neutral-200 bg-white px-3.5 text-sm text-neutral-800 outline-none transition focus:border-neutral-950 focus:ring-2 focus:ring-neutral-950/10"
           >
             <option
@@ -546,12 +549,23 @@ export default function ContactForm({
               {L("Select a service", "একটি সার্ভিস বাছুন")}
             </option>
 
-            {services.map(([value, bn]) => (
-              <option key={value} value={value}>
-                {L(value, bn)}
+            {services.map((s) => (
+              <option key={s.value} value={s.value}>
+                {L(s.value, s.bn)}
               </option>
             ))}
           </select>
+          {selectedService?.from && (
+            <p className="mt-2 text-xs leading-5 text-neutral-500">
+              {L(
+                `Starts from ${selectedService.from} · usually ${selectedService.timeline}.`,
+                `${selectedService.from.replace(/[0-9]/g, (d) => "০১২৩৪৫৬৭৮৯"[Number(d)]).replace("/mo", "/মাস")} থেকে শুরু।`,
+              )}{" "}
+              <Link href="/pricing#order" className="font-medium text-neutral-900 underline">
+                {L("Get an instant estimate", "তাৎক্ষণিক হিসাব দেখুন")}
+              </Link>
+            </p>
+          )}
         </div>
 
         {/* Budget */}
@@ -577,9 +591,9 @@ export default function ContactForm({
               {L("Select a budget range", "বাজেটের সীমা বাছুন")}
             </option>
 
-            {budgets.map(([value, bn]) => (
-              <option key={value} value={value}>
-                {L(value, bn)}
+            {BUDGET_RANGES.map((b) => (
+              <option key={b.value} value={b.value}>
+                {L(b.en, b.bn)}
               </option>
             ))}
           </select>

@@ -3,16 +3,17 @@ import type { Metadata } from "next";
 import { createCaptcha } from "@/lib/captcha";
 import Link from "@/app/components/locale-link";
 import {
+  ArrowRight,
   Clock3,
   Mail,
   MapPin,
   MessageSquare,
-  Phone,
   Send,
   Sparkles,
 } from "lucide-react";
 
 import ContactForm from "@/app/components/contact/contact-form";
+import { getContent } from "@/lib/content";
 import { getI18n, localeAlternates } from "@/lib/i18n/server";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -30,7 +31,8 @@ export default async function ContactPage({
   searchParams: Promise<{ service?: string; message?: string }>;
 }) {
   const { service, message } = await searchParams;
-  const { L } = await getI18n();
+  const { L, locale } = await getI18n();
+  const { packages, carePlans } = getContent(locale);
 
   return (
     <main className="min-h-[calc(100vh-72px)] bg-neutral-50">
@@ -122,6 +124,37 @@ export default async function ContactPage({
               </p>
             </div>
 
+            {/* Fixed packages */}
+            <div className="rounded-3xl border border-neutral-200 bg-white p-6 shadow-sm sm:p-7">
+              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-neutral-400">
+                {L("Know what you need?", "কী লাগবে, জানেন?")}
+              </p>
+              <ul className="mt-4 flex flex-col divide-y divide-neutral-100 text-sm">
+                {packages.map((p, i) => (
+                  <li key={p.name} className="flex items-center justify-between gap-3 py-2.5">
+                    <span className="font-medium text-neutral-900">{p.name}</span>
+                    <span className="text-neutral-500">{i === 2 ? L("from ৳40,000", "৳৪০,০০০ থেকে") : p.price}</span>
+                  </li>
+                ))}
+                <li className="flex items-center justify-between gap-3 py-2.5">
+                  <span className="font-medium text-neutral-900">{L("Care plans", "কেয়ার প্ল্যান")}</span>
+                  <span className="text-neutral-500">
+                    {carePlans[0]?.price}
+                    {carePlans[0]?.period}
+                  </span>
+                </li>
+              </ul>
+              <Link
+                href="/pricing#order"
+                className="mt-5 inline-flex h-11 w-full items-center justify-center gap-2 rounded-full bg-neutral-950 text-sm font-semibold text-white transition hover:bg-neutral-800"
+              >
+                {L("Build and confirm your quote", "কোটেশন সাজিয়ে নিশ্চিত করুন")} <ArrowRight className="h-4 w-4" />
+              </Link>
+              <p className="mt-2 text-center text-xs text-neutral-500">
+                {L("Same prices as our pricing page.", "প্রাইসিং পেজের একই দাম।")}
+              </p>
+            </div>
+
             {/* Contact information */}
 
             <div className="rounded-3xl border border-neutral-200 bg-white p-6 shadow-sm sm:p-7">
@@ -149,24 +182,19 @@ export default async function ContactPage({
                   </div>
                 </a>
 
-                <a
-                  href="tel:+8801000000000"
-                  className="group flex items-start gap-4"
-                >
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-neutral-100 text-neutral-600 transition group-hover:bg-black group-hover:text-white">
-                    <Phone className="h-4 w-4" />
+                <div className="flex items-start gap-4">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-neutral-100 text-neutral-600">
+                    <Clock3 className="h-4 w-4" />
                   </div>
-
                   <div>
                     <p className="text-xs font-medium text-neutral-400">
-                      {L("Phone", "ফোন")}
+                      {L("Response time", "উত্তরের সময়")}
                     </p>
-
-                    <p className="mt-1 text-sm font-medium text-neutral-800 group-hover:text-black">
-                      +880 1000-000000
+                    <p className="mt-1 text-sm font-medium text-neutral-800">
+                      {L("Within 1 business day (Sun–Thu)", "১ কর্মদিবসের মধ্যে (রবি–বৃহস্পতি)")}
                     </p>
                   </div>
-                </a>
+                </div>
 
                 <div className="flex items-start gap-4">
                   <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-neutral-100 text-neutral-600">
@@ -179,7 +207,7 @@ export default async function ContactPage({
                     </p>
 
                     <p className="mt-1 text-sm font-medium text-neutral-800">
-                      {L("Bangladesh", "বাংলাদেশ")}
+                      {L("Dhaka, Bangladesh", "ঢাকা, বাংলাদেশ")}
                     </p>
                   </div>
                 </div>

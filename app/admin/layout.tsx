@@ -14,6 +14,10 @@ export default async function AdminLayout({ children }: { children: ReactNode })
       (select count(distinct comment_id)::int from comment_reports where resolved_at is null) as reports,
       (select count(*)::int from trash) as bin
   `;
+  // Quote requests arrived with migration 0011; don't break the whole admin if it isn't applied yet.
+  const quotes = await sql`select count(*)::int as n from quote_requests where status = 'new'`
+    .then(([r]) => r.n as number)
+    .catch(() => 0);
 
   const groups: SideNavGroup[] = [
     { links: [{ href: "/admin", label: "Overview", icon: "dashboard", exact: true }] },
@@ -31,6 +35,7 @@ export default async function AdminLayout({ children }: { children: ReactNode })
         { href: "/admin/clients", label: "Clients", icon: "building" },
         { href: "/admin/projects", label: "Projects", icon: "folder" },
         { href: "/admin/tickets", label: "Support tickets", icon: "clipboard", badge: counts.tickets },
+        { href: "/admin/quotes", label: "Quote requests", icon: "receipt", badge: quotes },
         { href: "/admin/contacts", label: "Contact requests", icon: "inbox", badge: counts.contacts },
       ],
     },

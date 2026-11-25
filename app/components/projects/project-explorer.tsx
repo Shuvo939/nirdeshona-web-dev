@@ -342,7 +342,7 @@ function Pill({ active, disabled, onClick, children }: { active: boolean; disabl
 }
 
 function ListRow({ project: p }: { project: ExplorerProject }) {
-  const { L, locale, num } = useI18n();
+  const { L, locale, num, digits } = useI18n();
   return (
     <div className="group relative flex gap-4 rounded-3xl border border-neutral-200 bg-white p-3 transition hover:shadow-[0_12px_32px_rgba(0,0,0,0.06)] sm:p-4">
       <div className="relative aspect-[4/3] w-28 shrink-0 overflow-hidden rounded-2xl bg-neutral-100 sm:w-44">
@@ -363,7 +363,7 @@ function ListRow({ project: p }: { project: ExplorerProject }) {
               <Star className="h-3 w-3 fill-amber-400 text-amber-400" /> {L("Featured", "ফিচার্ড")}
             </span>
           )}
-          {p.year && <span className="text-[11px] text-neutral-400">{num(p.year).replace(/[,٬]/g, "")}</span>}
+          {p.year && <span className="text-[11px] text-neutral-400">{digits(p.year)}</span>}
         </div>
         <Link href={`/projects/${p.slug}`} className="mt-1.5 font-semibold tracking-tight text-neutral-950 after:absolute after:inset-0 after:rounded-3xl">
           {p.title}

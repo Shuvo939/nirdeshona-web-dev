@@ -16,7 +16,7 @@ import { deleteFromR2, deletePrivateObject, hasR2 } from "@/lib/r2";
  * forever.
  */
 
-export type TrashEntity = "post" | "project" | "client" | "file" | "contact" | "comment";
+export type TrashEntity = "post" | "project" | "client" | "file" | "contact" | "comment" | "quote";
 
 export const TRASH_LABELS: Record<TrashEntity, string> = {
   post: "Blog post",
@@ -25,6 +25,7 @@ export const TRASH_LABELS: Record<TrashEntity, string> = {
   file: "Media file",
   contact: "Contact request",
   comment: "Comment",
+  quote: "Quote request",
 };
 
 type Snapshot = Record<string, unknown[]>;
@@ -120,6 +121,14 @@ async function snapshot(tx: TransactionSql, entity: TrashEntity, id: string) {
       await tx`delete from contact_requests where id = ${id}`;
       break;
     }
+    case "quote": {
+      const [quote] = await tx`select name, reference from quote_requests where id = ${id}`;
+      if (!quote) return null;
+      label = `${quote.reference} · ${quote.name}`;
+      data.quote_requests = await rows(tx`select coalesce(jsonb_agg(to_jsonb(t)), '[]') as rows from quote_requests t where id = ${id}`);
+      await tx`delete from quote_requests where id = ${id}`;
+      break;
+    }
   }
   return { label, data, extra, r2, r2Private };
 }
@@ -158,6 +167,7 @@ const RESTORE_ORDER = [
   "comment_reports",
   "files",
   "contact_requests",
+  "quote_requests",
 ] as const;
 
 const USER_COLUMNS: Partial<Record<(typeof RESTORE_ORDER)[number], string>> = {

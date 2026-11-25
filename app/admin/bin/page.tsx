@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { CheckCircle2, Clock, FileText, Folder, Image as ImageIcon, Inbox, MessageCircle, Building2, Trash2 } from "lucide-react";
+import { CheckCircle2, Clock, FileText, Folder, Image as ImageIcon, Inbox, MessageCircle, Building2, ReceiptText, Trash2 } from "lucide-react";
 
 import { AdminHeader, Empty, FilterTabs, timeAgo } from "@/app/admin/admin-ui";
 import { requireAdmin } from "@/lib/auth/require-admin";
@@ -18,6 +18,7 @@ const ICONS: Record<TrashEntity, typeof FileText> = {
   file: ImageIcon,
   contact: Inbox,
   comment: MessageCircle,
+  quote: ReceiptText,
 };
 
 export default async function BinPage({ searchParams }: { searchParams: Promise<{ type?: string; notice?: string }> }) {

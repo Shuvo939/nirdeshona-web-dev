@@ -20,3 +20,39 @@
 :lang(bn) li.list-decimal {
   list-style-type: bengali;
 }
+
+/* ------------------------------------------------------------------
+   Admin WYSIWYG editor: mirrors the article styles in blog/markdown.ts
+------------------------------------------------------------------- */
+.nw-prose { color: #404040; font-size: 15px; line-height: 1.85; }
+.nw-prose > * + * { margin-top: 0.9em; }
+.nw-prose h2 { margin-top: 1.6em; font-size: 1.5rem; line-height: 1.3; font-weight: 700; color: #0a0a0a; }
+.nw-prose h3 { margin-top: 1.3em; font-size: 1.2rem; line-height: 1.35; font-weight: 700; color: #0a0a0a; }
+.nw-prose strong { color: #0a0a0a; font-weight: 700; }
+.nw-prose a { color: #0a0a0a; font-weight: 500; text-decoration: underline; text-decoration-color: #d4d4d4; text-underline-offset: 4px; }
+.nw-prose ul { list-style: disc; padding-left: 1.5rem; }
+.nw-prose ol { list-style: decimal; padding-left: 1.5rem; }
+.nw-prose li > p { margin: 0; }
+.nw-prose blockquote { border-left: 4px solid #d4d4d4; padding-left: 1.25rem; font-style: italic; color: #525252; }
+.nw-prose code { border-radius: 6px; background: #f5f5f5; padding: 0.1em 0.4em; font-size: 0.9em; color: #262626; }
+.nw-prose pre { border-radius: 16px; background: #0a0a0a; color: #f5f5f5; padding: 1rem 1.25rem; overflow-x: auto; }
+.nw-prose pre code { background: transparent; color: inherit; padding: 0; }
+.nw-prose hr { border: 0; border-top: 1px solid #e5e5e5; margin: 2rem 0; }
+.nw-prose table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.nw-prose th, .nw-prose td { border: 1px solid #e5e5e5; padding: 0.5rem 0.75rem; text-align: left; vertical-align: top; }
+.nw-prose th { background: #fafafa; font-weight: 600; color: #0a0a0a; }
+.nw-prose .selectedCell { background: #f0f9ff; }
+.nw-prose ul[data-type="taskList"] { list-style: none; padding-left: 0.25rem; }
+.nw-prose ul[data-type="taskList"] li { display: flex; align-items: flex-start; gap: 0.6rem; }
+.nw-prose ul[data-type="taskList"] li > label { margin-top: 0.35em; }
+.nw-prose ul[data-type="taskList"] li > div { flex: 1; }
+.nw-prose p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder); color: #a3a3a3; float: left; height: 0; pointer-events: none;
+}
+.nw-prose > :first-child { margin-top: 0; }
+/* Bangla fields in the (English) admin use the same Bangla font as the site. */
+[lang="bn"] .nw-prose,
+[lang="bn"] input,
+[lang="bn"] textarea {
+  font-family: "Hind Siliguri", ui-sans-serif, system-ui, sans-serif;
+}

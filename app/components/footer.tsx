@@ -17,7 +17,7 @@ import {
 
 export default function Footer() {
   const year = new Date().getFullYear();
-  const { L, locale, num } = useI18n();
+  const { L, locale, num, digits } = useI18n();
   const { services } = getContent(locale);
 
   return (
@@ -114,21 +114,6 @@ export default function Footer() {
               </div>
             </div>
 
-            {/* Social */}
-
-            <div className="mt-7 flex items-center gap-2">
-              <SocialLink href="#" label="Facebook">
-                f
-              </SocialLink>
-
-              <SocialLink href="#" label="LinkedIn">
-                in
-              </SocialLink>
-
-              <SocialLink href="#" label="GitHub">
-                gh
-              </SocialLink>
-            </div>
           </div>
 
           {/* =================================================
@@ -221,7 +206,7 @@ export default function Footer() {
         <div className="flex flex-col gap-5 py-7 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <p className="text-xs text-neutral-500">
-              {L(`© ${year} Nirdeshona Web. All rights reserved.`, `© ${num(year)} নির্দেশনা ওয়েব। সর্বস্বত্ব সংরক্ষিত।`)}
+              {L(`© ${year} Nirdeshona Inc. All rights reserved.`, `© ${digits(year)} Nirdeshona Inc. সর্বস্বত্ব সংরক্ষিত।`)}
             </p>
 
             <p className="mt-1 text-[11px] text-neutral-600">
@@ -301,29 +286,5 @@ function FooterLink({
 
       <ArrowUpRight className="ml-1.5 h-3 w-3 opacity-0 transition group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:opacity-70" />
     </Link>
-  );
-}
-
-/* =========================================================
-   SOCIAL LINK
-========================================================= */
-
-function SocialLink({
-  href,
-  label,
-  children,
-}: {
-  href: string;
-  label: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <a
-      href={href}
-      aria-label={label}
-      className="flex h-8 min-w-8 items-center justify-center rounded-lg border border-white/10 px-2 text-[11px] font-semibold text-neutral-500 transition hover:border-white/20 hover:bg-white/5 hover:text-white"
-    >
-      {children}
-    </a>
   );
 }

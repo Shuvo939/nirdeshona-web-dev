@@ -39,6 +39,8 @@ export function useI18n() {
       tm: <M extends string | null | undefined>(message: M) => translateMessage(locale, message),
       tfe: (errors: Record<string, string> | undefined) => translateFieldErrors(locale, errors),
       num: (n: number) => numberFmt.format(n),
+      /** Digits only, no thousands separator — for years and IDs. */
+      digits: (n: number | string) => (bn ? String(n).replace(/[0-9]/g, (d) => "০১২৩৪৫৬৭৮৯"[Number(d)]) : String(n)),
       date: (value: string | Date | null | undefined, options: Intl.DateTimeFormatOptions = { day: "numeric", month: "short", year: "numeric" }) =>
         value ? new Intl.DateTimeFormat(bn ? "bn-BD" : "en-GB", { timeZone: "Asia/Dhaka", ...options }).format(new Date(value)) : "",
     };

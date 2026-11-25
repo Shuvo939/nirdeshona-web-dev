@@ -1,33 +1,62 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { EditorContent, useEditor, useEditorState, type Editor } from "@tiptap/react";
+import StarterKit from "@tiptap/starter-kit";
+import Placeholder from "@tiptap/extension-placeholder";
+import { TableKit } from "@tiptap/extension-table";
+import TaskItem from "@tiptap/extension-task-item";
+import TaskList from "@tiptap/extension-task-list";
+import { Markdown } from "tiptap-markdown";
 import {
   Bold,
   Code,
-  Eye,
+  FileCode2,
   Heading2,
   Heading3,
   Italic,
   Link2,
   List,
+  ListChecks,
   ListOrdered,
   Minus,
-  PencilLine,
+  Pilcrow,
   Quote,
   Redo2,
+  Strikethrough,
+  Table2,
   Undo2,
 } from "lucide-react";
 
-import { renderMarkdown } from "@/app/components/blog/markdown";
-
-type Action = "h2" | "h3" | "bold" | "italic" | "link" | "ul" | "ol" | "quote" | "code" | "hr";
-
 /**
- * A light rich-text editor that writes Markdown: toolbar buttons and
- * shortcuts (Ctrl/⌘ + B, I, K) format the selection, and Preview shows
- * exactly how the text will look on the site. The value is submitted as a
- * normal form field named `name`.
+ * WYSIWYG editor that stores Markdown. What you type is shown with its real
+ * styles (headings, bold, lists, quotes, tables, checklists) — no preview
+ * step. The Markdown is submitted as a normal form field named `name`, so
+ * the site renderer and existing content keep working unchanged.
  */
+
+// Bangla-digit list markers ("১. ") are valid on our site but not in standard
+// Markdown; convert them so they open as real lists in the editor. Bangla
+// pages still number lists with Bangla digits (see globals.css).
+const toEditorMarkdown = (md: string) =>
+  md.replace(/^([০-৯]+)\. /gm, (_, d: string) => `${d.replace(/[০-৯]/g, (c) => String("০১২৩৪৫৬৭৮৯".indexOf(c)))}. `);
+
+// tiptap-markdown writes hard line breaks as "\" + newline; our renderer
+// treats a single newline inside a paragraph as a line break.
+const fromEditorMarkdown = (md: string) => {
+  let out = md.replace(/\\\n/g, "\n").replace(/\n{3,}/g, "\n\n");
+  // Keep list items together (tiptap writes task lists "loose", with blank lines between items).
+  for (let i = 0; i < 3; i++) {
+    out = out.replace(/^((?:[-*]|\d+\.) .*)\n\n(?=(?:[-*]|\d+\.) )/gm, "$1\n");
+  }
+  return out.trim();
+};
+
+function getMarkdown(editor: Editor): string {
+  const storage = (editor.storage as unknown as { markdown?: { getMarkdown(): string } }).markdown;
+  return fromEditorMarkdown(storage?.getMarkdown() ?? "");
+}
+
 export default function MarkdownEditor({
   name,
   id,
@@ -44,167 +73,226 @@ export default function MarkdownEditor({
   required?: boolean;
 }) {
   const [value, setValue] = useState(defaultValue);
-  const [tab, setTab] = useState<"write" | "preview">("write");
-  const ref = useRef<HTMLTextAreaElement>(null);
+  const [source, setSource] = useState(false);
+  const [linkOpen, setLinkOpen] = useState(false);
+  const [linkDraft, setLinkDraft] = useState("");
 
-  const words = useMemo(() => (value.trim() ? value.trim().split(/\s+/).length : 0), [value]);
-  const preview = useMemo(() => (tab === "preview" ? renderMarkdown(value) : ""), [tab, value]);
+  const editor = useEditor({
+    immediatelyRender: false,
+    extensions: [
+      StarterKit.configure({
+        heading: { levels: [2, 3] },
+        link: { openOnClick: false, autolink: true, HTMLAttributes: { rel: "noopener", target: null } },
+      }),
+      Placeholder.configure({ placeholder: placeholder ?? "" }),
+      TableKit.configure({ table: { resizable: false } }),
+      TaskList,
+      TaskItem.configure({ nested: false }),
+      Markdown.configure({ html: false, breaks: true, linkify: true, tightLists: true, transformPastedText: true }),
+    ],
+    content: toEditorMarkdown(defaultValue),
+    editorProps: {
+      attributes: {
+        class: "nw-prose min-h-[var(--editor-min)] px-4 py-4 outline-none sm:px-5",
+        ...(id ? { id } : {}),
+        "aria-label": placeholder ?? "Editor",
+      },
+    },
+    onUpdate: ({ editor: e }) => setValue(getMarkdown(e)),
+  });
 
-  /** Replace the selection via execCommand so the browser's undo/redo keeps working. */
-  function replaceSelection(next: string, selectFrom: number, selectTo: number) {
-    const el = ref.current!;
-    el.focus();
-    const ok = document.execCommand?.("insertText", false, next);
-    if (!ok) {
-      const { selectionStart: s, selectionEnd: e } = el;
-      el.setRangeText(next, s, e, "end");
-      setValue(el.value);
-    }
-    requestAnimationFrame(() => el.setSelectionRange(selectFrom, selectTo));
+  // Keep the field in sync after the first render too (the editor normalises the input).
+  useEffect(() => {
+    if (editor) setValue(getMarkdown(editor));
+  }, [editor]);
+
+  const state = useEditorState({
+    editor,
+    selector: ({ editor: e }) =>
+      e
+        ? {
+            h2: e.isActive("heading", { level: 2 }),
+            h3: e.isActive("heading", { level: 3 }),
+            bold: e.isActive("bold"),
+            italic: e.isActive("italic"),
+            strike: e.isActive("strike"),
+            link: e.isActive("link"),
+            ul: e.isActive("bulletList"),
+            ol: e.isActive("orderedList"),
+            task: e.isActive("taskList"),
+            quote: e.isActive("blockquote"),
+            code: e.isActive("code"),
+            table: e.isActive("table"),
+            canUndo: e.can().undo(),
+            canRedo: e.can().redo(),
+          }
+        : null,
+  });
+
+  const words = useMemo(() => (value.trim() ? value.replace(/[#*>`|_-]/g, " ").trim().split(/\s+/).length : 0), [value]);
+
+  function setLink() {
+    if (!editor) return;
+    setLinkDraft((editor.getAttributes("link").href as string | undefined) ?? "");
+    setLinkOpen(true);
   }
 
-  function apply(action: Action) {
-    const el = ref.current;
-    if (!el) return;
-    setTab("write");
-    const start = el.selectionStart;
-    const end = el.selectionEnd;
-    const text = el.value;
-    const selected = text.slice(start, end);
-
-    const wrap = (left: string, right: string, fallback: string) => {
-      const inner = selected || fallback;
-      replaceSelection(`${left}${inner}${right}`, start + left.length, start + left.length + inner.length);
-    };
-
-    const linePrefix = (prefix: (i: number) => string, fallback: string) => {
-      const lineStart = text.lastIndexOf("\n", start - 1) + 1;
-      const lineEnd = end > start && text[end - 1] === "\n" ? end - 1 : text.indexOf("\n", end) === -1 ? text.length : text.indexOf("\n", end);
-      el.setSelectionRange(lineStart, lineEnd);
-      const lines = (text.slice(lineStart, lineEnd) || fallback).split("\n");
-      const next = lines.map((l, i) => prefix(i) + l.replace(/^(#{1,3} |> |- |\d+\. )/, "")).join("\n");
-      replaceSelection(next, lineStart, lineStart + next.length);
-    };
-
-    switch (action) {
-      case "bold":
-        return wrap("**", "**", "bold text");
-      case "italic":
-        return wrap("*", "*", "italic text");
-      case "code":
-        return selected.includes("\n") ? wrap("```\n", "\n```", "code") : wrap("`", "`", "code");
-      case "link": {
-        const label = selected || "link text";
-        const next = `[${label}](https://)`;
-        replaceSelection(next, start + label.length + 3, start + next.length - 1);
-        return;
-      }
-      case "h2":
-        return linePrefix(() => "## ", "Heading");
-      case "h3":
-        return linePrefix(() => "### ", "Heading");
-      case "quote":
-        return linePrefix(() => "> ", "Quote");
-      case "ul":
-        return linePrefix(() => "- ", "List item");
-      case "ol":
-        return linePrefix((i) => `${i + 1}. `, "List item");
-      case "hr": {
-        const next = `${start > 0 && text[start - 1] !== "\n" ? "\n" : ""}\n---\n\n`;
-        replaceSelection(next, start + next.length, start + next.length);
-        return;
-      }
-    }
+  function applyLink(remove = false) {
+    if (!editor) return;
+    const url = linkDraft.trim();
+    const chain = editor.chain().focus().extendMarkRange("link");
+    if (remove || !url) chain.unsetLink().run();
+    else chain.setLink({ href: /^(https?:\/\/|\/|mailto:|tel:|#)/.test(url) ? url : `https://${url}` }).run();
+    setLinkOpen(false);
   }
 
-  const tools: { action: Action; icon: typeof Bold; label: string; key?: string }[] = [
-    { action: "h2", icon: Heading2, label: "Heading" },
-    { action: "h3", icon: Heading3, label: "Subheading" },
-    { action: "bold", icon: Bold, label: "Bold", key: "B" },
-    { action: "italic", icon: Italic, label: "Italic", key: "I" },
-    { action: "link", icon: Link2, label: "Link", key: "K" },
-    { action: "ul", icon: List, label: "Bulleted list" },
-    { action: "ol", icon: ListOrdered, label: "Numbered list" },
-    { action: "quote", icon: Quote, label: "Quote" },
-    { action: "code", icon: Code, label: "Code" },
-    { action: "hr", icon: Minus, label: "Divider" },
-  ];
+  function switchMode() {
+    if (!editor) return;
+    if (source) editor.commands.setContent(toEditorMarkdown(value));
+    setSource(!source);
+  }
+
+  const btn = (active?: boolean) =>
+    `flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition disabled:opacity-30 ${
+      active ? "bg-neutral-950 text-white" : "text-neutral-600 hover:bg-white hover:text-neutral-950"
+    }`;
+
+  const tools: ({ label: string; icon: typeof Bold; active?: boolean; disabled?: boolean; run: () => void } | "sep")[] = editor
+    ? [
+        { label: "Paragraph", icon: Pilcrow, run: () => editor.chain().focus().setParagraph().run() },
+        { label: "Heading", icon: Heading2, active: state?.h2, run: () => editor.chain().focus().toggleHeading({ level: 2 }).run() },
+        { label: "Subheading", icon: Heading3, active: state?.h3, run: () => editor.chain().focus().toggleHeading({ level: 3 }).run() },
+        "sep",
+        { label: "Bold (Ctrl+B)", icon: Bold, active: state?.bold, run: () => editor.chain().focus().toggleBold().run() },
+        { label: "Italic (Ctrl+I)", icon: Italic, active: state?.italic, run: () => editor.chain().focus().toggleItalic().run() },
+        { label: "Strikethrough", icon: Strikethrough, active: state?.strike, run: () => editor.chain().focus().toggleStrike().run() },
+        { label: "Link (Ctrl+K)", icon: Link2, active: state?.link, run: setLink },
+        { label: "Inline code", icon: Code, active: state?.code, run: () => editor.chain().focus().toggleCode().run() },
+        "sep",
+        { label: "Bulleted list", icon: List, active: state?.ul, run: () => editor.chain().focus().toggleBulletList().run() },
+        { label: "Numbered list", icon: ListOrdered, active: state?.ol, run: () => editor.chain().focus().toggleOrderedList().run() },
+        { label: "Checklist", icon: ListChecks, active: state?.task, run: () => editor.chain().focus().toggleTaskList().run() },
+        { label: "Quote", icon: Quote, active: state?.quote, run: () => editor.chain().focus().toggleBlockquote().run() },
+        {
+          label: state?.table ? "Add row" : "Table",
+          icon: Table2,
+          active: state?.table,
+          run: () =>
+            state?.table
+              ? editor.chain().focus().addRowAfter().run()
+              : editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run(),
+        },
+        { label: "Divider", icon: Minus, run: () => editor.chain().focus().setHorizontalRule().run() },
+        "sep",
+        { label: "Undo", icon: Undo2, disabled: !state?.canUndo, run: () => editor.chain().focus().undo().run() },
+        { label: "Redo", icon: Redo2, disabled: !state?.canRedo, run: () => editor.chain().focus().redo().run() },
+      ]
+    : [];
 
   return (
-    <div className="mt-2 overflow-hidden rounded-xl border border-neutral-200 bg-white focus-within:border-neutral-400 focus-within:ring-4 focus-within:ring-neutral-100">
-      <div className="flex items-center gap-1 border-b border-neutral-200 bg-neutral-50 px-2 py-1.5">
-        <div className="flex min-w-0 flex-1 items-center gap-0.5 overflow-x-auto [scrollbar-width:none]">
-          {tools.map(({ action, icon: Icon, label, key }) => (
-            <button
-              key={action}
-              type="button"
-              onMouseDown={(e) => e.preventDefault()}
-              onClick={() => apply(action)}
-              title={key ? `${label} (Ctrl+${key})` : label}
-              aria-label={label}
-              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-neutral-600 transition hover:bg-white hover:text-neutral-950 hover:shadow-sm"
-            >
-              <Icon className="h-4 w-4" />
-            </button>
-          ))}
-          <span className="mx-1 h-5 w-px shrink-0 bg-neutral-200" />
-          <button type="button" onMouseDown={(e) => e.preventDefault()} onClick={() => { ref.current?.focus(); document.execCommand("undo"); }} title="Undo (Ctrl+Z)" aria-label="Undo" className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-neutral-600 hover:bg-white hover:text-neutral-950">
-            <Undo2 className="h-4 w-4" />
-          </button>
-          <button type="button" onMouseDown={(e) => e.preventDefault()} onClick={() => { ref.current?.focus(); document.execCommand("redo"); }} title="Redo (Ctrl+Y)" aria-label="Redo" className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-neutral-600 hover:bg-white hover:text-neutral-950">
-            <Redo2 className="h-4 w-4" />
-          </button>
-        </div>
-        <div className="flex shrink-0 rounded-lg border border-neutral-200 bg-white p-0.5" role="tablist">
-          {(
-            [
-              ["write", PencilLine, "Write"],
-              ["preview", Eye, "Preview"],
-            ] as const
-          ).map(([key, Icon, label]) => (
-            <button
-              key={key}
-              type="button"
-              role="tab"
-              aria-selected={tab === key}
-              onClick={() => setTab(key)}
-              className={`inline-flex h-7 items-center gap-1 rounded-md px-2 text-xs font-semibold transition ${tab === key ? "bg-neutral-950 text-white" : "text-neutral-600 hover:text-neutral-950"}`}
-            >
-              <Icon className="h-3.5 w-3.5" />
-              <span className="hidden sm:inline">{label}</span>
-            </button>
-          ))}
-        </div>
+    <div
+      className="relative overflow-hidden rounded-2xl border border-neutral-200 bg-white focus-within:border-neutral-400"
+      style={{ ["--editor-min" as string]: `${Math.max(6, rows) * 1.75}rem` }}
+      onKeyDown={(e) => {
+        if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k" && !source) {
+          e.preventDefault();
+          setLink();
+        }
+      }}
+    >
+      <div className="sticky top-0 z-10 flex items-center gap-1 overflow-x-auto border-b border-neutral-200 bg-neutral-50/95 px-2 py-1.5 backdrop-blur [scrollbar-width:none]">
+        {!source &&
+          tools.map((t, i) =>
+            t === "sep" ? (
+              <span key={`sep-${i}`} className="mx-1 h-5 w-px shrink-0 bg-neutral-200" aria-hidden />
+            ) : (
+              <button
+                key={t.label}
+                type="button"
+                title={t.label}
+                aria-label={t.label}
+                aria-pressed={t.active}
+                disabled={t.disabled}
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={t.run}
+                className={btn(t.active)}
+              >
+                <t.icon className="h-4 w-4" />
+              </button>
+            ),
+          )}
+        <button
+          type="button"
+          onClick={switchMode}
+          className={`ml-auto inline-flex h-8 shrink-0 items-center gap-1.5 rounded-lg px-2.5 text-xs font-semibold transition ${
+            source ? "bg-neutral-950 text-white" : "text-neutral-600 hover:bg-white"
+          }`}
+          title="Edit the Markdown source"
+        >
+          <FileCode2 className="h-3.5 w-3.5" /> {source ? "Back to editor" : "Markdown"}
+        </button>
       </div>
 
-      <textarea
-        ref={ref}
-        id={id ?? name}
-        name={name}
-        value={value}
-        required={required}
-        onChange={(e) => setValue(e.target.value)}
-        onKeyDown={(e) => {
-          if (!(e.ctrlKey || e.metaKey)) return;
-          const k = e.key.toLowerCase();
-          if (k === "b" || k === "i" || k === "k") {
-            e.preventDefault();
-            apply(k === "b" ? "bold" : k === "i" ? "italic" : "link");
-          }
-        }}
-        rows={rows}
-        placeholder={placeholder}
-        className={`block w-full resize-y bg-white px-4 py-3 font-mono text-[13px] leading-6 text-neutral-800 outline-none placeholder:font-sans placeholder:text-neutral-400 ${tab === "preview" ? "hidden" : ""}`}
-      />
-      {tab === "preview" && (
-        <div className="min-h-[200px] px-5 py-4 text-[15px] leading-7 text-neutral-700">
-          {value.trim() ? <div dangerouslySetInnerHTML={{ __html: preview }} /> : <p className="text-sm text-neutral-400">Nothing to preview yet.</p>}
+      {linkOpen && !source && (
+        <div className="flex flex-wrap items-center gap-2 border-b border-neutral-200 bg-white px-3 py-2">
+          <input
+            autoFocus
+            value={linkDraft}
+            onChange={(e) => setLinkDraft(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                applyLink();
+              }
+              if (e.key === "Escape") setLinkOpen(false);
+            }}
+            placeholder="https://example.com or /pricing"
+            className="h-9 min-w-0 flex-1 rounded-lg border border-neutral-200 px-3 text-sm outline-none focus:border-neutral-950"
+          />
+          <button type="button" onClick={() => applyLink()} className="h-9 rounded-lg bg-neutral-950 px-3 text-xs font-semibold text-white">
+            Apply
+          </button>
+          <button type="button" onClick={() => applyLink(true)} className="h-9 rounded-lg border border-neutral-200 px-3 text-xs font-semibold text-neutral-700">
+            Remove
+          </button>
+          <button type="button" onClick={() => setLinkOpen(false)} className="h-9 rounded-lg px-2 text-xs text-neutral-500">
+            Cancel
+          </button>
         </div>
       )}
 
-      <div className="flex items-center justify-between gap-3 border-t border-neutral-100 bg-neutral-50 px-3 py-1.5 text-[11px] text-neutral-400">
-        <span>Markdown · Ctrl+B bold · Ctrl+I italic · Ctrl+K link</span>
-        <span className="tabular-nums">{words.toLocaleString("en-US")} words</span>
+      {source ? (
+        <textarea
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          rows={rows}
+          spellCheck
+          className="block w-full resize-y px-4 py-4 font-mono text-sm leading-6 text-neutral-800 outline-none sm:px-5"
+        />
+      ) : editor ? (
+        <EditorContent editor={editor} />
+      ) : (
+        <div className="px-4 py-4 text-sm text-neutral-400 sm:px-5" style={{ minHeight: `${Math.max(6, rows) * 1.75}rem` }}>
+          {placeholder}
+        </div>
+      )}
+
+      {/* The form submits Markdown. A visually hidden textarea keeps `required` working. */}
+      <textarea
+        name={name}
+        value={value}
+        readOnly
+        required={required}
+        tabIndex={-1}
+        aria-hidden
+        className="pointer-events-none absolute h-px w-px opacity-0"
+      />
+
+      <div className="flex items-center justify-between border-t border-neutral-100 px-4 py-2 text-[11px] text-neutral-400">
+        <span>{source ? "Markdown source" : "What you see is what visitors will see"}</span>
+        <span>
+          {words} word{words === 1 ? "" : "s"}
+        </span>
       </div>
     </div>
   );
