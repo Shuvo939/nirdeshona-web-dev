@@ -266,7 +266,7 @@ export default function SearchDialog({ open, onClose }: { open: boolean; onClose
                 onClick={() => go(`/search?q=${encodeURIComponent(q)}`)}
                 className="mt-1 flex w-full items-center justify-between rounded-2xl px-4 py-3 text-sm font-medium text-neutral-700 hover:bg-neutral-50"
               >
-                {L("See all results for", "সব ফল দেখুন:")} “{q}” <ArrowRight className="h-4 w-4" />
+                {L("See all results for", "সব ফলাফল দেখুন:")} “{q}” <ArrowRight className="h-4 w-4" />
               </button>
             )}
           </div>

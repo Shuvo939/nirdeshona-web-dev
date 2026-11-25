@@ -32,7 +32,7 @@ const quickLinks = [
   {
     href: "/contact",
     label: ["Contact", "যোগাযোগ"],
-    description: ["Talk to our team", "আমাদের টিমের সাথে কথা বলুন"],
+    description: ["Talk to our team", "আমাদের টিমের সঙ্গে কথা বলুন"],
     icon: CircleHelp,
   },
 ];

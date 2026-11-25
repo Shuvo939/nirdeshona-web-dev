@@ -11,7 +11,7 @@ export async function generateMetadata(): Promise<Metadata> {
   const { L, locale } = await getI18n();
   return {
     title: L("FAQ — Nirdeshona Web", "প্রশ্নোত্তর — নির্দেশনা ওয়েব"),
-    description: L("Answers to common questions about working with Nirdeshona Web Development.", "নির্দেশনা ওয়েব ডেভেলপমেন্টের সাথে কাজ নিয়ে সাধারণ প্রশ্নের উত্তর।"),
+    description: L("Answers to common questions about working with Nirdeshona Web Development.", "নির্দেশনা ওয়েব ডেভেলপমেন্টের সঙ্গে কাজ নিয়ে সাধারণ প্রশ্নের উত্তর।"),
     alternates: localeAlternates(locale, "/faq"),
   };
 }
@@ -40,7 +40,7 @@ export default async function FaqPage() {
       <PageHero
         eyebrow={L("Help centre", "সহায়তা কেন্দ্র")}
         title={L("Frequently asked questions", "সাধারণ জিজ্ঞাসা")}
-        description={L("Everything you might want to know before starting a project with us.", "আমাদের সাথে প্রজেক্ট শুরুর আগে যা যা জানতে চাইতে পারেন।")}
+        description={L("Everything you might want to know before starting a project with us.", "আমাদের সঙ্গে প্রজেক্ট শুরুর আগে যা যা জানতে চাইতে পারেন।")}
         breadcrumbs={[{ label: L("FAQ", "প্রশ্নোত্তর") }]}
       />
 

@@ -65,7 +65,7 @@ export default async function PostSidebar({
 
             <div className="flex items-center justify-between gap-4">
               <span className="text-xs text-neutral-500">
-                {L("Comments", "কমেন্ট")}
+                {L("Comments", "মন্তব্য")}
               </span>
 
               <span className="text-xs font-medium text-neutral-800">
@@ -141,7 +141,7 @@ export default async function PostSidebar({
             </p>
 
             <p className="mt-1 text-xs text-neutral-400">
-              {L(`${commentCount} comments`, `${num(commentCount)}টি কমেন্ট`)}
+              {L(`${commentCount} comments`, `${num(commentCount)}টি মন্তব্য`)}
             </p>
           </div>
 

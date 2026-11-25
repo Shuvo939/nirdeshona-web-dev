@@ -1,3 +1,5 @@
+import T from "@/app/components/t";
+
 /**
  * Route skeletons. Each loading.tsx renders one of these so a click on a link
  * switches to the new page immediately and shows its shape while the data loads,
@@ -12,10 +14,12 @@ function Block({ className = "" }: { className?: string }) {
   return <div className={`animate-pulse rounded-2xl bg-neutral-200/70 ${className}`} />;
 }
 
-function Shell({ children, label = "Loading" }: { children: React.ReactNode; label?: string }) {
+function Shell({ children }: { children: React.ReactNode }) {
   return (
     <div role="status" aria-busy="true" aria-live="polite" className="min-h-[70vh]">
-      <span className="sr-only">{label}</span>
+      <span className="sr-only">
+        <T en="Loading…" bn="লোড হচ্ছে…" />
+      </span>
       {children}
     </div>
   );

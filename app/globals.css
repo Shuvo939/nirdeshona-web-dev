@@ -10,9 +10,9 @@
   letter-spacing: 0 !important;
   line-height: 1.3;
 }
-.font-bangla [class*="tracking-[-"],
-.font-bangla .tracking-tight,
-.font-bangla .tracking-tighter {
+/* Letter spacing (tight or wide) separates Bangla letters from the matra and
+   breaks conjuncts, so every tracking-* utility is neutralised in Bangla. */
+.font-bangla [class*="tracking-"] {
   letter-spacing: 0 !important;
 }
 

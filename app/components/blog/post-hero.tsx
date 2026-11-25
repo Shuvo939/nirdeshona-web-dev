@@ -134,7 +134,7 @@ export default async function PostHero({
 
               <span className="inline-flex items-center gap-1.5">
                 <MessageCircle className="h-3.5 w-3.5" />
-                {L(`${commentCount} comments`, `${num(commentCount)}টি কমেন্ট`)}
+                {L(`${commentCount} comments`, `${num(commentCount)}টি মন্তব্য`)}
               </span>
             </div>
           </div>

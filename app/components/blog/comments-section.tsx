@@ -306,7 +306,7 @@ function CommentItem({
         <Composer
           viewer={viewer}
           compact={isReply}
-          placeholder={L("Edit your comment…", "কমেন্ট সম্পাদনা করুন…")}
+          placeholder={L("Edit your comment…", "মন্তব্য সম্পাদনা করুন…")}
           initial={comment.content}
           autoFocus
           onCancel={() => setEditing(false)}
@@ -367,7 +367,7 @@ function CommentItem({
                 <span ref={menuRef} className="relative">
                   <button
                     type="button"
-                    aria-label={L("Comment options", "কমেন্টের অপশন")}
+                    aria-label={L("Comment options", "মন্তব্যের অপশন")}
                     aria-expanded={menu}
                     onClick={() => setMenu((v) => !v)}
                     className="-my-1 flex h-7 w-7 items-center justify-center rounded-full text-neutral-500 transition hover:bg-neutral-100 hover:text-neutral-800"
@@ -389,7 +389,7 @@ function CommentItem({
                         <MenuButton danger icon={<Trash2 className="h-4 w-4" />} label={L("Delete", "মুছুন")} onClick={() => { setMenu(false); onDelete(comment); }} />
                       )}
                       {viewer.isAdmin && !mine && (
-                        <MenuButton icon={<EyeOff className="h-4 w-4" />} label={L("Hide comment", "কমেন্ট লুকান")} onClick={() => { setMenu(false); onHide(comment); }} />
+                        <MenuButton icon={<EyeOff className="h-4 w-4" />} label={L("Hide comment", "মন্তব্য লুকান")} onClick={() => { setMenu(false); onHide(comment); }} />
                       )}
                       {!mine && <MenuButton icon={<Flag className="h-4 w-4" />} label={L("Report", "রিপোর্ট")} onClick={() => { setMenu(false); onReport(comment); }} />}
                     </span>
@@ -575,7 +575,7 @@ export default function CommentsSection({
       if (!res.ok) {
         setComments(snapshot);
         flash(res.error);
-      } else flash(kind === "delete" ? L("Comment deleted", "কমেন্ট মুছে ফেলা হয়েছে") : L("Comment hidden", "কমেন্ট লুকানো হয়েছে"));
+      } else flash(kind === "delete" ? L("Comment deleted", "মন্তব্য মুছে ফেলা হয়েছে") : L("Comment hidden", "মন্তব্য লুকানো হয়েছে"));
     });
   }
 
@@ -593,7 +593,7 @@ export default function CommentsSection({
     <section id="comments" className="mt-12 scroll-mt-24">
       <div className="flex items-center justify-between gap-3">
         <h2 className="text-xl font-bold tracking-tight text-neutral-950">
-          {L("Comments", "কমেন্ট")} <span className="text-neutral-400">{num(total)}</span>
+          {L("Comments", "মন্তব্য")} <span className="text-neutral-400">{num(total)}</span>
         </h2>
         {roots.length > 1 && (
           <label className="flex items-center gap-2 text-xs text-neutral-500">
@@ -613,7 +613,7 @@ export default function CommentsSection({
 
       <div className="mt-5">
         {viewer ? (
-          <Composer id="comment-composer" viewer={viewer} placeholder={L("Write a comment…", "একটি কমেন্ট লিখুন…")} onSubmit={(t) => submit(t, null)} />
+          <Composer id="comment-composer" viewer={viewer} placeholder={L("Write a comment…", "একটি মন্তব্য লিখুন…")} onSubmit={(t) => submit(t, null)} />
         ) : (
           <div id="comment-composer" className="flex flex-col items-start gap-3 rounded-2xl border border-neutral-200 bg-neutral-50 p-4 sm:flex-row sm:items-center sm:justify-between">
             <p className="text-sm text-neutral-600">{L("Sign in to join the conversation.", "আলোচনায় যোগ দিতে লগইন করুন।")}</p>
@@ -630,7 +630,7 @@ export default function CommentsSection({
       </div>
 
       {roots.length === 0 ? (
-        <p className="mt-8 text-center text-sm text-neutral-500">{L("No comments yet. Start the conversation!", "এখনো কোনো কমেন্ট নেই। আলোচনা শুরু করুন!")}</p>
+        <p className="mt-8 text-center text-sm text-neutral-500">{L("No comments yet. Start the conversation!", "এখনো কোনো মন্তব্য নেই। আলোচনা শুরু করুন!")}</p>
       ) : (
         <ul className="mt-6 flex flex-col gap-5">
           {roots.slice(0, visibleRoots).map((root) => {
@@ -688,7 +688,7 @@ export default function CommentsSection({
                         compact
                         autoFocus
                         initial={replyTo.mention ?? ""}
-                        placeholder={L(`Reply to ${root.full_name ?? "this comment"}…`, `${root.full_name ?? "এই কমেন্টের"}-কে উত্তর দিন…`)}
+                        placeholder={L(`Reply to ${root.full_name ?? "this comment"}…`, `${root.full_name ?? "এই মন্তব্যের"}-কে উত্তর দিন…`)}
                         onCancel={() => setReplyTo(null)}
                         onSubmit={async (t) => {
                           const ok = await submit(t, replyTo.targetId, root.id);
@@ -711,17 +711,17 @@ export default function CommentsSection({
           onClick={() => setVisibleRoots((v) => v + 10)}
           className="mt-6 w-full rounded-2xl border border-neutral-200 py-3 text-sm font-semibold text-neutral-700 hover:bg-neutral-50"
         >
-          {L("View more comments", "আরও কমেন্ট দেখুন")} ({num(roots.length - visibleRoots)})
+          {L("View more comments", "আরও মন্তব্য দেখুন")} ({num(roots.length - visibleRoots)})
         </button>
       )}
 
       {confirm && (
         <ConfirmDialog
-          title={confirm.kind === "delete" ? L("Delete comment?", "কমেন্ট মুছবেন?") : L("Hide comment?", "কমেন্ট লুকাবেন?")}
+          title={confirm.kind === "delete" ? L("Delete comment?", "মন্তব্য মুছবেন?") : L("Hide comment?", "মন্তব্য লুকাবেন?")}
           description={
             confirm.kind === "delete"
-              ? L("This comment and its replies will be removed.", "এই কমেন্ট ও এর উত্তরগুলো মুছে যাবে।")
-              : L("The comment will be hidden from everyone. You can restore it from the admin panel.", "কমেন্টটি সবার কাছ থেকে লুকানো হবে। অ্যাডমিন প্যানেল থেকে আবার দেখানো যাবে।")
+              ? L("This comment and its replies will be removed.", "এই মন্তব্য ও এর উত্তরগুলো মুছে যাবে।")
+              : L("The comment will be hidden from everyone. You can restore it from the admin panel.", "মন্তব্যটি সবার কাছ থেকে লুকানো হবে। অ্যাডমিন প্যানেল থেকে আবার দেখানো যাবে।")
           }
           confirmLabel={confirm.kind === "delete" ? L("Delete", "মুছুন") : L("Hide", "লুকান")}
           onCancel={() => setConfirm(null)}
@@ -738,7 +738,7 @@ export default function CommentsSection({
           onSubmit={async (reason) => {
             const res = await reportComment(reporting.id, reason);
             setReporting(null);
-            flash(res.ok ? L("Thanks — our team will review this comment.", "ধন্যবাদ — আমাদের টিম কমেন্টটি দেখবে।") : res.error);
+            flash(res.ok ? L("Thanks — our team will review this comment.", "ধন্যবাদ — আমাদের টিম মন্তব্যটি দেখবে।") : res.error);
           }}
         />
       )}
@@ -767,7 +767,7 @@ function ReportDialog({ onCancel, onSubmit }: { onCancel: () => void; onSubmit: 
   return (
     <div className="fixed inset-0 z-[120] flex items-center justify-center bg-neutral-950/40 p-4 backdrop-blur-sm" onClick={onCancel}>
       <div role="dialog" aria-modal="true" className="w-full max-w-sm rounded-3xl bg-white p-6 shadow-2xl" onClick={(e) => e.stopPropagation()}>
-        <h2 className="text-lg font-semibold text-neutral-950">{L("Report comment", "কমেন্ট রিপোর্ট করুন")}</h2>
+        <h2 className="text-lg font-semibold text-neutral-950">{L("Report comment", "মন্তব্য রিপোর্ট করুন")}</h2>
         <p className="mt-1 text-sm text-neutral-500">{L("Why are you reporting this?", "কেন রিপোর্ট করছেন?")}</p>
         <div className="mt-4 flex flex-col gap-1.5">
           {REPORT_REASONS.map(([r, bn]) => (

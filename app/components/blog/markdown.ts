@@ -63,7 +63,8 @@ export function renderMarkdown(markdown: string) {
   );
 
   html = html.replace(
-    /^> (.+)$/gm,
+    // The source is HTML-escaped above, so ">" arrives as "&gt;".
+    /^&gt; (.+)$/gm,
     '<blockquote class="my-7 border-l-4 border-neutral-300 pl-5 text-[15px] italic leading-8 text-neutral-600">$1</blockquote>'
   );
 
@@ -71,6 +72,14 @@ export function renderMarkdown(markdown: string) {
     /^---$/gm,
     '<hr class="my-10 border-neutral-200" />'
   );
+
+  // Task lists: "- [ ] item" / "- [x] item" become checklist rows.
+  html = html.replace(/^[-*] \[( |x|X)\] (.+)$/gm, (_, mark: string, text: string) => {
+    const done = mark.trim() !== "";
+    return `<li class="flex list-none items-start gap-3 leading-8 text-neutral-700"><span aria-hidden="true" class="mt-[7px] inline-flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-[5px] border ${
+      done ? "border-neutral-950 bg-neutral-950 text-[11px] text-white" : "border-neutral-300 bg-white"
+    }">${done ? "✓" : ""}</span><span>${text}</span></li>`;
+  });
 
   html = html.replace(
     /^[-*] (.+)$/gm,
@@ -146,6 +155,26 @@ export function renderMarkdown(markdown: string) {
 
       if (!trimmed) {
         return "";
+      }
+
+      // GFM table: header row, separator row (| --- | --- |), then body rows.
+      const lines = trimmed.split("\n");
+      if (lines.length >= 2 && lines[0].trim().startsWith("|") && /^\|?\s*:?-{3,}:?\s*(\|\s*:?-{3,}:?\s*)*\|?$/.test(lines[1].trim())) {
+        const cells = (line: string) =>
+          line.trim().replace(/^\|/, "").replace(/\|$/, "").split("|").map((c) => c.trim());
+        const head = cells(lines[0])
+          .map((c) => `<th class="border-b border-neutral-200 bg-neutral-50 px-4 py-3 text-left font-semibold text-neutral-950">${c}</th>`)
+          .join("");
+        const body = lines
+          .slice(2)
+          .map(
+            (row) =>
+              `<tr>${cells(row)
+                .map((c) => `<td class="border-b border-neutral-100 px-4 py-3 align-top text-neutral-700">${c}</td>`)
+                .join("")}</tr>`,
+          )
+          .join("");
+        return `<div class="my-8 overflow-x-auto rounded-2xl border border-neutral-200"><table class="w-full min-w-[480px] border-collapse text-sm"><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table></div>`;
       }
 
       // A block of list items becomes its own list, so numbering restarts per list.
