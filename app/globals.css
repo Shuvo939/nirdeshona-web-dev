@@ -15,3 +15,8 @@
 .font-bangla .tracking-tighter {
   letter-spacing: 0 !important;
 }
+
+/* Numbered lists on Bangla pages use Bangla digits (১. ২. ৩.). */
+:lang(bn) li.list-decimal {
+  list-style-type: bengali;
+}
