@@ -67,7 +67,7 @@ export default async function ContactPage({
               </span>
 
               <span className="text-xs font-semibold uppercase tracking-[0.15em] text-neutral-500">
-                {L("Let's work together", "চলুন একসাথে কাজ করি")}
+                {L("Let's work together", "চলুন একসঙ্গে কাজ করি")}
               </span>
             </div>
 
@@ -202,7 +202,7 @@ export default async function ContactPage({
                   },
                   {
                     number: "02",
-                    title: L("We review it", "আমরা পর্যালোচনা করি"),
+                    title: L("We review it", "আমরা খুঁটিয়ে দেখি"),
                     text: L("We look at your goals, scope and requirements.", "আপনার লক্ষ্য, পরিসর ও প্রয়োজনগুলো দেখি।"),
                   },
                   {

@@ -213,7 +213,7 @@ export default function UserMenu({
                 href="/client"
                 icon={<FolderKanban className="h-4 w-4" />}
                 label={L("Client portal", "ক্লায়েন্ট পোর্টাল")}
-                description={L("Projects and support tickets", "প্রজেক্ট ও সাপোর্ট টিকিট")}
+                description={L("Projects and support tickets", "প্রজেক্ট ও সাপোর্ট টিকেট")}
                 onClick={() => setOpen(false)}
               />
             )}
@@ -258,7 +258,7 @@ export default function UserMenu({
             <form action={signOut}>
               <SubmitButton
                 icon={<LogOut className="h-4 w-4" />}
-                pendingText={<span className="flex-1">{L("Logging out…", "লগআউট হচ্ছে…")}</span>}
+                pendingText={<span className="flex-1">{L("Logging out…", "লগ আউট হচ্ছে…")}</span>}
                 className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-medium text-red-600 transition hover:bg-red-50 disabled:opacity-70"
               >
                 <span className="flex-1">{L("Log out", "লগআউট")}</span>

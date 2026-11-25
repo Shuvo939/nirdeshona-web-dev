@@ -180,7 +180,7 @@ export default async function SearchPage({
                   {L("Search results", "সার্চের ফলাফল")}
                 </p>
                 <h2 className="mt-1 text-xl font-semibold tracking-tight text-neutral-950">
-                  {L("Results for", "যার জন্য ফলাফল:")} &quot;{query}&quot;
+                  {L("Results for", "যা খুঁজেছেন:")} &quot;{query}&quot;
                 </h2>
               </div>
 
@@ -238,7 +238,7 @@ export default async function SearchPage({
                 </h2>
 
                 <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-neutral-500">
-                  {L(`We couldn't find anything matching "${query}". Try a different keyword or explore our services below.`, `“${query}”-এর সাথে মেলে এমন কিছু পাওয়া যায়নি। অন্য শব্দে চেষ্টা করুন বা নিচে আমাদের সার্ভিসগুলো দেখুন।`)}
+                  {L(`We couldn't find anything matching "${query}". Try a different keyword or explore our services below.`, `“${query}”-এর সঙ্গে মেলে এমন কিছু পাওয়া যায়নি। অন্য শব্দে চেষ্টা করুন বা নিচে আমাদের সার্ভিসগুলো দেখুন।`)}
                 </p>
 
                 <Link

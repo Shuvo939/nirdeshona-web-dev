@@ -177,7 +177,7 @@ async function handleContact(request: Request) {
     `;
     if (by_email >= 3 || by_ip >= 5) {
       return NextResponse.json(
-        { error: await msg("You've sent several messages recently. Please wait a while, or email us directly.", "সম্প্রতি আপনি কয়েকটি মেসেজ পাঠিয়েছেন। কিছুক্ষণ অপেক্ষা করুন, অথবা সরাসরি ইমেইল করুন।") },
+        { error: await msg("You've sent several messages recently. Please wait a while, or email us directly.", "সম্প্রতি আপনি কয়েকটি বার্তা পাঠিয়েছেন। কিছুক্ষণ অপেক্ষা করুন, অথবা সরাসরি ইমেইল করুন।") },
         { status: 429 }
       );
     }

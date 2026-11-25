@@ -214,7 +214,7 @@ export default async function PostListing({
               </div>
               <h2 className="mt-5 text-lg font-semibold">{L("No articles yet", "এখনো কোনো লেখা নেই")}</h2>
               <p className="mx-auto mt-2 max-w-md text-sm text-neutral-500">
-                {q ? L("Nothing matched your search.", "আপনার সার্চের সাথে কিছু মেলেনি।") : L("New articles are on the way — check back soon.", "নতুন লেখা আসছে — শিগগিরই আবার দেখুন।")}
+                {q ? L("Nothing matched your search.", "আপনার সার্চের সঙ্গে কিছু মেলেনি।") : L("New articles are on the way — check back soon.", "নতুন লেখা আসছে — শিগগিরই আবার দেখুন।")}
               </p>
             </div>
           ) : (
@@ -310,7 +310,7 @@ export default async function PostListing({
             {[
               { label: L("Articles", "লেখা"), value: sidebar.stats?.articles ?? 0 },
               { label: L("Reads", "পঠিত"), value: sidebar.stats?.views ?? 0 },
-              { label: L("Comments", "কমেন্ট"), value: sidebar.stats?.comments ?? 0 },
+              { label: L("Comments", "মন্তব্য"), value: sidebar.stats?.comments ?? 0 },
             ].map((s) => (
               <div key={s.label} className="rounded-2xl bg-neutral-50 px-2 py-3">
                 <p className="text-lg font-bold text-neutral-950">{compact(s.value, locale)}</p>
@@ -345,7 +345,7 @@ export default async function PostListing({
           </div>
 
           <a href="/blog/rss.xml" className="inline-flex items-center justify-center gap-2 rounded-full border border-neutral-200 bg-white px-4 py-2.5 text-sm font-medium text-neutral-700 transition hover:border-neutral-300">
-            <Rss className="h-4 w-4 text-orange-500" /> {L("Subscribe via RSS", "আরএসএস-এ সাবস্ক্রাইব করুন")}
+            <Rss className="h-4 w-4 text-orange-500" /> {L("Subscribe via RSS", "RSS-এ সাবস্ক্রাইব করুন")}
           </a>
         </aside>
       </div>

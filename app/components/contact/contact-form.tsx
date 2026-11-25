@@ -124,7 +124,7 @@ export default function ContactForm({
       !isCompressibleImage(selectedFile)
     ) {
       setErrorMessage(
-        L("Attachment must be 10 MB or smaller.", "ফাইল সর্বোচ্চ ১০ এমবি হতে পারবে।")
+        L("Attachment must be 10 MB or smaller.", "ফাইল সর্বোচ্চ ১০ MB হতে পারবে।")
       );
 
       event.target.value = "";
@@ -416,7 +416,7 @@ export default function ContactForm({
       setErrorMessage(
         error instanceof Error
           ? error.message
-          : L("We couldn't send your message. Please try again.", "আপনার মেসেজ পাঠানো যায়নি। আবার চেষ্টা করুন।")
+          : L("We couldn't send your message. Please try again.", "আপনার বার্তা পাঠানো যায়নি। আবার চেষ্টা করুন।")
       );
     }
   }
@@ -666,7 +666,7 @@ export default function ContactForm({
                 </p>
 
                 <p className="mt-1 text-xs text-neutral-400">
-                  {L("Photos: any size (auto-compressed) · Documents: up to 10 MB", "ছবি: যেকোনো সাইজ (নিজে থেকে ছোট হয়) · ডকুমেন্ট: সর্বোচ্চ ১০ এমবি")}
+                  {L("Photos: any size (auto-compressed) · Documents: up to 10 MB", "ছবি: যেকোনো সাইজ (নিজে থেকে ছোট হয়) · ডকুমেন্ট: সর্বোচ্চ ১০ MB")}
                 </p>
 
                 <span className="mt-4 inline-flex h-9 items-center rounded-lg border border-neutral-200 bg-white px-4 text-xs font-semibold text-neutral-700 shadow-sm">
@@ -747,7 +747,7 @@ export default function ContactForm({
               className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
             >
               <p className="font-medium">
-                {L("We couldn't send your message.", "আপনার মেসেজ পাঠানো যায়নি।")}
+                {L("We couldn't send your message.", "আপনার বার্তা পাঠানো যায়নি।")}
               </p>
 
               <p className="mt-1 text-xs text-red-600">
@@ -766,7 +766,7 @@ export default function ContactForm({
 
         <div className="flex flex-col gap-4 border-t border-neutral-200 pt-6 sm:flex-row sm:items-center sm:justify-between">
           <p className="max-w-sm text-xs leading-5 text-neutral-400">
-            {L("By submitting this form, you agree that we may contact you regarding your inquiry.", "ফর্মটি জমা দিয়ে আপনি সম্মতি দিচ্ছেন যে এ বিষয়ে আমরা আপনার সাথে যোগাযোগ করতে পারি।")}
+            {L("By submitting this form, you agree that we may contact you regarding your inquiry.", "ফর্মটি জমা দিয়ে আপনি সম্মতি দিচ্ছেন যে এ বিষয়ে আমরা আপনার সঙ্গে যোগাযোগ করতে পারি।")}
           </p>
 
           <button
@@ -784,7 +784,7 @@ export default function ContactForm({
               </>
             ) : (
               <>
-                {L("Send inquiry", "মেসেজ পাঠান")}
+                {L("Send inquiry", "বার্তা পাঠান")}
                 <ArrowRight className="h-4 w-4" />
               </>
             )}
@@ -853,7 +853,7 @@ function SuccessState() {
 
       <div className="mt-7">
         <p className="text-xs font-semibold uppercase tracking-[0.15em] text-neutral-400">
-          {L("Message received", "মেসেজ পৌঁছেছে")}
+          {L("Message received", "বার্তা পৌঁছেছে")}
         </p>
 
         <h2 className="mt-3 text-3xl font-bold tracking-tight text-neutral-950">
@@ -873,7 +873,7 @@ function SuccessState() {
           }
           className="inline-flex h-11 items-center justify-center rounded-xl bg-black px-5 text-sm font-medium text-white transition hover:bg-neutral-800"
         >
-          {L("Send another inquiry", "আরেকটি মেসেজ পাঠান")}
+          {L("Send another inquiry", "আরেকটি বার্তা পাঠান")}
         </button>
       </div>
     </div>

@@ -251,9 +251,9 @@ export default async function HomePage() {
       <section className="mx-auto max-w-7xl px-5 py-20 sm:px-6 lg:px-8 lg:py-24">
         <div className="grid grid-cols-1 gap-12 lg:grid-cols-[.9fr_1.1fr] lg:items-center">
           <div>
-            <Heading eyebrow={L("Why Nirdeshona", "কেন নির্দেশনা")} title={L("Small team. Clear process. Real support.", "ছোট টিম। স্পষ্ট প্রক্রিয়া। সত্যিকারের সাপোর্ট।")} text={L("We work with a handful of clients at a time, so you always talk to the people actually building your project.", "আমরা একসাথে অল্প কয়েকজন ক্লায়েন্টের সাথে কাজ করি, তাই আপনি সবসময় কথা বলবেন তাদের সাথেই, যারা আপনার প্রজেক্ট বানাচ্ছে।")} />
+            <Heading eyebrow={L("Why Nirdeshona", "কেন নির্দেশনা")} title={L("Small team. Clear process. Real support.", "ছোট টিম। স্পষ্ট প্রক্রিয়া। সত্যিকারের সাপোর্ট।")} text={L("We work with a handful of clients at a time, so you always talk to the people actually building your project.", "আমরা একসঙ্গে অল্প কয়েকজন ক্লায়েন্টের সঙ্গে কাজ করি, তাই আপনি সবসময় কথা বলবেন তাঁদের সঙ্গেই, যাঁরা আপনার প্রজেক্ট বানাচ্ছেন।")} />
             <ul className="mt-8 flex flex-col gap-3">
-              {[L("A written scope and fixed quote before we start", "কাজ শুরুর আগে লিখিত পরিসর ও নির্দিষ্ট মূল্য"), L("A live preview link you can check any time", "যেকোনো সময় দেখার মতো লাইভ প্রিভিউ লিংক"), L("A client portal for progress, tickets and files", "অগ্রগতি, টিকিট ও ফাইলের জন্য ক্লায়েন্ট পোর্টাল"), L("Full ownership of your code, domain and accounts", "কোড, ডোমেইন ও অ্যাকাউন্টের পূর্ণ মালিকানা")].map((t) => (
+              {[L("A written scope and fixed quote before we start", "কাজ শুরুর আগে লিখিত পরিসর ও নির্দিষ্ট মূল্য"), L("A live preview link you can check any time", "যেকোনো সময় দেখার মতো লাইভ প্রিভিউ লিংক"), L("A client portal for progress, tickets and files", "অগ্রগতি, টিকেট ও ফাইলের জন্য ক্লায়েন্ট পোর্টাল"), L("Full ownership of your code, domain and accounts", "কোড, ডোমেইন ও অ্যাকাউন্টের পূর্ণ মালিকানা")].map((t) => (
                 <li key={t} className="flex items-start gap-3 text-sm text-neutral-700">
                   <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-emerald-50 text-emerald-600">
                     <Check className="h-3 w-3" />
@@ -309,7 +309,7 @@ export default async function HomePage() {
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-neutral-400">{L("Client portal", "ক্লায়েন্ট পোর্টাল")}</p>
               <h2 className="mt-3 text-3xl font-bold tracking-[-0.035em] sm:text-4xl">{L("Always know where your project stands.", "সবসময় জানুন, আপনার প্রজেক্ট কোথায় আছে।")}</h2>
               <p className="mt-4 max-w-lg text-sm leading-7 text-neutral-400 sm:text-base">
-                {L("Every client gets a private portal: see progress, open support tickets, share files and get notified the moment we reply.", "প্রত্যেক ক্লায়েন্ট পান একটি নিজস্ব পোর্টাল: অগ্রগতি দেখুন, সাপোর্ট টিকিট খুলুন, ফাইল শেয়ার করুন, আর আমরা উত্তর দিলেই সাথে সাথে নোটিফিকেশন পান।")}
+                {L("Every client gets a private portal: see progress, open support tickets, share files and get notified the moment we reply.", "প্রত্যেক ক্লায়েন্ট পান একটি নিজস্ব পোর্টাল: অগ্রগতি দেখুন, সাপোর্ট টিকেট খুলুন, ফাইল শেয়ার করুন, আর আমরা উত্তর দিলেই সঙ্গে সঙ্গে নোটিফিকেশন পান।")}
               </p>
               <div className="mt-8 flex flex-col gap-3 sm:flex-row">
                 <Link href="/client" className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-white px-6 text-sm font-semibold text-neutral-950 hover:bg-neutral-200">
@@ -323,7 +323,7 @@ export default async function HomePage() {
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               {[
                 { icon: FolderKanban, t: L("Live progress", "সরাসরি অগ্রগতি"), d: L("Status and percentage for every project.", "প্রতিটি প্রজেক্টের অবস্থা ও শতাংশ।") },
-                { icon: LifeBuoy, t: L("Support tickets", "সাপোর্ট টিকিট"), d: L("Priorities, replies and history in one thread.", "অগ্রাধিকার, উত্তর ও ইতিহাস এক থ্রেডে।") },
+                { icon: LifeBuoy, t: L("Support tickets", "সাপোর্ট টিকেট"), d: L("Priorities, replies and history in one thread.", "অগ্রাধিকার, উত্তর ও ইতিহাস এক থ্রেডে।") },
                 { icon: Paperclip, t: L("File sharing", "ফাইল শেয়ার"), d: L("Send screenshots and documents securely.", "নিরাপদে স্ক্রিনশট ও ডকুমেন্ট পাঠান।") },
                 { icon: Bell, t: L("Instant updates", "তাৎক্ষণিক আপডেট"), d: L("In-app and email notifications.", "সাইটে ও ইমেইলে নোটিফিকেশন।") },
               ].map((f) => (
@@ -422,7 +422,7 @@ export default async function HomePage() {
                 <Rocket className="h-5 w-5" />
               </span>
               <div>
-                <p className="text-sm font-semibold">{L("Fast on real phones", "আসল ফোনেও দ্রুত")}</p>
+                <p className="text-sm font-semibold">{L("Fast on real phones", "সাধারণ ফোনেও দ্রুত")}</p>
                 <p className="text-xs leading-5 text-neutral-500">{L("Every build is tested on small screens and slow mobile networks before launch.", "লঞ্চের আগে প্রতিটি কাজ ছোট স্ক্রিন ও ধীর মোবাইল নেটওয়ার্কে পরীক্ষা করা হয়।")}</p>
               </div>
             </div>

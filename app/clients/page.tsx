@@ -11,7 +11,7 @@ export async function generateMetadata(): Promise<Metadata> {
   const { L, locale } = await getI18n();
   return {
     title: L("Clients — Nirdeshona Web", "ক্লায়েন্ট — নির্দেশনা ওয়েব"),
-    description: L("Organisations and people we've had the privilege to work with.", "যেসব প্রতিষ্ঠান ও মানুষের সাথে কাজ করার সৌভাগ্য হয়েছে।"),
+    description: L("Organisations and people we've had the privilege to work with.", "যেসব প্রতিষ্ঠান ও মানুষের সঙ্গে কাজ করার সৌভাগ্য হয়েছে।"),
     alternates: localeAlternates(locale, "/clients"),
   };
 }
@@ -34,7 +34,7 @@ export default async function ClientsPage() {
     <>
       <PageHero
         eyebrow={L("Clients", "ক্লায়েন্ট")}
-        title={L("People and organisations we work with.", "যাদের সাথে আমরা কাজ করি।")}
+        title={L("People and organisations we work with.", "যাদের সঙ্গে আমরা কাজ করি।")}
         description={L("From nonprofits to personal brands — every client gets a dedicated portal to follow progress and get support.", "অলাভজনক সংগঠন থেকে ব্যক্তিগত ব্র্যান্ড — প্রত্যেক ক্লায়েন্ট পান অগ্রগতি দেখা ও সাপোর্ট পাওয়ার জন্য নিজস্ব পোর্টাল।")}
         breadcrumbs={[{ label: L("Clients", "ক্লায়েন্ট") }]}
       >
@@ -82,7 +82,7 @@ export default async function ClientsPage() {
         <div className="mt-12 flex flex-col items-start gap-4 rounded-3xl border border-neutral-200 bg-neutral-50 p-6 sm:flex-row sm:items-center sm:justify-between sm:p-8">
           <div>
             <p className="text-base font-semibold text-neutral-950">{L("Already a client?", "আগে থেকেই ক্লায়েন্ট?")}</p>
-            <p className="mt-1 text-sm text-neutral-600">{L("Sign in to see project progress, open support tickets and message our team.", "প্রজেক্টের অগ্রগতি দেখতে, সাপোর্ট টিকিট খুলতে ও আমাদের টিমকে মেসেজ করতে লগইন করুন।")}</p>
+            <p className="mt-1 text-sm text-neutral-600">{L("Sign in to see project progress, open support tickets and message our team.", "প্রজেক্টের অগ্রগতি দেখতে, সাপোর্ট টিকেট খুলতে ও আমাদের টিমকে বার্তা পাঠাতে লগইন করুন।")}</p>
           </div>
           <Link href="/login?next=/client" className="inline-flex h-11 items-center gap-2 rounded-full bg-neutral-950 px-5 text-sm font-semibold text-white hover:bg-neutral-800">
             <LogIn className="h-4 w-4" /> {L("Sign in", "লগইন")}

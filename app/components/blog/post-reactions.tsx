@@ -115,7 +115,7 @@ export default function PostReactions({
           )}
         </div>
         <a href="#comments" className="shrink-0 hover:underline">
-          {L(`${commentCount} comment${commentCount === 1 ? "" : "s"}`, `${num(commentCount)}টি কমেন্ট`)}
+          {L(`${commentCount} comment${commentCount === 1 ? "" : "s"}`, `${num(commentCount)}টি মন্তব্য`)}
         </a>
       </div>
 
@@ -168,7 +168,7 @@ export default function PostReactions({
           </button>
         </div>
         <a href="#comment-composer" className="flex h-11 items-center justify-center gap-2 rounded-2xl text-sm font-semibold text-neutral-600 transition hover:bg-neutral-50">
-          💬 <span>{L("Comment", "কমেন্ট")}</span>
+          💬 <span>{L("Comment", "মন্তব্য")}</span>
         </a>
         <button type="button" onClick={share} className="flex h-11 items-center justify-center gap-2 rounded-2xl text-sm font-semibold text-neutral-600 transition hover:bg-neutral-50">
           <Link2 className="h-[18px] w-[18px]" />

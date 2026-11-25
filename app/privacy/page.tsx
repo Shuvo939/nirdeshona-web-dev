@@ -52,7 +52,7 @@ export default async function PrivacyPage() {
                 <li>
                   {L(
                     "Contact form details — name, email, phone, the service you're interested in, budget, message and any file you attach.",
-                    "যোগাযোগ ফর্মের তথ্য — নাম, ইমেইল, ফোন, আগ্রহের সার্ভিস, বাজেট, মেসেজ এবং সংযুক্ত ফাইল।",
+                    "যোগাযোগ ফর্মের তথ্য — নাম, ইমেইল, ফোন, আগ্রহের সার্ভিস, বাজেট, বার্তা এবং সংযুক্ত ফাইল।",
                   )}
                 </li>
                 <li>
@@ -61,8 +61,8 @@ export default async function PrivacyPage() {
                     "অ্যাকাউন্টের তথ্য — রেজিস্টার করলে নাম, ইমেইল ঠিকানা ও পাসওয়ার্ড (নিরাপদে সংরক্ষিত, কখনো সাধারণ লেখায় নয়)।",
                   )}
                 </li>
-                <li>{L("Client portal content — support tickets, messages and files you share with us.", "ক্লায়েন্ট পোর্টালের কনটেন্ট — সাপোর্ট টিকিট, মেসেজ ও আপনার শেয়ার করা ফাইল।")}</li>
-                <li>{L("Blog activity — comments and reactions you post while signed in.", "ব্লগে কার্যক্রম — লগইন অবস্থায় আপনার কমেন্ট ও রিঅ্যাকশন।")}</li>
+                <li>{L("Client portal content — support tickets, messages and files you share with us.", "ক্লায়েন্ট পোর্টালের কনটেন্ট — সাপোর্ট টিকেট, বার্তা ও আপনার শেয়ার করা ফাইল।")}</li>
+                <li>{L("Blog activity — comments and reactions you post while signed in.", "ব্লগে কার্যক্রম — লগইন অবস্থায় আপনার মন্তব্য ও রিঅ্যাকশন।")}</li>
               </ul>
               <p>
                 {L(
@@ -83,7 +83,7 @@ export default async function PrivacyPage() {
               <li>
                 {L(
                   "To send transactional emails such as account confirmations, password resets and ticket updates.",
-                  "অ্যাকাউন্ট নিশ্চিতকরণ, পাসওয়ার্ড রিসেট ও টিকিট আপডেটের মতো প্রয়োজনীয় ইমেইল পাঠাতে।",
+                  "অ্যাকাউন্ট নিশ্চিতকরণ, পাসওয়ার্ড রিসেট ও টিকেট আপডেটের মতো প্রয়োজনীয় ইমেইল পাঠাতে।",
                 )}
               </li>
               <li>{L("To keep the site secure and prevent spam and abuse.", "সাইট নিরাপদ রাখতে এবং স্প্যাম ও অপব্যবহার ঠেকাতে।")}</li>
@@ -118,7 +118,7 @@ export default async function PrivacyPage() {
               </p>
               <ul>
                 <li>{L("Supabase — database and authentication.", "Supabase — ডেটাবেস ও অথেনটিকেশন।")}</li>
-                <li>{L("Cloudflare — file storage (R2), DNS and security.", "Cloudflare — ফাইল সংরক্ষণ (R2), ডিএনএস ও নিরাপত্তা।")}</li>
+                <li>{L("Cloudflare — file storage (R2), DNS and security.", "Cloudflare — ফাইল সংরক্ষণ (R2), DNS ও নিরাপত্তা।")}</li>
                 <li>{L("Vercel — website hosting.", "Vercel — ওয়েবসাইট হোস্টিং।")}</li>
                 <li>{L("Resend — email delivery.", "Resend — ইমেইল পাঠানো।")}</li>
               </ul>
@@ -132,7 +132,7 @@ export default async function PrivacyPage() {
             <p>
               {L(
                 "We keep enquiries for as long as needed to respond and follow up, and client project records for the duration of our working relationship plus any period required for accounting. Deleted items stay in a recycle bin for 30 days before they are removed permanently. Data is protected using HTTPS, access controls and database row-level security so clients can only see their own projects and tickets.",
-                "অনুসন্ধানগুলো উত্তর ও পরবর্তী যোগাযোগের জন্য যতদিন দরকার ততদিন রাখি; ক্লায়েন্টের প্রজেক্টের রেকর্ড রাখি একসাথে কাজের পুরো সময় এবং হিসাবের প্রয়োজনে নির্ধারিত সময় পর্যন্ত। মুছে ফেলা জিনিস স্থায়ীভাবে মোছার আগে ৩০ দিন রিসাইকেল বিনে থাকে। এইচটিটিপিএস, অ্যাক্সেস নিয়ন্ত্রণ ও ডেটাবেসের রো-লেভেল নিরাপত্তা দিয়ে তথ্য সুরক্ষিত রাখা হয়, তাই প্রত্যেক ক্লায়েন্ট শুধু নিজের প্রজেক্ট ও টিকিট দেখতে পান।",
+                "অনুসন্ধানগুলো উত্তর ও পরবর্তী যোগাযোগের জন্য যতদিন দরকার ততদিন রাখি; ক্লায়েন্টের প্রজেক্টের রেকর্ড রাখি একসঙ্গে কাজের পুরো সময় এবং হিসাবের প্রয়োজনে নির্ধারিত সময় পর্যন্ত। মুছে ফেলা জিনিস স্থায়ীভাবে মোছার আগে ৩০ দিন রিসাইকেল বিনে থাকে। HTTPS, অ্যাক্সেস নিয়ন্ত্রণ ও ডেটাবেসের রো-লেভেল নিরাপত্তা দিয়ে তথ্য সুরক্ষিত রাখা হয়, তাই প্রত্যেক ক্লায়েন্ট শুধু নিজের প্রজেক্ট ও টিকেট দেখতে পান।",
               )}
             </p>
           ),

@@ -84,7 +84,7 @@ export default async function ServiceDetailPage({
             <div className="mt-6">
               <SectionHeading
                 eyebrow={L("What you get", "আপনি যা পাবেন")}
-                title={L("Deliverables", "ডেলিভারেবল")}
+                title={L("Deliverables", "যা যা পাবেন")}
                 description={L("A clear list of what's included, so you know exactly what you're paying for.", "কী কী থাকছে তার স্পষ্ট তালিকা, যাতে জানেন ঠিক কীসের জন্য খরচ করছেন।")}
               />
             </div>

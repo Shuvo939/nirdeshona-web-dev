@@ -79,10 +79,10 @@ export default async function ServicesPage() {
           <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             {[
               L("Mobile-first, responsive design", "মোবাইল-ফার্স্ট, রেসপন্সিভ ডিজাইন"),
-              L("HTTPS and security best practices", "এইচটিটিপিএস ও নিরাপত্তার সেরা চর্চা"),
+              L("HTTPS and security best practices", "HTTPS ও নিরাপত্তার সেরা চর্চা"),
               L("SEO-ready structure and metadata", "এসইও-উপযোগী কাঠামো ও মেটাডেটা"),
               L("Fast loading on slow networks", "ধীর নেটওয়ার্কেও দ্রুত লোড"),
-              L("Live preview link during the build", "নির্মাণের সময় লাইভ প্রিভিউ লিংক"),
+              L("Live preview link during the build", "কাজ চলার সময় লাইভ প্রিভিউ লিংক"),
               L("Full ownership of code and accounts", "কোড ও অ্যাকাউন্টের পূর্ণ মালিকানা"),
               L("Handover session and documentation", "হস্তান্তর সেশন ও ডকুমেন্টেশন"),
               L("Free support period after launch", "লঞ্চের পর ফ্রি সাপোর্টের সময়"),

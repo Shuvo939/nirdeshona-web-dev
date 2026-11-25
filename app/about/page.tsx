@@ -58,7 +58,7 @@ export default async function AboutPage() {
         breadcrumbs={[{ label: L("About", "আমাদের সম্পর্কে") }]}
       >
         <div className="flex flex-col gap-3 sm:flex-row">
-          <PrimaryButton href="/contact">{L("Work with us", "আমাদের সাথে কাজ করুন")}</PrimaryButton>
+          <PrimaryButton href="/contact">{L("Work with us", "আমাদের সঙ্গে কাজ করুন")}</PrimaryButton>
           <SecondaryButton href="/projects">{L("See our work", "আমাদের কাজ দেখুন")}</SecondaryButton>
         </div>
       </PageHero>
@@ -67,7 +67,7 @@ export default async function AboutPage() {
       <section className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
           {[
-            { value: `${num(years)}+`, label: L("Years of Nirdeshona", "নির্দেশনার বছর") },
+            { value: `${num(years)}+`, label: L("Years of Nirdeshona", "বছরের পথচলা") },
             { value: num(stats?.projects ?? 0), label: L("Projects", "প্রজেক্ট") },
             { value: num(stats?.completed ?? 0), label: L("Launched", "লঞ্চ হয়েছে") },
             { value: num(stats?.clients ?? 0), label: L("Clients", "ক্লায়েন্ট") },
@@ -103,7 +103,7 @@ export default async function AboutPage() {
               <p>
                 {L(
                   "We work with a small number of clients at a time, so every project gets proper attention from the first call to long after launch.",
-                  "আমরা একসাথে অল্পসংখ্যক ক্লায়েন্টের সাথে কাজ করি, তাই প্রথম কল থেকে লঞ্চের অনেক পর পর্যন্ত প্রতিটি প্রজেক্ট যথাযথ মনোযোগ পায়।",
+                  "আমরা একসঙ্গে অল্পসংখ্যক ক্লায়েন্টের সঙ্গে কাজ করি, তাই প্রথম কল থেকে লঞ্চের অনেক পর পর্যন্ত প্রতিটি প্রজেক্ট যথাযথ মনোযোগ পায়।",
                 )}
               </p>
             </div>
@@ -178,9 +178,9 @@ export default async function AboutPage() {
       <section className="border-y border-neutral-200 bg-neutral-50">
         <div className="mx-auto grid max-w-7xl grid-cols-1 gap-10 px-4 py-16 sm:px-6 lg:grid-cols-[1fr_1.3fr] lg:items-center lg:px-8">
           <SectionHeading
-            eyebrow={L("The people", "মানুষগুলো")}
-            title={L("You work directly with the person building your site.", "যিনি আপনার সাইট বানাচ্ছেন, সরাসরি তার সাথেই কাজ করবেন।")}
-            description={L("No account managers in the middle. Questions go straight to the people writing the code.", "মাঝখানে কোনো অ্যাকাউন্ট ম্যানেজার নেই। প্রশ্ন সরাসরি যায় যারা কোড লিখছেন তাদের কাছে।")}
+            eyebrow={L("The people", "আমাদের টিম")}
+            title={L("You work directly with the person building your site.", "যিনি আপনার সাইট বানাচ্ছেন, সরাসরি তাঁর সঙ্গেই কাজ করবেন।")}
+            description={L("No account managers in the middle. Questions go straight to the people writing the code.", "মাঝখানে কোনো অ্যাকাউন্ট ম্যানেজার নেই। আপনার প্রশ্ন সরাসরি পৌঁছায় তাঁদের কাছে, যাঁরা কোড লিখছেন।")}
           />
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             {team.map((member) => (
@@ -207,10 +207,10 @@ export default async function AboutPage() {
               </div>
             ))}
             <Link href="/contact" className="flex flex-col justify-center rounded-3xl border border-dashed border-neutral-300 p-6 transition hover:border-neutral-400 hover:bg-white">
-              <p className="font-semibold text-neutral-950">{L("Plus trusted collaborators", "সাথে বিশ্বস্ত সহযোগীরা")}</p>
+              <p className="font-semibold text-neutral-950">{L("Plus trusted collaborators", "সঙ্গে বিশ্বস্ত সহযোগীরা")}</p>
               <p className="mt-2 text-sm leading-6 text-neutral-600">{L("Writers, designers and specialists join when a project needs them.", "প্রজেক্টের প্রয়োজনে লেখক, ডিজাইনার ও বিশেষজ্ঞরা যুক্ত হন।")}</p>
               <span className="mt-3 inline-flex items-center gap-1 text-sm font-semibold text-neutral-950">
-                {L("Work with us", "আমাদের সাথে কাজ করুন")} <ArrowUpRight className="h-4 w-4" />
+                {L("Work with us", "আমাদের সঙ্গে কাজ করুন")} <ArrowUpRight className="h-4 w-4" />
               </span>
             </Link>
           </div>
@@ -219,7 +219,7 @@ export default async function AboutPage() {
 
       {/* Comparison */}
       <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
-        <SectionHeading eyebrow={L("Why us", "কেন আমরা")} title={L("How we compare", "তুলনায় আমরা")} description={L("A fair, general comparison — the right choice depends on your project.", "একটি ন্যায্য, সাধারণ তুলনা — সঠিক পছন্দ নির্ভর করে আপনার প্রজেক্টের ওপর।")} />
+        <SectionHeading eyebrow={L("Why us", "কেন আমরা")} title={L("How we compare", "অন্যদের সঙ্গে তুলনা")} description={L("A fair, general comparison — the right choice depends on your project.", "একটি ন্যায্য, সাধারণ তুলনা — সঠিক পছন্দ নির্ভর করে আপনার প্রজেক্টের ওপর।")} />
         <div className="mt-8 overflow-x-auto rounded-3xl border border-neutral-200 bg-white">
           <table className="w-full min-w-[560px] text-sm">
             <thead>
@@ -250,7 +250,7 @@ export default async function AboutPage() {
       <section className="border-y border-neutral-200 bg-neutral-50">
         <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-            <SectionHeading eyebrow={L("What we do", "আমরা যা করি")} title={L("Six ways we can help", "ছয়ভাবে আমরা সাহায্য করতে পারি")} />
+            <SectionHeading eyebrow={L("What we do", "আমরা যা করি")} title={L("Six ways we can help", "যে ছয়ভাবে আমরা সাহায্য করি")} />
             <Link href="/services" className="text-sm font-semibold text-neutral-950 hover:underline">
               {L("All services →", "সব সার্ভিস →")}
             </Link>
@@ -292,7 +292,7 @@ export default async function AboutPage() {
           </div>
         </div>
         <div>
-          <SectionHeading eyebrow={L("How we work", "আমরা যেভাবে কাজ করি")} title={L("Five steps, no surprises.", "পাঁচ ধাপ, কোনো চমক নেই।")} />
+          <SectionHeading eyebrow={L("How we work", "আমরা যেভাবে কাজ করি")} title={L("Five steps, no surprises.", "পাঁচটি ধাপ, কোনো লুকোছাপা নেই।")} />
           <ol className="mt-8 flex flex-col gap-3">
             {processSteps.map((step, index) => (
               <li key={step.title} className="flex gap-4 rounded-2xl border border-neutral-200 bg-white p-4">

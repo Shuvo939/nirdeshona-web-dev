@@ -10,7 +10,7 @@ export async function generateMetadata(): Promise<Metadata> {
     title: L("Terms of Service — Nirdeshona Web", "সেবার শর্তাবলি — নির্দেশনা ওয়েব"),
     description: L(
       "The terms that apply when you use this website and work with Nirdeshona Web Development.",
-      "এই ওয়েবসাইট ব্যবহার ও নির্দেশনা ওয়েব ডেভেলপমেন্টের সাথে কাজ করার ক্ষেত্রে প্রযোজ্য শর্তাবলি।",
+      "এই ওয়েবসাইট ব্যবহার ও নির্দেশনা ওয়েব ডেভেলপমেন্টের সঙ্গে কাজ করার ক্ষেত্রে প্রযোজ্য শর্তাবলি।",
     ),
     alternates: localeAlternates(locale, "/terms"),
   };
@@ -34,7 +34,7 @@ export default async function TermsPage() {
           "প্রতিটি প্রজেক্টের নিজস্ব লিখিত পরিসর ও কোটেশন থাকে — এই সাধারণ শর্তের চেয়ে সেটিই অগ্রাধিকার পায়।",
         ),
         L("You own your website, code and content once the project is paid in full.", "পুরো পেমেন্টের পর ওয়েবসাইট, কোড ও কনটেন্টের মালিক আপনি।"),
-        L("Be respectful in comments and support tickets; we may remove abusive content.", "কমেন্ট ও সাপোর্ট টিকিটে শ্রদ্ধাশীল থাকুন; আপত্তিকর কনটেন্ট আমরা সরিয়ে দিতে পারি।"),
+        L("Be respectful in comments and support tickets; we may remove abusive content.", "মন্তব্য ও সাপোর্ট টিকেটে শ্রদ্ধাশীল থাকুন; আপত্তিকর কনটেন্ট আমরা সরিয়ে দিতে পারি।"),
         L("Questions? Email us before you sign anything.", "প্রশ্ন আছে? কিছুতে সম্মতি দেওয়ার আগে আমাদের ইমেইল করুন।"),
       ]}
       sections={[
@@ -59,7 +59,7 @@ export default async function TermsPage() {
               <li>
                 {L(
                   "Client portal access is granted by us and linked to your organisation. Let us know when team members leave.",
-                  "ক্লায়েন্ট পোর্টালের অ্যাক্সেস আমরা দিই এবং তা আপনার প্রতিষ্ঠানের সাথে যুক্ত। টিমের কেউ চলে গেলে আমাদের জানান।",
+                  "ক্লায়েন্ট পোর্টালের অ্যাক্সেস আমরা দিই এবং তা আপনার প্রতিষ্ঠানের সঙ্গে যুক্ত। টিমের কেউ চলে গেলে আমাদের জানান।",
                 )}
               </li>
               <li>{L("We may suspend accounts that are used to abuse the service.", "সেবার অপব্যবহারে ব্যবহৃত অ্যাকাউন্ট আমরা স্থগিত করতে পারি।")}</li>
@@ -97,12 +97,12 @@ export default async function TermsPage() {
         },
         {
           id: "content",
-          title: L("Comments and user content", "কমেন্ট ও ব্যবহারকারীর কনটেন্ট"),
+          title: L("Comments and user content", "মন্তব্য ও ব্যবহারকারীর কনটেন্ট"),
           body: (
             <p>
               {L(
                 "You're responsible for anything you post. We may hide or remove comments that are abusive, spam or unlawful. By posting, you allow us to display your comment on the site.",
-                "আপনি যা পোস্ট করেন তার দায়িত্ব আপনার। আপত্তিকর, স্প্যাম বা বেআইনি কমেন্ট আমরা লুকিয়ে বা সরিয়ে দিতে পারি। পোস্ট করার মাধ্যমে আপনি আমাদের সাইটে কমেন্টটি দেখানোর অনুমতি দিচ্ছেন।",
+                "আপনি যা পোস্ট করেন তার দায়িত্ব আপনার। আপত্তিকর, স্প্যাম বা বেআইনি মন্তব্য আমরা লুকিয়ে বা সরিয়ে দিতে পারি। পোস্ট করার মাধ্যমে আপনি আমাদের সাইটে মন্তব্যটি দেখানোর অনুমতি দিচ্ছেন।",
               )}
             </p>
           ),

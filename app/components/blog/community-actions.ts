@@ -45,8 +45,8 @@ export async function addComment(input: { postId: string; parentId?: string | nu
            count(*) filter (where content = ${content.data} and created_at > now() - interval '10 minutes')::int as dupes
     from comments where user_id = ${user.id}
   `;
-  if (recent >= 5) return { ok: false, error: await msg("You're commenting too fast. Please wait a moment.", "খুব দ্রুত কমেন্ট করছেন। একটু অপেক্ষা করুন।") };
-  if (dupes > 0) return { ok: false, error: await msg("You already posted that comment.", "এই কমেন্টটি আপনি আগেই পোস্ট করেছেন।") };
+  if (recent >= 5) return { ok: false, error: await msg("You're commenting too fast. Please wait a moment.", "খুব দ্রুত মন্তব্য করছেন। একটু অপেক্ষা করুন।") };
+  if (dupes > 0) return { ok: false, error: await msg("You already posted that comment.", "এই মন্তব্যটি আপনি আগেই পোস্ট করেছেন।") };
 
   // Replies are two levels deep: a reply to a reply attaches to the root.
   let parentId: string | null = null;
@@ -56,7 +56,7 @@ export async function addComment(input: { postId: string; parentId?: string | nu
       select id, parent_id, user_id from comments
       where id = ${input.parentId} and post_id = ${post.id} and status = 'visible'
     `;
-    if (!parent) return { ok: false, error: await msg("That comment no longer exists.", "কমেন্টটি আর নেই।") };
+    if (!parent) return { ok: false, error: await msg("That comment no longer exists.", "মন্তব্যটি আর নেই।") };
     parentId = parent.parent_id ?? parent.id;
     parentAuthor = parent.user_id;
   }
@@ -100,7 +100,7 @@ export async function editComment(commentId: string, raw: string): Promise<Resul
     where id = ${commentId} and user_id = ${auth.user.id} and status = 'visible'
     returning content, edited_at
   `;
-  if (!row) return { ok: false, error: await msg("You can only edit your own comments.", "শুধু নিজের কমেন্ট সম্পাদনা করতে পারবেন।") };
+  if (!row) return { ok: false, error: await msg("You can only edit your own comments.", "শুধু নিজের মন্তব্য সম্পাদনা করতে পারবেন।") };
   return { ok: true, content: row.content, edited_at: String(row.edited_at) };
 }
 
@@ -113,7 +113,7 @@ export async function deleteComment(commentId: string): Promise<Result> {
   `;
   if (!comment) return { ok: true };
   const isAdmin = user.role === "ADMIN";
-  if (comment.user_id !== user.id && !isAdmin) return { ok: false, error: await msg("You can't delete this comment.", "এই কমেন্টটি আপনি মুছতে পারবেন না।") };
+  if (comment.user_id !== user.id && !isAdmin) return { ok: false, error: await msg("You can't delete this comment.", "এই মন্তব্যটি আপনি মুছতে পারবেন না।") };
 
   await moveToTrash("comment", commentId, user.id);
   if (isAdmin && comment.user_id !== user.id) {
