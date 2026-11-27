@@ -48,6 +48,7 @@ async function snapshot(tx: TransactionSql, entity: TrashEntity, id: string) {
       data.post_tags = await rows(tx`select coalesce(jsonb_agg(to_jsonb(t)), '[]') as rows from post_tags t where post_id = ${id}`);
       data.post_reactions = await rows(tx`select coalesce(jsonb_agg(to_jsonb(t)), '[]') as rows from post_reactions t where post_id = ${id}`);
       data.post_view_tracking = await rows(tx`select coalesce(jsonb_agg(to_jsonb(t)), '[]') as rows from post_view_tracking t where post_id = ${id}`);
+      data.post_views_daily = await rows(tx`select coalesce(jsonb_agg(to_jsonb(t)), '[]') as rows from post_views_daily t where post_id = ${id}`);
       data.comments = await rows(tx`select coalesce(jsonb_agg(to_jsonb(t)), '[]') as rows from comments t where post_id = ${id}`);
       data.comment_likes = await rows(tx`select coalesce(jsonb_agg(to_jsonb(t)), '[]') as rows from comment_likes t where comment_id in (select id from comments where post_id = ${id})`);
       data.comment_reports = await rows(tx`select coalesce(jsonb_agg(to_jsonb(t)), '[]') as rows from comment_reports t where comment_id in (select id from comments where post_id = ${id})`);
@@ -162,6 +163,7 @@ const RESTORE_ORDER = [
   "post_tags",
   "post_reactions",
   "post_view_tracking",
+  "post_views_daily",
   "comments",
   "comment_likes",
   "comment_reports",
