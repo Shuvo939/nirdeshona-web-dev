@@ -7,7 +7,7 @@ export type LoginOptions = {
   reason?: string;
   /** Where the Google redirect fallback should come back to. Defaults to this page. */
   next?: string;
-  /** Runs after a successful sign-in, once the page has refreshed its session. */
+  /** Runs after a successful sign-in instead of the default page reload. */
   onSuccess?: () => void;
 };
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { Loader2, X } from "lucide-react";
 
 import LoginPanel from "@/app/components/auth/login-panel";
@@ -26,7 +26,6 @@ export function AuthDialogProvider({ googleClientId, children }: { googleClientI
 
 function LoginDialog({ options, onClose }: { options: LoginOptions; onClose: () => void }) {
   const { L } = useI18n();
-  const router = useRouter();
   const pathname = usePathname();
   const [challenge, setChallenge] = useState<Challenge | null>(null);
   const [failed, setFailed] = useState(false);
@@ -57,9 +56,11 @@ function LoginDialog({ options, onClose }: { options: LoginOptions; onClose: () 
   }, [onClose]);
 
   function signedIn() {
-    onClose();
-    router.refresh();
-    options.onSuccess?.();
+    // A real reload: the header, comments and reactions all start from the
+    // signed-in state (several client components seed local state from props).
+    // The browser keeps the scroll position, so the reader stays where they were.
+    if (options.onSuccess) options.onSuccess();
+    else window.location.reload();
   }
 
   return (
