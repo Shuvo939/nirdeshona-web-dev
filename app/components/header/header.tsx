@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import Link from "@/app/components/locale-link";
 import { redirect } from "next/navigation";
-import { ArrowUpRight, Sparkles } from "lucide-react";
+import { ArrowUpRight, LogIn, Sparkles } from "lucide-react";
 
 import { LanguageSwitcher } from "@/app/components/language-switcher";
 import { getSessionUser } from "@/lib/auth/session";
@@ -62,7 +62,11 @@ async function AccountSlot() {
   return (
     <>
       <div className="hidden items-center gap-1.5 sm:flex">
-        <Link href="/login" className="rounded-xl px-3.5 py-2.5 text-sm font-medium text-neutral-600 transition hover:bg-neutral-100 hover:text-neutral-950">
+        <Link
+          href="/login"
+          className="inline-flex h-10 items-center gap-1.5 rounded-xl border border-neutral-200 bg-white px-3.5 text-sm font-medium text-neutral-800 transition hover:border-neutral-300 hover:bg-neutral-50 hover:text-neutral-950"
+        >
+          <LogIn className="h-4 w-4 text-neutral-500" aria-hidden />
           {L("Log in", "লগইন")}
         </Link>
         <Link
@@ -74,7 +78,11 @@ async function AccountSlot() {
         </Link>
       </div>
       <div className="sm:hidden">
-        <Link href="/login" className="rounded-xl px-2.5 py-2 text-xs font-medium text-neutral-600 transition hover:bg-neutral-100 hover:text-neutral-950">
+        <Link
+          href="/login"
+          className="inline-flex h-[34px] items-center gap-1 rounded-xl border border-neutral-200 bg-white px-2.5 text-xs font-semibold text-neutral-800 transition hover:bg-neutral-50"
+        >
+          <LogIn className="h-3.5 w-3.5 text-neutral-500" aria-hidden />
           {L("Log in", "লগইন")}
         </Link>
       </div>
