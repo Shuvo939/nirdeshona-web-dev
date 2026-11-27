@@ -1,6 +1,7 @@
 import Link from "@/app/components/locale-link";
 import type { ReactNode } from "react";
 
+import Breadcrumbs from "@/app/components/breadcrumbs";
 import T from "@/app/components/t";
 import { formatDateLocale, type Locale } from "@/lib/i18n/config";
 import {
@@ -44,23 +45,7 @@ export function PageHero({
       <div aria-hidden className="pointer-events-none absolute -right-32 -top-32 h-80 w-80 rounded-full bg-neutral-200/70 blur-3xl" />
 
       <div className="relative mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8 lg:py-20">
-        <nav aria-label="Breadcrumb" className="flex flex-wrap items-center gap-1 text-xs text-neutral-500">
-          <Link href="/" className="transition hover:text-neutral-950">
-            <T en="Home" bn="হোম" />
-          </Link>
-          {breadcrumbs.map((crumb) => (
-            <span key={crumb.label} className="flex items-center gap-1">
-              <ChevronRight className="h-3 w-3 text-neutral-300" />
-              {crumb.href ? (
-                <Link href={crumb.href} className="transition hover:text-neutral-950">
-                  {crumb.label}
-                </Link>
-              ) : (
-                <span className="text-neutral-800">{crumb.label}</span>
-              )}
-            </span>
-          ))}
-        </nav>
+        <Breadcrumbs items={breadcrumbs} />
 
         {eyebrow && (
           <div className="mt-6 inline-flex items-center gap-2 rounded-full border border-neutral-200 bg-white px-3 py-1.5 text-xs font-medium text-neutral-600 shadow-sm">

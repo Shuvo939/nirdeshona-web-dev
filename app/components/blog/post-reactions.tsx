@@ -107,8 +107,8 @@ export default function PostReactions({
   const meta = mine ? REACTION_META[mine] : null;
 
   return (
-    <section className="mt-12 rounded-3xl border border-neutral-200 bg-white">
-      <div className="flex items-center justify-between gap-3 px-5 py-3 text-sm text-neutral-500">
+    <section className="mt-12 border-y border-neutral-200" aria-label={L("Reactions", "রিঅ্যাকশন")}>
+      <div className="flex items-center justify-between gap-3 py-2.5 text-sm text-neutral-500">
         <div className="flex min-w-0 items-center gap-2">
           {top.length > 0 ? (
             <button
@@ -141,7 +141,7 @@ export default function PostReactions({
         </a>
       </div>
 
-      <div className="grid grid-cols-3 border-t border-neutral-100 p-1.5">
+      <div className="grid grid-cols-3 border-t border-neutral-100 py-1">
         <div ref={pickerRef} className="relative" onPointerEnter={openSoon} onPointerLeave={closeSoon}>
           {picker && (
             <div
@@ -183,17 +183,17 @@ export default function PostReactions({
             onTouchEnd={() => pressTimer.current && window.clearTimeout(pressTimer.current)}
             onTouchMove={() => pressTimer.current && window.clearTimeout(pressTimer.current)}
             onContextMenu={(e) => e.preventDefault()}
-            className={`flex h-11 w-full select-none items-center justify-center gap-2 rounded-2xl text-sm font-semibold transition hover:bg-neutral-50 ${meta ? meta.color : "text-neutral-600"}`}
+            className={`flex h-10 w-full select-none items-center justify-center gap-2 rounded-lg text-sm font-semibold transition hover:bg-neutral-100 ${meta ? meta.color : "text-neutral-600"}`}
           >
             {meta ? <span className="text-lg leading-none">{meta.emoji}</span> : <ThumbsUp className="h-[18px] w-[18px]" />}
             {meta ? (locale === "bn" ? meta.labelBn : meta.label) : L("Like", "লাইক")}
           </button>
         </div>
-        <a href="#comment-composer" className="flex h-11 items-center justify-center gap-2 rounded-2xl text-sm font-semibold text-neutral-600 transition hover:bg-neutral-50">
+        <a href="#comment-composer" className="flex h-10 items-center justify-center gap-2 rounded-lg text-sm font-semibold text-neutral-600 transition hover:bg-neutral-100">
           <MessageCircle className="h-[18px] w-[18px]" />
           <span>{L("Comment", "মন্তব্য")}</span>
         </a>
-        <button type="button" onClick={share} className="flex h-11 items-center justify-center gap-2 rounded-2xl text-sm font-semibold text-neutral-600 transition hover:bg-neutral-50">
+        <button type="button" onClick={share} className="flex h-10 items-center justify-center gap-2 rounded-lg text-sm font-semibold text-neutral-600 transition hover:bg-neutral-100">
           <Link2 className="h-[18px] w-[18px]" />
           {copied ? L("Copied!", "কপি হয়েছে!") : L("Share", "শেয়ার")}
         </button>

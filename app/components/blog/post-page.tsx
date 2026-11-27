@@ -41,6 +41,12 @@ export default async function PostPage({ post, tags }: { post: Post; tags: Tag[]
 
       <div className="mx-auto grid w-full max-w-6xl grid-cols-1 gap-12 px-5 pb-12 pt-8 sm:px-8 lg:grid-cols-[minmax(0,1fr)_280px] lg:px-10 lg:pb-16 lg:pt-10">
         <div className="min-w-0">
+          {post.cover_image_url && (
+            <figure className="mb-10 overflow-hidden rounded-2xl border border-neutral-200 bg-neutral-100">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={post.cover_image_url} alt={post.title} className="aspect-[16/9] w-full object-cover" fetchPriority="high" />
+            </figure>
+          )}
           <PostContent post={post} />
 
           <PostReactions

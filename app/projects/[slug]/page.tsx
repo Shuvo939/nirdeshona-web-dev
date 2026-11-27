@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Breadcrumbs from "@/app/components/breadcrumbs";
 import Link from "@/app/components/locale-link";
 import { notFound } from "next/navigation";
 import { cache } from "react";
@@ -207,13 +208,7 @@ export default async function ProjectDetailsPage({ params }: Props) {
       <section className="relative overflow-hidden border-b border-neutral-200 bg-neutral-50">
         <div aria-hidden className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_0%,rgba(16,185,129,0.08),transparent_45%),radial-gradient(circle_at_90%_10%,rgba(0,0,0,0.05),transparent_40%)]" />
         <div className="relative mx-auto max-w-7xl px-4 pb-12 pt-8 sm:px-6 sm:pt-10 lg:px-8">
-          <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-xs text-neutral-500">
-            <Link href="/" className="hover:text-neutral-950">{L("Home", "হোম")}</Link>
-            <ChevronRight className="h-3 w-3" />
-            <Link href="/projects" className="hover:text-neutral-950">{L("Our work", "আমাদের কাজ")}</Link>
-            <ChevronRight className="h-3 w-3" />
-            <span className="truncate text-neutral-800">{project.title}</span>
-          </nav>
+          <Breadcrumbs items={[{ label: L("Our work", "আমাদের কাজ"), href: "/projects" }, { label: project.title }]} />
 
           <div className="mt-8 grid grid-cols-1 gap-10 lg:grid-cols-[1.05fr_1fr] lg:items-center">
             <div className="min-w-0">
