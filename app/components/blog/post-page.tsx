@@ -37,7 +37,7 @@ export default async function PostPage({ post, tags }: { post: Post; tags: Tag[]
 
   return (
     <main className="min-h-screen bg-white">
-      <PostHero post={post} commentCount={comments.length} reactionCount={Object.values(reactions.counts).reduce((a, b) => a + (b ?? 0), 0)} />
+      <PostHero post={post} commentCount={comments.length} />
 
       <div className="mx-auto grid w-full max-w-6xl grid-cols-1 gap-12 px-5 pb-12 pt-8 sm:px-8 lg:grid-cols-[minmax(0,1fr)_280px] lg:px-10 lg:pb-16 lg:pt-10">
         <div className="min-w-0">
