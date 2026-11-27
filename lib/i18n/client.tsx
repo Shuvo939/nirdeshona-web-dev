@@ -30,6 +30,7 @@ export function useI18n() {
   return useMemo(() => {
     const bn = locale === "bn";
     const numberFmt = new Intl.NumberFormat(bn ? "bn-BD" : "en-US");
+    const statFmt = new Intl.NumberFormat("en-US");
     return {
       locale,
       bn,
@@ -39,6 +40,8 @@ export function useI18n() {
       tm: <M extends string | null | undefined>(message: M) => translateMessage(locale, message),
       tfe: (errors: Record<string, string> | undefined) => translateFieldErrors(locale, errors),
       num: (n: number) => numberFmt.format(n),
+      /** Counts and statistics (views, reactions, totals): always English digits. */
+      stat: (n: number) => statFmt.format(n),
       /** Digits only, no thousands separator — for years and IDs. */
       digits: (n: number | string) => (bn ? String(n).replace(/[0-9]/g, (d) => "০১২৩৪৫৬৭৮৯"[Number(d)]) : String(n)),
       date: (value: string | Date | null | undefined, options: Intl.DateTimeFormatOptions = { day: "numeric", month: "short", year: "numeric" }) =>

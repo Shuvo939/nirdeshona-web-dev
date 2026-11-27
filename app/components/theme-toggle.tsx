@@ -50,7 +50,7 @@ const OPTIONS: { id: ThemeChoice; icon: typeof Sun; en: string; bn: string }[] =
 ];
 
 /** Header button with a small menu: Light, Dark, System. */
-export default function ThemeToggle({ className = "" }: { className?: string }) {
+export default function ThemeToggle({ className = "", dark = false, up = false }: { className?: string; dark?: boolean; up?: boolean }) {
   const { L } = useI18n();
   const { choice, set } = useTheme();
   const [open, setOpen] = useState(false);
@@ -75,13 +75,20 @@ export default function ThemeToggle({ className = "" }: { className?: string }) 
         onClick={() => setOpen((v) => !v)}
         aria-label={L("Theme", "থিম")}
         aria-expanded={open}
-        className="flex h-10 w-10 items-center justify-center rounded-xl text-neutral-600 transition hover:bg-neutral-100 hover:text-neutral-950"
+        className={`flex h-10 w-10 items-center justify-center rounded-xl transition ${
+          dark ? "border border-white/10 bg-white/5 text-neutral-300 hover:text-white" : "text-neutral-600 hover:bg-neutral-100 hover:text-neutral-950"
+        }`}
       >
         <Sun className="h-[18px] w-[18px] dark:hidden" />
         <Moon className="hidden h-[18px] w-[18px] dark:block" />
       </button>
       {open && (
-        <div role="menu" className="absolute right-0 top-full z-50 mt-2 w-48 overflow-hidden rounded-2xl border border-neutral-200 bg-white p-1.5 shadow-[0_18px_50px_rgba(0,0,0,0.14)]">
+        <div
+          role="menu"
+          className={`absolute z-50 w-48 overflow-hidden rounded-2xl border p-1.5 shadow-[0_18px_50px_rgba(0,0,0,0.18)] ${
+            up ? "bottom-full left-0 mb-2" : "right-0 top-full mt-2"
+          } ${dark ? "border-white/10 bg-neutral-900" : "border-neutral-200 bg-white"}`}
+        >
           {OPTIONS.map((o) => (
             <button
               key={o.id}
@@ -92,11 +99,13 @@ export default function ThemeToggle({ className = "" }: { className?: string }) 
                 set(o.id);
                 setOpen(false);
               }}
-              className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-sm text-neutral-700 transition hover:bg-neutral-100 hover:text-neutral-950"
+              className={`flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-sm transition ${
+                dark ? "text-neutral-300 hover:bg-white/10 hover:text-white" : "text-neutral-700 hover:bg-neutral-100 hover:text-neutral-950"
+              }`}
             >
-              <o.icon className="h-4 w-4 text-neutral-500" />
+              <o.icon className={`h-4 w-4 ${dark ? "text-neutral-500" : "text-neutral-500"}`} />
               <span className="flex-1">{L(o.en, o.bn)}</span>
-              {choice === o.id && <Check className="h-4 w-4 text-neutral-950" />}
+              {choice === o.id && <Check className={`h-4 w-4 ${dark ? "text-white" : "text-neutral-950"}`} />}
             </button>
           ))}
         </div>

@@ -25,7 +25,7 @@ export async function generateMetadata(): Promise<Metadata> {
 const VALUE_ICONS = [Compass, Smartphone, Layers3, HeartHandshake];
 
 export default async function AboutPage() {
-  const { L, locale, num, digits } = await getI18n();
+  const { L, locale, stat, digits } = await getI18n();
   const { comparison, faqGroups, milestones, processSteps, services, site, team, techCategories, values } = getContent(locale);
   const [[stats], clients] = await Promise.all([
     sql`
@@ -70,12 +70,12 @@ export default async function AboutPage() {
       <section className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
           {[
-            { value: `${num(years)}+`, label: L("Years of Nirdeshona", "বছরের পথচলা") },
-            { value: num(stats?.projects ?? 0), label: L("Projects", "প্রজেক্ট") },
-            { value: num(stats?.completed ?? 0), label: L("Launched", "লঞ্চ হয়েছে") },
-            { value: num(stats?.clients ?? 0), label: L("Clients", "ক্লায়েন্ট") },
-            { value: num(services.length), label: L("Services", "সার্ভিস") },
-            { value: `${num(techCategories.flatMap((c) => c.items).length)}+`, label: L("Technologies", "প্রযুক্তি") },
+            { value: `${stat(years)}+`, label: L("Years of Nirdeshona", "বছরের পথচলা") },
+            { value: stat(stats?.projects ?? 0), label: L("Projects", "প্রজেক্ট") },
+            { value: stat(stats?.completed ?? 0), label: L("Launched", "লঞ্চ হয়েছে") },
+            { value: stat(stats?.clients ?? 0), label: L("Clients", "ক্লায়েন্ট") },
+            { value: stat(services.length), label: L("Services", "সার্ভিস") },
+            { value: `${stat(techCategories.flatMap((c) => c.items).length)}+`, label: L("Technologies", "প্রযুক্তি") },
           ].map((item) => (
             <div key={item.label} className="rounded-3xl border border-neutral-200 bg-white p-5">
               <p className="text-3xl font-bold tracking-[-0.04em] text-neutral-950">{item.value}</p>
@@ -299,7 +299,7 @@ export default async function AboutPage() {
           <ol className="mt-8 flex flex-col gap-3">
             {processSteps.map((step, index) => (
               <li key={step.title} className="flex gap-4 rounded-2xl border border-neutral-200 bg-white p-4">
-                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-neutral-950 text-xs font-semibold text-white">{num(index + 1)}</span>
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-neutral-950 text-xs font-semibold text-white">{stat(index + 1)}</span>
                 <div>
                   <h3 className="text-sm font-semibold text-neutral-950">{step.title}</h3>
                   <p className="mt-1 text-sm leading-6 text-neutral-600">{step.text}</p>

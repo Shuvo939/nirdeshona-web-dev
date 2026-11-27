@@ -3,9 +3,9 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Bangla: Hind Siliguri (self-hosted via @fontsource) with comfortable line height. */
+/* Bangla: Tiro Bangla (self-hosted via @fontsource, Bengali range only) with comfortable line height. */
 .font-bangla {
-  font-family: "Hind Siliguri", ui-sans-serif, system-ui, sans-serif;
+  font-family: "Tiro Bangla", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 }
 .font-bangla :where(h1, h2, h3) {
   letter-spacing: 0 !important;
@@ -55,5 +55,5 @@
 [lang="bn"] .nw-prose,
 [lang="bn"] input,
 [lang="bn"] textarea {
-  font-family: "Hind Siliguri", ui-sans-serif, system-ui, sans-serif;
+  font-family: "Tiro Bangla", ui-sans-serif, system-ui, sans-serif;
 }

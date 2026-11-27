@@ -19,7 +19,7 @@ export default function ReactorsDialog({
   id: string;
   onClose: () => void;
 }) {
-  const { L, locale, num } = useI18n();
+  const { L, locale, stat } = useI18n();
   const [reactors, setReactors] = useState<Reactor[] | null>(null);
   const [error, setError] = useState("");
   const [tab, setTab] = useState<ReactionType | "all">("all");
@@ -72,11 +72,11 @@ export default function ReactorsDialog({
         <div className="flex items-center gap-2 border-b border-neutral-100 px-3 pt-2 sm:pt-3">
           <div role="tablist" className="flex min-w-0 flex-1 gap-1 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             <TabButton active={tab === "all"} onClick={() => setTab("all")}>
-              {L("All", "সব")} {reactors ? num(reactors.length) : ""}
+              {L("All", "সব")} {reactors ? stat(reactors.length) : ""}
             </TabButton>
             {tabs.map((r) => (
               <TabButton key={r} active={tab === r} onClick={() => setTab(r)} label={reactionLabel(r, locale)}>
-                <span className="text-base leading-none">{REACTION_META[r].emoji}</span> {num(counts[r] ?? 0)}
+                <span className="text-base leading-none">{REACTION_META[r].emoji}</span> {stat(counts[r] ?? 0)}
               </TabButton>
             ))}
           </div>

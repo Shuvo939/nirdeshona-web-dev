@@ -28,7 +28,7 @@ export default function PostReactions({
 }) {
   const router = useRouter();
   const pathname = usePathname();
-  const { L, locale, num } = useI18n();
+  const { L, locale, stat } = useI18n();
   const [counts, setCounts] = useState(initialCounts);
   const [mine, setMine] = useState(initialMine);
   const [picker, setPicker] = useState(false);
@@ -123,7 +123,7 @@ export default function PostReactions({
             >
               <span className="flex -space-x-1">
                 {top.map((r) => (
-                  <span key={r} title={`${reactionLabel(r, locale)}: ${num(counts[r] ?? 0)}`} className="flex h-6 w-6 items-center justify-center rounded-full bg-white text-sm ring-2 ring-white">
+                  <span key={r} title={`${reactionLabel(r, locale)}: ${stat(counts[r] ?? 0)}`} className="flex h-6 w-6 items-center justify-center rounded-full bg-white text-sm ring-2 ring-white">
                     {REACTION_META[r].emoji}
                   </span>
                 ))}
@@ -131,9 +131,9 @@ export default function PostReactions({
               <span className="truncate">
                 {mine
                   ? total > 1
-                    ? L(`You and ${total - 1} other${total - 1 === 1 ? "" : "s"}`, `আপনি ও আরও ${num(total - 1)} জন`)
+                    ? L(`You and ${total - 1} other${total - 1 === 1 ? "" : "s"}`, `আপনি ও আরও ${stat(total - 1)} জন`)
                     : L("You", "আপনি")
-                  : num(total)}
+                  : stat(total)}
               </span>
             </button>
           ) : (
@@ -141,7 +141,7 @@ export default function PostReactions({
           )}
         </div>
         <a href="#comments" className="shrink-0 hover:underline">
-          {L(`${commentCount} comment${commentCount === 1 ? "" : "s"}`, `${num(commentCount)}টি মন্তব্য`)}
+          {L(`${commentCount} comment${commentCount === 1 ? "" : "s"}`, `${stat(commentCount)}টি মন্তব্য`)}
         </a>
       </div>
 

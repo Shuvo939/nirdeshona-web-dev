@@ -434,7 +434,7 @@ export default function MobileNav({
               {/* =================================================
                   FOOTER
               ================================================== */}
-              <div className="flex flex-col items-center gap-3 pt-8">
+              <div className="flex items-center justify-between gap-3 pt-8">
                 <LanguageSwitcherFull />
                 <ThemeSwitch />
               </div>

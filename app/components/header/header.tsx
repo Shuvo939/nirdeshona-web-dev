@@ -3,7 +3,7 @@ import Link from "@/app/components/locale-link";
 import { redirect } from "next/navigation";
 import { ArrowUpRight, LogIn, Sparkles } from "lucide-react";
 
-import { LanguageSwitcher } from "@/app/components/language-switcher";
+import { LanguageMenu, LanguageSwitcher } from "@/app/components/language-switcher";
 import ThemeToggle from "@/app/components/theme-toggle";
 import { getSessionUser } from "@/lib/auth/session";
 import { sql } from "@/lib/db";
@@ -180,9 +180,11 @@ export default async function Header() {
               <SearchTrigger />
             </div>
 
-            <ThemeToggle className="hidden sm:block" />
+            <ThemeToggle />
 
-            <LanguageSwitcher />
+            {/* Phones: a globe menu; larger screens: the বাং | EN pill. */}
+            <LanguageMenu className="sm:hidden" />
+            <LanguageSwitcher className="hidden sm:inline-flex" />
 
             <Suspense fallback={<AccountPlaceholder />}>
               <AccountSlot />

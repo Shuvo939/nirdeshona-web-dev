@@ -110,7 +110,7 @@ const getHomeData = publicCache(async (locale: Locale) => {
 }, "home-data");
 
 export default async function HomePage() {
-  const { L, locale, date, num } = await getI18n();
+  const { L, locale, date, stat } = await getI18n();
   const { faqGroups, packages, processSteps, services, values } = getContent(locale);
   const { projects, stats, posts, clients, live } = await getHomeData(locale);
   const progress = live?.progress_percent ?? 70;
@@ -194,9 +194,9 @@ export default async function HomePage() {
                   </div>
 
                   <Link href="/projects" aria-label={L("See our projects", "আমাদের প্রজেক্ট দেখুন")} className="mt-5 grid grid-cols-3 gap-2 rounded-2xl transition hover:opacity-80">
-                    <Mini label={L("Projects", "প্রজেক্ট")} value={num(stats.total)} />
-                    <Mini label={L("Launched", "লঞ্চ হয়েছে")} value={num(stats.completed)} />
-                    <Mini label={L("Active", "চলমান")} value={num(stats.active)} />
+                    <Mini label={L("Projects", "প্রজেক্ট")} value={stat(stats.total)} />
+                    <Mini label={L("Launched", "লঞ্চ হয়েছে")} value={stat(stats.completed)} />
+                    <Mini label={L("Active", "চলমান")} value={stat(stats.active)} />
                   </Link>
 
                   <div className="mt-3 rounded-2xl border border-neutral-200 bg-white p-4">
@@ -214,7 +214,7 @@ export default async function HomePage() {
                           <p className="truncate text-sm font-semibold">{L("Website redesign", "ওয়েবসাইট রিডিজাইন")}</p>
                         )}
                       </div>
-                      <span className="shrink-0 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700">{L(`${num(progress)}% done`, `${num(progress)}% সম্পন্ন`)}</span>
+                      <span className="shrink-0 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700">{L(`${stat(progress)}% done`, `${stat(progress)}% সম্পন্ন`)}</span>
                     </div>
                     <ol className="mt-4 flex flex-col gap-3">
                       {stages.map(([label, value, state]) => (
@@ -230,7 +230,7 @@ export default async function HomePage() {
                             <div className="flex items-baseline justify-between gap-2 text-xs">
                               <span className={state === "next" ? "text-neutral-400" : "font-medium text-neutral-800"}>{label}</span>
                               <span className={`shrink-0 ${state === "done" ? "text-emerald-700" : state === "active" ? "font-semibold text-neutral-900" : "text-neutral-400"}`}>
-                                {state === "done" ? L("Done", "সম্পন্ন") : state === "active" ? `${num(value)}%` : L("Next", "পরবর্তী")}
+                                {state === "done" ? L("Done", "সম্পন্ন") : state === "active" ? `${stat(value)}%` : L("Next", "পরবর্তী")}
                               </span>
                             </div>
                             <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-neutral-100">
@@ -269,7 +269,7 @@ export default async function HomePage() {
                 <div className="h-full rounded-full bg-emerald-500" style={{ width: `${stats.total ? Math.round((stats.completed / stats.total) * 100) : 0}%` }} />
               </div>
               <p className="mt-2 text-[11px] text-neutral-500">
-                {L(`${stats.completed} launched · ${stats.active} in progress`, `${num(stats.completed)}টি লঞ্চ হয়েছে · ${num(stats.active)}টি চলমান`)}
+                {L(`${stats.completed} launched · ${stats.active} in progress`, `${stat(stats.completed)}টি লঞ্চ হয়েছে · ${stat(stats.active)}টি চলমান`)}
               </p>
             </StatCard>
             <StatCard icon={<Users className="h-5 w-5" />} value={<CountUp value={stats.clients} />} label={L("Clients served", "ক্লায়েন্ট")}>
@@ -279,7 +279,7 @@ export default async function HomePage() {
               <p className="mt-3 text-[11px] text-neutral-500">{L("Next.js, WordPress, Supabase & more", "Next.js, WordPress, Supabase ও আরও")}</p>
             </StatCard>
             <StatCard icon={<Clock className="h-5 w-5" />} value={<span>{L("< 24h", "২৪ ঘণ্টার কম")}</span>} label={L("Support reply", "সাপোর্টে উত্তর")} dark>
-              <p className="mt-3 text-[11px] text-neutral-400">{L(`Since 2022 · ${years}+ years of Nirdeshona`, `২০২২ থেকে · নির্দেশনার ${num(years)}+ বছর`)}</p>
+              <p className="mt-3 text-[11px] text-neutral-400">{L(`Since 2022 · ${years}+ years of Nirdeshona`, `২০২২ থেকে · নির্দেশনার ${stat(years)}+ বছর`)}</p>
             </StatCard>
           </div>
         </div>
@@ -382,7 +382,7 @@ export default async function HomePage() {
             <div aria-hidden className="absolute left-0 right-0 top-[22px] hidden h-px bg-neutral-200 md:block" />
             {processSteps.map((step, i) => (
               <li key={step.title} className="relative flex gap-4 md:flex-col md:gap-0">
-                <span className="relative z-10 flex h-11 w-11 shrink-0 items-center justify-center rounded-full border-4 border-neutral-50 bg-neutral-950 text-sm font-bold text-white">{num(i + 1)}</span>
+                <span className="relative z-10 flex h-11 w-11 shrink-0 items-center justify-center rounded-full border-4 border-neutral-50 bg-neutral-950 text-sm font-bold text-white">{stat(i + 1)}</span>
                 <div className="md:mt-5">
                   <h3 className="font-semibold text-neutral-950">{step.title}</h3>
                   <p className="mt-1.5 text-sm leading-6 text-neutral-600">{step.text}</p>

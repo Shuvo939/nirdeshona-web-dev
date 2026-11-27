@@ -1,9 +1,8 @@
 "use client";
 
 import "./globals.css";
-import "@fontsource/hind-siliguri/400.css";
-import "@fontsource/hind-siliguri/600.css";
-import "@fontsource/hind-siliguri/700.css";
+// Tiro Bangla for Bangla script only; Latin text keeps the sans stack.
+import "@fontsource/tiro-bangla/bengali-400.css";
 
 import ErrorView from "@/app/components/error-view";
 

@@ -27,7 +27,7 @@ export default async function ProjectsPage({
   searchParams: Promise<Record<string, string | undefined>>;
 }) {
   const params = await searchParams;
-  const { L, locale, num } = await getI18n();
+  const { L, locale, stat } = await getI18n();
 
   // The whole (small) portfolio is sent once; filtering happens instantly in the browser.
   const projects = (await sql`
@@ -65,10 +65,10 @@ export default async function ProjectsPage({
         breadcrumbs={[{ label: L("Our work", "আমাদের কাজ") }]}
       >
         <div className="grid max-w-2xl grid-cols-2 gap-3 sm:grid-cols-4">
-          <Stat value={num(projects.length)} label={L("Projects", "প্রজেক্ট")} />
-          <Stat value={num(completed)} label={L("Launched", "চালু হয়েছে")} />
-          <Stat value={num(active)} label={L("In progress", "চলমান")} />
-          <Stat value={num(techs || clients)} label={techs ? L("Technologies", "প্রযুক্তি") : L("Clients", "ক্লায়েন্ট")} />
+          <Stat value={stat(projects.length)} label={L("Projects", "প্রজেক্ট")} />
+          <Stat value={stat(completed)} label={L("Launched", "চালু হয়েছে")} />
+          <Stat value={stat(active)} label={L("In progress", "চলমান")} />
+          <Stat value={stat(techs || clients)} label={techs ? L("Technologies", "প্রযুক্তি") : L("Clients", "ক্লায়েন্ট")} />
         </div>
       </PageHero>
 

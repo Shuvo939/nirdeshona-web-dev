@@ -16,7 +16,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function AccountPage() {
   const user = await requireUser("/account");
-  const { L, locale, num } = await getI18n();
+  const { L, locale, num, stat } = await getI18n();
   const timeAgo = (value: string) => timeAgoLocale(value, locale);
   const memberships = await getClientMemberships(user.id);
   const clientIds = memberships.map((m) => m.id);
@@ -119,13 +119,13 @@ export default async function AccountPage() {
 
       {/* Stats */}
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <Stat icon={<MessageCircle className="h-4 w-4" />} label={L("Comments", "মন্তব্য")} value={num(stats.comments)} />
-        <Stat icon={<Heart className="h-4 w-4" />} label={L("Likes received", "পাওয়া লাইক")} value={num(stats.likes_received)} />
-        <Stat icon={<Bell className="h-4 w-4" />} label={L("Unread updates", "না-পড়া আপডেট")} value={num(stats.unread)} href="/notifications" />
+        <Stat icon={<MessageCircle className="h-4 w-4" />} label={L("Comments", "মন্তব্য")} value={stat(stats.comments)} />
+        <Stat icon={<Heart className="h-4 w-4" />} label={L("Likes received", "পাওয়া লাইক")} value={stat(stats.likes_received)} />
+        <Stat icon={<Bell className="h-4 w-4" />} label={L("Unread updates", "না-পড়া আপডেট")} value={stat(stats.unread)} href="/notifications" />
         {clientIds.length ? (
-          <Stat icon={<LifeBuoy className="h-4 w-4" />} label={L("Open tickets", "খোলা টিকেট")} value={num(stats.open_tickets)} href="/client" />
+          <Stat icon={<LifeBuoy className="h-4 w-4" />} label={L("Open tickets", "খোলা টিকেট")} value={stat(stats.open_tickets)} href="/client" />
         ) : (
-          <Stat icon={<Newspaper className="h-4 w-4" />} label={L("Reactions given", "দেওয়া রিঅ্যাকশন")} value={num(stats.reactions)} />
+          <Stat icon={<Newspaper className="h-4 w-4" />} label={L("Reactions given", "দেওয়া রিঅ্যাকশন")} value={stat(stats.reactions)} />
         )}
       </div>
 
@@ -161,7 +161,7 @@ export default async function AccountPage() {
                     <Link key={t.id} href={`/client/tickets/${t.id}`} className="flex items-center justify-between gap-2 rounded-2xl border border-neutral-100 p-3 transition hover:border-neutral-200 hover:bg-neutral-50">
                       <span className="min-w-0">
                         <span className="block truncate text-sm font-medium">{t.subject}</span>
-                        <span className="text-xs text-neutral-500">#{num(t.ticket_number)} · {timeAgo(t.updated_at)}</span>
+                        <span className="text-xs text-neutral-500">#{stat(t.ticket_number)} · {timeAgo(t.updated_at)}</span>
                       </span>
                       <StatusBadge map={TICKET_STATUS} value={t.status} />
                     </Link>
@@ -240,8 +240,8 @@ export default async function AccountPage() {
                       </p>
                       <p className="mt-1.5 line-clamp-2 text-sm text-neutral-700">{c.content}</p>
                       <p className="mt-2 flex items-center gap-3 text-xs text-neutral-500">
-                        <span>👍 {num(c.likes)}</span>
-                        {!c.parent_id && <span className="inline-flex items-center gap-1"><MessageCircle className="h-3 w-3" /> {num(c.replies)} {L(c.replies === 1 ? "reply" : "replies", "উত্তর")}</span>}
+                        <span>👍 {stat(c.likes)}</span>
+                        {!c.parent_id && <span className="inline-flex items-center gap-1"><MessageCircle className="h-3 w-3" /> {stat(c.replies)} {L(c.replies === 1 ? "reply" : "replies", "উত্তর")}</span>}
                         <ArrowUpRight className="ml-auto h-3.5 w-3.5 opacity-0 transition group-hover:opacity-100" />
                       </p>
                     </Link>
@@ -256,7 +256,7 @@ export default async function AccountPage() {
           {completeness < 100 && (
             <Card title={L("Complete your profile", "প্রোফাইল সম্পূর্ণ করুন")} icon={<UserRound className="h-4 w-4" />}>
               <div className="mb-3 flex justify-between text-xs text-neutral-500">
-                <span>{L(`${completeness}% complete`, `${num(completeness)}% সম্পূর্ণ`)}</span>
+                <span>{L(`${completeness}% complete`, `${stat(completeness)}% সম্পূর্ণ`)}</span>
               </div>
               <div className="h-2 overflow-hidden rounded-full bg-neutral-100">
                 <div className="h-full rounded-full bg-emerald-500" style={{ width: `${completeness}%` }} />

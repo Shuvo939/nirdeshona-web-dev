@@ -2,10 +2,8 @@ import type { Metadata, Viewport } from "next";
 import { Suspense } from "react";
 
 import "./globals.css";
-import "@fontsource/hind-siliguri/400.css";
-import "@fontsource/hind-siliguri/500.css";
-import "@fontsource/hind-siliguri/600.css";
-import "@fontsource/hind-siliguri/700.css";
+// Tiro Bangla for Bangla script only; Latin text keeps the sans stack.
+import "@fontsource/tiro-bangla/bengali-400.css";
 
 import Header from "@/app/components/header/header";
 import Footer from "@/app/components/footer";
