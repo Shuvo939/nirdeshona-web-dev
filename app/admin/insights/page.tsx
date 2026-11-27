@@ -24,6 +24,19 @@ const fmt = (v: unknown) => n(v).toLocaleString("en-US");
 // Today in Dhaka, as a SQL date expression.
 const today = sql`(now() at time zone 'Asia/Dhaka')::date`;
 
+/**
+ * Runs queries a few at a time instead of all at once, so this page never
+ * takes over the connection pool the public site depends on.
+ */
+async function inBatches(tasks: (() => PromiseLike<unknown>)[], size = 4) {
+  const out: unknown[] = [];
+  for (let i = 0; i < tasks.length; i += size) {
+    out.push(...(await Promise.all(tasks.slice(i, i + size).map((t) => t()))));
+  }
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return out as any[];
+}
+
 /** Count rows of `table` in this period and the one before it. */
 function periodCount(table: string, column: string, days: number, where = sql``) {
   return sql`
@@ -70,22 +83,22 @@ export default async function InsightsPage({ searchParams }: { searchParams: Pro
     security,
     [moderation],
     adminActivity,
-  ] = await Promise.all([
-    sql`
+  ] = await inBatches([
+    () => sql`
       select
         coalesce(sum(views) filter (where day > ${today} - ${days}::int), 0)::int as cur,
         coalesce(sum(views) filter (where day <= ${today} - ${days}::int and day > ${today} - ${days * 2}::int), 0)::int as prev
       from post_views_daily
     `,
-    periodCount("post_view_tracking", "last_viewed_at", days),
-    periodCount("profiles", "created_at", days),
-    periodCount("profiles", "last_seen_at", days),
-    periodCount("comments", "created_at", days),
-    periodCount("post_reactions", "created_at", days),
-    periodCount("comment_likes", "created_at", days),
-    periodCount("quote_requests", "created_at", days),
-    periodCount("contact_requests", "created_at", days),
-    sql`
+    () => periodCount("post_view_tracking", "last_viewed_at", days),
+    () => periodCount("profiles", "created_at", days),
+    () => periodCount("profiles", "last_seen_at", days),
+    () => periodCount("comments", "created_at", days),
+    () => periodCount("post_reactions", "created_at", days),
+    () => periodCount("comment_likes", "created_at", days),
+    () => periodCount("quote_requests", "created_at", days),
+    () => periodCount("contact_requests", "created_at", days),
+    () => sql`
       select d::date::text as day,
         coalesce((select sum(v.views) from post_views_daily v where v.day = d::date), 0)::int as views,
         (select count(*) from profiles p where (p.created_at at time zone 'Asia/Dhaka')::date = d::date)::int as signups,
@@ -95,7 +108,7 @@ export default async function InsightsPage({ searchParams }: { searchParams: Pro
       from generate_series(${today} - ${days - 1}::int, ${today}, interval '1 day') d
       order by d
     `,
-    sql`
+    () => sql`
       select p.slug, p.title, coalesce(v.views, 0)::int as views, p.views_count::int as total_views,
         (select count(*) from post_view_tracking t where t.post_id = p.id)::int as readers,
         (select count(*) from post_reactions r where r.post_id = p.id)::int as reactions,
@@ -106,21 +119,21 @@ export default async function InsightsPage({ searchParams }: { searchParams: Pro
       order by coalesce(v.views, 0) desc, p.views_count desc
       limit 8
     `,
-    sql`
+    () => sql`
       select reaction_type, sum(n)::int as n from (
         select reaction_type, count(*) as n from post_reactions group by 1
         union all
         select reaction_type, count(*) as n from comment_likes group by 1
       ) x group by 1
     `,
-    sql`
+    () => sql`
       select status, count(*)::int as n, coalesce(sum(estimate_low), 0)::bigint as low,
              coalesce(sum(estimate_high), 0)::bigint as high, coalesce(sum(monthly), 0)::bigint as monthly
       from quote_requests group by 1
     `,
-    sql`select plan, count(*)::int as n from quote_requests group by 1 order by 2 desc`,
-    sql`select service, count(*)::int as n from quote_requests group by 1 order by 2 desc limit 6`,
-    sql`
+    () => sql`select plan, count(*)::int as n from quote_requests group by 1 order by 2 desc`,
+    () => sql`select service, count(*)::int as n from quote_requests group by 1 order by 2 desc limit 6`,
+    () => sql`
       select
         count(*) filter (where locale = 'bn')::int as bn,
         count(*) filter (where locale = 'en')::int as en,
@@ -128,7 +141,7 @@ export default async function InsightsPage({ searchParams }: { searchParams: Pro
         count(*)::int as total
       from quote_requests
     `,
-    sql`
+    () => sql`
       select 'status' as kind, coalesce(status, 'new') as key, count(*)::int as n from contact_requests group by 2
       union all
       select 'service', coalesce(nullif(service, ''), '—'), count(*)::int from contact_requests group by 2
@@ -137,8 +150,8 @@ export default async function InsightsPage({ searchParams }: { searchParams: Pro
       union all
       select 'method', coalesce(nullif(preferred_contact_method, ''), '—'), count(*)::int from contact_requests group by 2
     `,
-    sql`select status::text, priority::text, count(*)::int as n from support_tickets group by 1, 2`,
-    sql`
+    () => sql`select status::text, priority::text, count(*)::int as n from support_tickets group by 1, 2`,
+    () => sql`
       select
         (select avg(extract(epoch from (fr.first_at - t.created_at))) / 3600
            from support_tickets t
@@ -151,8 +164,8 @@ export default async function InsightsPage({ searchParams }: { searchParams: Pro
         (select avg(extract(epoch from (updated_at - created_at))) / 3600
            from support_tickets where status in ('RESOLVED', 'CLOSED') and created_at > now() - interval '90 days') as resolve_h
     `,
-    sql`select role::text, count(*)::int as n from profiles group by 1`,
-    sql`
+    () => sql`select role::text, count(*)::int as n from profiles group by 1`,
+    () => sql`
       select
         count(*)::int as total,
         count(*) filter (where is_banned)::int as banned,
@@ -162,35 +175,35 @@ export default async function InsightsPage({ searchParams }: { searchParams: Pro
         count(*) filter (where phone is not null and phone <> '')::int as with_phone
       from profiles
     `,
-    sql`
+    () => sql`
       select pr.full_name, count(*)::int as n
       from comments c join profiles pr on pr.id = c.user_id
       where c.created_at > now() - make_interval(days => ${days}::int)
       group by 1 order by 2 desc limit 5
     `,
-    sql`
+    () => sql`
       select split_part(coalesce(mime_type, 'other/unknown'), '/', 1) as kind, count(*)::int as n, coalesce(sum(file_size), 0)::bigint as bytes
       from files group by 1 order by 3 desc
     `,
-    sql`select count(*)::int as n from project_media`,
-    sql`
+    () => sql`select count(*)::int as n from project_media`,
+    () => sql`
       select pc.name, count(p.id)::int as posts, coalesce(sum(p.views_count), 0)::int as views
       from post_categories pc left join posts p on p.category_id = pc.id and p.status = 'published'
       group by pc.id, pc.name order by 3 desc
     `,
-    sql`select status, count(*)::int as n from posts group by 1`,
-    sql`
+    () => sql`select status, count(*)::int as n from posts group by 1`,
+    () => sql`
       select bucket, count(*)::int as hits, count(distinct key)::int as sources
       from rate_limit_hits where created_at > now() - interval '48 hours'
       group by 1 order by 2 desc
     `,
-    sql`
+    () => sql`
       select
         (select count(*) from comment_reports where resolved_at is null)::int as open_reports,
         (select count(*) from comments where status <> 'visible')::int as hidden_comments,
         (select count(*) from captcha_used where used_at > now() - interval '24 hours')::int as captcha_24h
     `,
-    sql`
+    () => sql`
       select coalesce(p.full_name, 'System') as name, count(*)::int as n
       from activity_log a left join profiles p on p.id = a.actor_id
       where a.created_at > now() - make_interval(days => ${days}::int)

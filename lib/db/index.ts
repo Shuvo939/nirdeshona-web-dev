@@ -42,6 +42,12 @@ export const sql =
     idle_timeout: IDLE_SECONDS,
     max_lifetime: 60 * 10,
     connect_timeout: 10,
+    // No pipelining: one query in flight per connection. postgres.js sends up
+    // to 100 queued queries back-to-back by default; Supabase's transaction-mode
+    // pooler can't follow that under load and leaves server connections waiting
+    // for the rest of a half-sent query ("ClientRead"), which froze the whole
+    // site. (0, not 1: with 1 the library still allows two in flight.)
+    ...({ max_pipeline: 0 } as object), // supported at runtime, missing from the types
     debug: holdUntilIdle,
   });
 
