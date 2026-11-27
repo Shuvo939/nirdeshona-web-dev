@@ -5,6 +5,7 @@ import { useBarePathname as usePathname } from "@/lib/i18n/client";
 import { useEffect, useRef } from "react";
 import {
   Activity,
+  BarChart3,
   Trash2,
   Bell,
   Building2,
@@ -26,6 +27,7 @@ import {
 // Icons are referenced by name so server layouts can pass plain data.
 const ICONS = {
   activity: Activity,
+  chart: BarChart3,
   trash: Trash2,
   bell: Bell,
   building: Building2,

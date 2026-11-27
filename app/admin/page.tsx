@@ -12,6 +12,7 @@ import {
   Newspaper,
   Plus,
   Users,
+  BarChart3,
 } from "lucide-react";
 
 import { AdminHeader, Avatar, timeAgo } from "./admin-ui";
@@ -88,6 +89,9 @@ export default async function AdminOverviewPage() {
             </Link>
             <Link href="/admin/projects/new" className="inline-flex h-10 items-center gap-2 rounded-xl border border-neutral-200 bg-white px-4 text-sm font-semibold text-neutral-800 hover:bg-neutral-50">
               <Plus className="h-4 w-4" /> New project
+            </Link>
+            <Link href="/admin/insights" className="inline-flex h-10 items-center gap-2 rounded-xl border border-neutral-200 bg-white px-4 text-sm font-semibold text-neutral-800 hover:bg-neutral-50">
+              <BarChart3 className="h-4 w-4" /> Insights
             </Link>
           </>
         }

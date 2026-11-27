@@ -20,7 +20,12 @@ export default async function AdminLayout({ children }: { children: ReactNode })
     .catch(() => 0);
 
   const groups: SideNavGroup[] = [
-    { links: [{ href: "/admin", label: "Overview", icon: "dashboard", exact: true }] },
+    {
+      links: [
+        { href: "/admin", label: "Overview", icon: "dashboard", exact: true },
+        { href: "/admin/insights", label: "Insights", icon: "chart" },
+      ],
+    },
     {
       label: "Content",
       links: [

@@ -45,6 +45,11 @@ export async function trackPostView(postId: string) {
     set views_count = views_count + 1
     where id = ${postId}
   `;
+  await sql`
+    insert into public.post_views_daily (post_id, day, views)
+    values (${postId}, (now() at time zone 'Asia/Dhaka')::date, 1)
+    on conflict (post_id, day) do update set views = post_views_daily.views + 1
+  `.catch(() => undefined); // analytics only — never break the page
 
   return {
     counted: true,
