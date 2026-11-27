@@ -131,8 +131,12 @@ function Composer({
             rows={1}
             maxLength={3000}
             onChange={(e) => setText(e.target.value)}
+            enterKeyHint="enter"
             onKeyDown={(e) => {
-              if (e.key === "Enter" && !e.shiftKey) {
+              // Desktop: Enter sends, Shift+Enter adds a line. Phones and tablets have no
+              // Shift key, so there Enter always adds a line and the button sends.
+              // Never send while a keyboard is still composing (Bangla/IME input).
+              if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing && !isTouchKeyboard()) {
                 e.preventDefault();
                 void submit();
               }
@@ -470,6 +474,11 @@ function MenuButton({ icon, label, onClick, danger }: { icon: React.ReactNode; l
 /* section                                                             */
 /* ------------------------------------------------------------------ */
 
+/** True on phones/tablets: no hover and a coarse (finger) pointer. */
+function isTouchKeyboard() {
+  return typeof window !== "undefined" && window.matchMedia("(hover: none) and (pointer: coarse)").matches;
+}
+
 export default function CommentsSection({
   postId,
   postAuthorId,
@@ -618,7 +627,11 @@ export default function CommentsSection({
     const snapshot = comments;
     setComments((prev) => prev.filter((x) => x.id !== c.id && x.parent_id !== c.id));
     start(async () => {
-      const res = kind === "delete" ? await deleteComment(c.id) : await hideComment(c.id);
+      // A thrown server error must not take down the page: restore and explain.
+      const res = await (kind === "delete" ? deleteComment(c.id) : hideComment(c.id)).catch(() => ({
+        ok: false as const,
+        error: L("Something went wrong. Please try again.", "কিছু একটা সমস্যা হয়েছে। আবার চেষ্টা করুন।"),
+      }));
       if (!res.ok) {
         setComments(snapshot);
         flash(res.error);
