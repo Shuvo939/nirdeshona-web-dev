@@ -11,6 +11,7 @@ import type { ReactionType } from "@/lib/comments";
 import { setPostReaction } from "./community-actions";
 import { REACTION_META, REACTION_ORDER, reactionLabel } from "./reaction-meta";
 import ReactorsDialog from "./reactors-dialog";
+import ReactionIcon from "./reaction-icon";
 
 export default function PostReactions({
   postId,
@@ -121,8 +122,8 @@ export default function PostReactions({
             >
               <span className="flex -space-x-1">
                 {top.map((r) => (
-                  <span key={r} title={`${reactionLabel(r, locale)}: ${stat(counts[r] ?? 0)}`} className="flex h-6 w-6 items-center justify-center rounded-full bg-white text-sm ring-2 ring-white">
-                    {REACTION_META[r].emoji}
+                  <span key={r} title={`${reactionLabel(r, locale)}: ${stat(counts[r] ?? 0)}`} className="flex rounded-full ring-2 ring-white">
+                    <ReactionIcon type={r} size={20} />
                   </span>
                 ))}
               </span>
@@ -159,9 +160,9 @@ export default function PostReactions({
                   title={reactionLabel(r, locale)}
                   aria-label={reactionLabel(r, locale)}
                   onClick={() => choose(mine === r ? null : r)}
-                  className={`flex h-10 w-10 items-center justify-center rounded-full text-2xl transition duration-150 hover:-translate-y-1 hover:scale-125 ${mine === r ? "bg-neutral-100" : ""}`}
+                  className={`flex h-11 w-11 items-center justify-center rounded-full transition duration-150 hover:-translate-y-1 hover:scale-125 ${mine === r ? "bg-neutral-100" : ""}`}
                 >
-                  {REACTION_META[r].emoji}
+                  <ReactionIcon type={r} size={36} />
                 </button>
               ))}
             </div>
@@ -187,7 +188,7 @@ export default function PostReactions({
             onContextMenu={(e) => e.preventDefault()}
             className={`flex h-10 w-full select-none items-center justify-center gap-2 rounded-lg text-sm font-semibold transition hover:bg-neutral-100 ${meta ? meta.color : "text-neutral-600"}`}
           >
-            {meta ? <span className="text-lg leading-none">{meta.emoji}</span> : <ThumbsUp className="h-[18px] w-[18px]" />}
+            {mine ? <ReactionIcon type={mine} size={20} /> : <ThumbsUp className="h-[18px] w-[18px]" />}
             {meta ? (locale === "bn" ? meta.labelBn : meta.label) : L("Like", "লাইক")}
           </button>
         </div>

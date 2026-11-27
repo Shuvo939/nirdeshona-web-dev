@@ -15,6 +15,7 @@ import type { CommentNode, ReactionType } from "@/lib/comments";
 import { addComment, deleteComment, editComment, hideComment, reportComment, setCommentReaction } from "./community-actions";
 import { REACTION_META, REACTION_ORDER, reactionLabel } from "./reaction-meta";
 import ReactorsDialog from "./reactors-dialog";
+import ReactionIcon from "./reaction-icon";
 
 export type Viewer = { id: string; name: string | null; avatarUrl: string | null; isAdmin: boolean } | null;
 type Sort = "relevant" | "newest" | "oldest";
@@ -181,8 +182,8 @@ function ReactionSummary({ comment }: { comment: CommentNode }) {
       >
         <span className="flex -space-x-1">
           {top.map((r, i) => (
-            <span key={r} style={{ zIndex: 3 - i }} className="relative flex h-5 w-5 items-center justify-center rounded-full bg-white text-[12px] ring-2 ring-white">
-              {REACTION_META[r]?.emoji}
+            <span key={r} style={{ zIndex: 3 - i }} className="relative flex rounded-full ring-2 ring-white">
+              <ReactionIcon type={r} size={18} />
             </span>
           ))}
         </span>
@@ -236,9 +237,9 @@ function ReactButton({ comment, onReact }: { comment: CommentNode; onReact: (c: 
                 setOpen(false);
                 onReact(comment, comment.my_reaction === r ? null : r);
               }}
-              className={`flex h-9 w-9 items-center justify-center rounded-full text-[22px] transition duration-150 hover:-translate-y-1 hover:scale-125 ${comment.my_reaction === r ? "bg-neutral-100" : ""}`}
+              className={`flex h-10 w-10 items-center justify-center rounded-full transition duration-150 hover:-translate-y-1 hover:scale-125 ${comment.my_reaction === r ? "bg-neutral-100" : ""}`}
             >
-              {REACTION_META[r].emoji}
+              <ReactionIcon type={r} size={32} />
             </button>
           ))}
         </span>
@@ -266,7 +267,7 @@ function ReactButton({ comment, onReact }: { comment: CommentNode; onReact: (c: 
         onContextMenu={(e) => e.preventDefault()}
         className={`inline-flex h-8 select-none items-center gap-1.5 rounded-full px-2 text-[13px] font-semibold transition hover:bg-neutral-100 ${mine ? mine.color : "text-neutral-600"}`}
       >
-        {mine ? <span className="text-[17px] leading-none">{mine.emoji}</span> : <ThumbsUp className="h-[18px] w-[18px]" strokeWidth={1.8} />}
+        {comment.my_reaction ? <ReactionIcon type={comment.my_reaction} size={18} /> : <ThumbsUp className="h-[18px] w-[18px]" strokeWidth={1.8} />}
         {comment.reaction_count > 0 && <span>{stat(comment.reaction_count)}</span>}
       </button>
     </span>

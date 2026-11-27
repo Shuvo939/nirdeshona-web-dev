@@ -53,7 +53,7 @@ export default function ProjectExplorer({
   projects: ExplorerProject[];
   initial: { q: string; category: string; status: string; tech: string; sort: string; view: string };
 }) {
-  const { L, locale, stat, lp } = useI18n();
+  const { L, locale, stat, lp, num, digits } = useI18n();
   const [q, setQ] = useState(initial.q);
   const [category, setCategory] = useState(initial.category);
   const [status, setStatus] = useState<StatusKey>(STATUS_TABS.some((t) => t.key === initial.status) ? (initial.status as StatusKey) : "");
@@ -250,7 +250,7 @@ export default function ProjectExplorer({
               <span className="font-semibold text-neutral-950">{results.length}</span> of {projects.length} projects
             </>,
             <>
-              {stat(projects.length)}টির মধ্যে <span className="font-semibold text-neutral-950">{stat(results.length)}</span>টি প্রজেক্ট
+              {num(projects.length)}টির মধ্যে <span className="font-semibold text-neutral-950">{num(results.length)}</span>টি প্রজেক্ট
             </>,
           )}
           {activeFilters > 0 && (
@@ -342,7 +342,7 @@ function Pill({ active, disabled, onClick, children }: { active: boolean; disabl
 }
 
 function ListRow({ project: p }: { project: ExplorerProject }) {
-  const { L, locale, stat, digits } = useI18n();
+  const { L, locale, stat, digits, num } = useI18n();
   return (
     <div className="group relative flex gap-4 rounded-3xl border border-neutral-200 bg-white p-3 transition hover:shadow-[0_12px_32px_rgb(var(--c-black)/0.06)] sm:p-4">
       <div className="relative aspect-[4/3] w-28 shrink-0 overflow-hidden rounded-2xl bg-neutral-100 sm:w-44">

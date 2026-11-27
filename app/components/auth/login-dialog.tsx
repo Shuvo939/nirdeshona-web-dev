@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { X } from "lucide-react";
 
 import LoginPanel from "@/app/components/auth/login-panel";
-import Portal from "@/app/components/ui/portal";
+import Portal, { useScrollLock } from "@/app/components/ui/portal";
 import { useI18n } from "@/lib/i18n/client";
 import { AuthContext, type LoginOptions } from "@/app/components/auth/auth-context";
 
@@ -28,16 +28,13 @@ function LoginDialog({ options, onClose }: { options: LoginOptions; onClose: () 
   const pathname = usePathname();
   const next = options.next ?? (typeof window !== "undefined" ? window.location.pathname + window.location.search : pathname);
 
-  // Escape closes; the page behind stays put.
+  useScrollLock();
+
+  // Escape closes.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
     document.addEventListener("keydown", onKey);
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.removeEventListener("keydown", onKey);
-      document.body.style.overflow = prev;
-    };
+    return () => document.removeEventListener("keydown", onKey);
   }, [onClose]);
 
   function signedIn() {

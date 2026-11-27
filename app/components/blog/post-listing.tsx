@@ -92,7 +92,7 @@ export default async function PostListing({
 }) {
   const offset = (page - 1) * PAGE_SIZE;
   const pattern = q ? `%${q}%` : null;
-  const { L, locale, stat } = await getI18n();
+  const { L, locale, stat, num, digits } = await getI18n();
 
   const [posts, [{ total }], sidebar] = await Promise.all([
     sql`
@@ -180,12 +180,12 @@ export default async function PostListing({
               <p className="text-sm text-neutral-500">
                 {q ? (
                   <>
-                    {L(`${total} result${total === 1 ? "" : "s"} for`, `${stat(total)}টি ফলাফল:`)} <span className="font-semibold text-neutral-950">“{q}”</span>{" "}
+                    {L(`${total} result${total === 1 ? "" : "s"} for`, `${num(total)}টি ফলাফল:`)} <span className="font-semibold text-neutral-950">“{q}”</span>{" "}
                     <Link href={basePath} className="ml-1 underline">{L("clear", "মুছুন")}</Link>
                   </>
                 ) : (
                   <>
-                    {L(`${total} article${total === 1 ? "" : "s"}`, `${stat(total)}টি লেখা`)}
+                    {L(`${total} article${total === 1 ? "" : "s"}`, `${num(total)}টি লেখা`)}
                   </>
                 )}
               </p>
@@ -294,7 +294,7 @@ export default async function PostListing({
                 {sidebar.popular.map((p, i) => (
                   <li key={p.slug}>
                     <Link href={`/blog/${p.slug}`} className="group flex gap-3 rounded-xl px-2 py-2 transition hover:bg-neutral-50">
-                      <span className="text-lg font-bold leading-none text-neutral-300 group-hover:text-neutral-950">{stat(i + 1).padStart(2, L("0", "০"))}</span>
+                      <span className="text-lg font-bold leading-none text-neutral-300 group-hover:text-neutral-950">{num(i + 1).padStart(2, L("0", "০"))}</span>
                       <span className="min-w-0">
                         <span className="line-clamp-2 text-sm font-medium leading-snug text-neutral-800">{p.title}</span>
                         <span className="mt-1 flex items-center gap-1 text-xs text-neutral-400">

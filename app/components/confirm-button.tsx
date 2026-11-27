@@ -4,7 +4,7 @@ import { useEffect, useState, useTransition } from "react";
 import { AlertTriangle, Loader2, LogOut } from "lucide-react";
 
 import { useI18n } from "@/lib/i18n/client";
-import Portal from "@/app/components/ui/portal";
+import Portal, { useScrollLock } from "@/app/components/ui/portal";
 
 // A button that asks for confirmation in a custom dialog
 // (never window.confirm) before running a server action.
@@ -40,6 +40,8 @@ export default function ConfirmButton({
     return () => document.removeEventListener("keydown", onKey);
   }, [open, pending]);
 
+  useScrollLock(open);
+
   const Icon = icon === "logout" ? LogOut : AlertTriangle;
 
   return (
@@ -50,7 +52,7 @@ export default function ConfirmButton({
       {open && (
         <Portal>
         <div
-          className="fixed inset-0 z-[120] flex items-end justify-center bg-scrim/45 p-4 backdrop-blur-sm sm:items-center"
+          className="fixed inset-0 z-[120] flex items-center justify-center overscroll-contain bg-scrim/45 p-4 backdrop-blur-sm"
           onClick={() => !pending && setOpen(false)}
         >
           <div

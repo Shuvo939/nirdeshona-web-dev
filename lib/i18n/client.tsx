@@ -3,7 +3,7 @@
 import { usePathname } from "next/navigation";
 import { createContext, useContext, useEffect, useMemo } from "react";
 
-import { DEFAULT_LOCALE, localizePath, stripLocale, type Locale } from "./config";
+import { DEFAULT_LOCALE, bnLongMonth, localizePath, stripLocale, type Locale } from "./config";
 import { translateFieldErrors, translateMessage } from "./messages";
 
 const LocaleContext = createContext<Locale>(DEFAULT_LOCALE);
@@ -45,7 +45,7 @@ export function useI18n() {
       /** Digits only, no thousands separator — for years and IDs. */
       digits: (n: number | string) => (bn ? String(n).replace(/[0-9]/g, (d) => "০১২৩৪৫৬৭৮৯"[Number(d)]) : String(n)),
       date: (value: string | Date | null | undefined, options: Intl.DateTimeFormatOptions = { day: "numeric", month: "short", year: "numeric" }) =>
-        value ? new Intl.DateTimeFormat(bn ? "bn-BD" : "en-GB", { timeZone: "Asia/Dhaka", ...options }).format(new Date(value)) : "",
+        value ? new Intl.DateTimeFormat(bn ? "bn-BD" : "en-GB", { timeZone: "Asia/Dhaka", ...bnLongMonth(bn, options) }).format(new Date(value)) : "",
     };
   }, [locale]);
 }

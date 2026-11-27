@@ -42,6 +42,11 @@ function splitHref(href: string): [string, string] {
 }
 
 /** "3 hours ago" / "৩ ঘণ্টা আগে". */
+/** Bangla dates always spell the month out ("নভেম্বর", never "নভে"). */
+export function bnLongMonth(bn: boolean, options: Intl.DateTimeFormatOptions): Intl.DateTimeFormatOptions {
+  return bn && options.month === "short" ? { ...options, month: "long" } : options;
+}
+
 export function timeAgo(value: string | Date, locale: Locale) {
   const then = new Date(value).getTime();
   const seconds = Math.round((then - Date.now()) / 1000);
@@ -51,7 +56,7 @@ export function timeAgo(value: string | Date, locale: Locale) {
   if (abs < 3600) return rtf.format(Math.round(seconds / 60), "minute");
   if (abs < 86400) return rtf.format(Math.round(seconds / 3600), "hour");
   if (abs < 86400 * 7) return rtf.format(Math.round(seconds / 86400), "day");
-  return new Intl.DateTimeFormat(locale === "bn" ? "bn-BD" : "en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "Asia/Dhaka" }).format(new Date(value));
+  return new Intl.DateTimeFormat(locale === "bn" ? "bn-BD" : "en-GB", { day: "numeric", month: locale === "bn" ? "long" : "short", year: "numeric", timeZone: "Asia/Dhaka" }).format(new Date(value));
 }
 
 /** Compact, Facebook-style age in both languages: 5s, 3m, 2h, 4d, 2w, 1y. */
@@ -80,7 +85,7 @@ export function formatDateLocale(value: string | Date | null | undefined, locale
   return new Intl.DateTimeFormat(locale === "bn" ? "bn-BD" : "en-GB", {
     timeZone: "Asia/Dhaka",
     day: "numeric",
-    month: "short",
+    month: locale === "bn" ? "long" : "short",
     year: "numeric",
     ...(withTime ? { hour: "numeric", minute: "2-digit" } : {}),
   }).format(new Date(value));

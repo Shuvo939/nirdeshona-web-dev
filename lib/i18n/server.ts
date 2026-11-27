@@ -3,7 +3,7 @@ import "server-only";
 import { headers } from "next/headers";
 import { cache } from "react";
 
-import { DEFAULT_LOCALE, LOCALE_HEADER, isLocale, localizePath, type Locale } from "./config";
+import { DEFAULT_LOCALE, LOCALE_HEADER, bnLongMonth, isLocale, localizePath, type Locale } from "./config";
 
 /** The locale of the current request (set by proxy.ts from the /bn or /en prefix). */
 export const getLocale = cache(async (): Promise<Locale> => {
@@ -42,7 +42,7 @@ export function makeI18n(locale: Locale) {
     /** Digits only, no thousands separator — for years and IDs. */
     digits: (n: number | string) => (bn ? String(n).replace(/[0-9]/g, (d) => "০১২৩৪৫৬৭৮৯"[Number(d)]) : String(n)),
     date: (value: string | Date | null | undefined, options: Intl.DateTimeFormatOptions = { day: "numeric", month: "short", year: "numeric" }) =>
-      value ? new Intl.DateTimeFormat(bn ? "bn-BD" : "en-GB", { timeZone: "Asia/Dhaka", ...options }).format(new Date(value)) : "",
+      value ? new Intl.DateTimeFormat(bn ? "bn-BD" : "en-GB", { timeZone: "Asia/Dhaka", ...bnLongMonth(bn, options) }).format(new Date(value)) : "",
   };
 }
 

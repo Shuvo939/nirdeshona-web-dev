@@ -23,7 +23,7 @@ export default function NotificationCenter({
   initialUnread: number;
 }) {
   const router = useRouter();
-  const { L, lp, stat } = useI18n();
+  const { L, lp, stat, num, digits } = useI18n();
   const [items, setItems] = useState(initialItems);
   const [hasMore, setHasMore] = useState(initialHasMore);
   const [unread, setUnread] = useState(initialUnread);
@@ -90,7 +90,7 @@ export default function NotificationCenter({
           {(
             [
               ["all", L("All", "সব")],
-              ["unread", unread ? L(`Unread (${unread})`, `অপঠিত (${stat(unread)})`) : L("Unread", "অপঠিত")],
+              ["unread", unread ? L(`Unread (${unread})`, `অপঠিত (${num(unread)})`) : L("Unread", "অপঠিত")],
             ] as const
           ).map(([id, label]) => (
             <button
