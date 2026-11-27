@@ -2,15 +2,14 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { usePathname } from "next/navigation";
-import { Loader2, X } from "lucide-react";
+import { X } from "lucide-react";
 
 import LoginPanel from "@/app/components/auth/login-panel";
+import Portal from "@/app/components/ui/portal";
 import { useI18n } from "@/lib/i18n/client";
 import { AuthContext, type LoginOptions } from "@/app/components/auth/auth-context";
 
 export { useAuthConfig, useLoginPrompt } from "@/app/components/auth/auth-context";
-
-type Challenge = { token: string; image: string };
 
 export function AuthDialogProvider({ googleClientId, children }: { googleClientId: string | null; children: React.ReactNode }) {
   const [options, setOptions] = useState<LoginOptions | null>(null);
@@ -27,21 +26,7 @@ export function AuthDialogProvider({ googleClientId, children }: { googleClientI
 function LoginDialog({ options, onClose }: { options: LoginOptions; onClose: () => void }) {
   const { L } = useI18n();
   const pathname = usePathname();
-  const [challenge, setChallenge] = useState<Challenge | null>(null);
-  const [failed, setFailed] = useState(false);
-
   const next = options.next ?? (typeof window !== "undefined" ? window.location.pathname + window.location.search : pathname);
-
-  useEffect(() => {
-    let alive = true;
-    fetch("/api/captcha", { cache: "no-store" })
-      .then((r) => (r.ok ? r.json() : Promise.reject()))
-      .then((c: Challenge) => alive && setChallenge(c))
-      .catch(() => alive && setFailed(true));
-    return () => {
-      alive = false;
-    };
-  }, []);
 
   // Escape closes; the page behind stays put.
   useEffect(() => {
@@ -64,6 +49,7 @@ function LoginDialog({ options, onClose }: { options: LoginOptions; onClose: () 
   }
 
   return (
+    <Portal>
     <div
       className="fixed inset-0 z-[130] flex items-end justify-center bg-scrim/50 backdrop-blur-sm sm:items-center sm:p-4"
       onClick={onClose}
@@ -95,18 +81,9 @@ function LoginDialog({ options, onClose }: { options: LoginOptions; onClose: () 
           </p>
         </div>
 
-        {challenge ? (
-          <LoginPanel initialCaptcha={challenge} next={next} onSignedIn={signedIn} onNavigate={onClose} />
-        ) : failed ? (
-          <p className="py-8 text-center text-sm text-neutral-500">
-            {L("Couldn't load the sign-in form. Please check your connection.", "লগইন ফর্ম লোড হয়নি। ইন্টারনেট সংযোগ দেখে আবার চেষ্টা করুন।")}
-          </p>
-        ) : (
-          <div className="flex justify-center py-16 text-neutral-400">
-            <Loader2 className="h-6 w-6 animate-spin" />
-          </div>
-        )}
+        <LoginPanel initialCaptcha={null} next={next} onSignedIn={signedIn} onNavigate={onClose} />
       </div>
     </div>
+    </Portal>
   );
 }

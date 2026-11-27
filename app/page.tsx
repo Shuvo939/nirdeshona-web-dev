@@ -481,7 +481,7 @@ export default async function HomePage() {
                     // eslint-disable-next-line @next/next/no-img-element
                     <img src={p.cover_image_url} alt="" loading="lazy" className="h-full w-full object-cover transition duration-700 group-hover:scale-105" />
                   ) : (
-                    <div className="flex h-full items-center justify-center bg-[radial-gradient(circle_at_30%_20%,#fafafa,rgb(var(--c-neutral-200)))]">
+                    <div className="flex h-full items-center justify-center bg-[radial-gradient(circle_at_30%_20%,rgb(var(--c-neutral-50)),rgb(var(--c-neutral-200)))]">
                       <Newspaper className="h-10 w-10 text-neutral-300" />
                     </div>
                   )}
