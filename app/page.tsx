@@ -3,16 +3,17 @@ import {
   ArrowRight,
   ArrowUpRight,
   Bell,
+  Calculator,
   Check,
   CheckCircle2,
   Clock,
   Compass,
-  FileText,
   FolderKanban,
   HeartHandshake,
   Layers3,
   LifeBuoy,
   Newspaper,
+  LayoutDashboard,
   Paperclip,
   Rocket,
   Smartphone,
@@ -40,7 +41,7 @@ const VALUE_ICONS = [Compass, Smartphone, Layers3, HeartHandshake];
 
 // Public, viewer-independent data: cached briefly and refreshed when admins edit.
 const getHomeData = publicCache(async (locale: Locale) => {
-  const [projects, [stats], posts, clients] = await Promise.all([
+  const [projects, [stats], posts, clients, [live]] = await Promise.all([
     sql`
       select p.id, p.slug, ${tcol(locale, "p.title")} as title, ${tcol(locale, "p.short_description")} as short_description,
              p.category, p.status, p.progress_percent, p.cover_image_url, c.name as client_name
@@ -72,14 +73,41 @@ const getHomeData = publicCache(async (locale: Locale) => {
       where exists (select 1 from projects p where p.client_id = c.id)
       order by c.created_at asc limit 12
     `,
-    ]);
-  return { projects: [...projects], stats: { ...stats }, posts: [...posts], clients: [...clients] };
+      sql`
+      select p.slug, ${tcol(locale, "p.title")} as title, p.progress_percent, p.status, p.category
+      from projects p
+      where p.status in ('IN_PROGRESS', 'REVIEW')
+      order by p.updated_at desc nulls last
+      limit 1
+    `,
+  ]);
+  return {
+    projects: [...projects],
+    stats: { ...stats },
+    posts: [...posts],
+    clients: [...clients],
+    live: (live ?? null) as { slug: string; title: string; progress_percent: number; status: string; category: string | null } | null,
+  };
 }, "home-data");
 
 export default async function HomePage() {
   const { L, locale, date, num } = await getI18n();
   const { faqGroups, packages, processSteps, services, values } = getContent(locale);
-  const { projects, stats, posts, clients } = await getHomeData(locale);
+  const { projects, stats, posts, clients, live } = await getHomeData(locale);
+  const progress = live?.progress_percent ?? 70;
+  // Project stages from overall progress: discovery 0–10, design 10–35, development 35–85, launch 85–100.
+  const stages = (
+    [
+      [L("Discovery", "আলোচনা"), 0, 10],
+      [L("Design", "ডিজাইন"), 10, 35],
+      [L("Development", "ডেভেলপমেন্ট"), 35, 85],
+      [L("Launch", "লঞ্চ"), 85, 100],
+    ] as const
+  ).map(([label, from, to]) => {
+    const value = Math.round(Math.min(100, Math.max(0, ((progress - from) / (to - from)) * 100)));
+    const state = value >= 100 ? "done" : progress >= from ? "active" : "next";
+    return [label, value, state] as const;
+  });
 
   const years = Math.max(1, new Date().getFullYear() - 2022);
   const faqs = faqGroups.flatMap((g) => g.items).slice(0, 5);
@@ -146,29 +174,31 @@ export default async function HomePage() {
                     <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-neutral-950 text-sm font-bold text-white">N</span>
                   </div>
 
-                  <div className="mt-5 grid grid-cols-3 gap-2">
+                  <Link href="/projects" aria-label={L("See our projects", "আমাদের প্রজেক্ট দেখুন")} className="mt-5 grid grid-cols-3 gap-2 rounded-2xl transition hover:opacity-80">
                     <Mini label={L("Projects", "প্রজেক্ট")} value={num(stats.total)} />
                     <Mini label={L("Launched", "লঞ্চ হয়েছে")} value={num(stats.completed)} />
                     <Mini label={L("Active", "চলমান")} value={num(stats.active)} />
-                  </div>
+                  </Link>
 
                   <div className="mt-3 rounded-2xl border border-neutral-200 bg-white p-4">
                     <div className="flex items-center justify-between gap-3">
                       <div className="min-w-0">
-                        <p className="text-[11px] font-medium uppercase tracking-wide text-neutral-400">{L("Sample project", "নমুনা প্রজেক্ট")}</p>
-                        <p className="truncate text-sm font-semibold">{L("Company website redesign", "ওয়েবসাইট রিডিজাইন")}</p>
+                        <p className="flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-wide text-neutral-400">
+                          {live && <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-500" />}
+                          {live ? L("In progress now", "এখন চলছে") : L("Sample project", "নমুনা প্রজেক্ট")}
+                        </p>
+                        {live ? (
+                          <Link href={`/projects/${live.slug}`} className="block truncate text-sm font-semibold hover:underline">
+                            {live.title}
+                          </Link>
+                        ) : (
+                          <p className="truncate text-sm font-semibold">{L("Website redesign", "ওয়েবসাইট রিডিজাইন")}</p>
+                        )}
                       </div>
-                      <span className="shrink-0 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700">{L(`${num(70)}% done`, `${num(70)}% সম্পন্ন`)}</span>
+                      <span className="shrink-0 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700">{L(`${num(progress)}% done`, `${num(progress)}% সম্পন্ন`)}</span>
                     </div>
                     <ol className="mt-4 flex flex-col gap-3">
-                      {(
-                        [
-                          [L("Discovery", "আলোচনা"), 100, "done"],
-                          [L("Design", "ডিজাইন"), 100, "done"],
-                          [L("Development", "ডেভেলপমেন্ট"), 64, "active"],
-                          [L("Launch", "লঞ্চ"), 0, "next"],
-                        ] as const
-                      ).map(([label, value, state]) => (
+                      {stages.map(([label, value, state]) => (
                         <li key={label} className="flex items-center gap-3">
                           <span
                             className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[11px] font-bold ${
@@ -194,26 +224,19 @@ export default async function HomePage() {
                   </div>
 
                   <div className="mt-3 flex flex-col gap-2">
-                    <Toast
-                      icon={<Bell className="h-4 w-4" />}
-                      title={L("New reply on ticket #12", "টিকেট #১২-এ নতুন উত্তর")}
-                      meta={L("2 min ago", "২ মিনিট আগে")}
-                      text={L("“The homepage draft is ready for your review.”", "“হোমপেজের খসড়া আপনার দেখার জন্য প্রস্তুত।”")}
-                      unread
+                    <HeroAction
+                      href="/client"
+                      icon={<LayoutDashboard className="h-4 w-4" />}
+                      title={L("Already a client? Open your portal", "ক্লায়েন্ট? পোর্টালে যান")}
+                      text={L("Progress, files and support tickets in one place.", "অগ্রগতি, ফাইল ও সাপোর্ট টিকেট — এক জায়গায়।")}
                     />
-                    <Toast
-                      icon={<Paperclip className="h-4 w-4" />}
-                      title={L("2 files shared", "২টি ফাইল শেয়ার করা হয়েছে")}
-                      meta={L("Today", "আজ")}
-                    >
-                      <span className="mt-1.5 flex flex-wrap gap-1.5">
-                        {["logo-final.svg", "sitemap.pdf"].map((f) => (
-                          <span key={f} className="inline-flex items-center gap-1 rounded-md border border-neutral-200 bg-neutral-50 px-1.5 py-0.5 font-mono text-[10.5px] text-neutral-600">
-                            <FileText className="h-3 w-3" /> {f}
-                          </span>
-                        ))}
-                      </span>
-                    </Toast>
+                    <HeroAction
+                      href="/pricing#order"
+                      icon={<Calculator className="h-4 w-4" />}
+                      title={L("Plan a project in 2 minutes", "২ মিনিটে প্রজেক্ট সাজান")}
+                      text={L("Pick what you need and see the price instantly.", "যা লাগবে বাছুন, দাম সঙ্গে সঙ্গে দেখুন।")}
+                      primary
+                    />
                   </div>
                 </div>
               </div>
@@ -548,35 +571,34 @@ function Mini({ label, value }: { label: string; value: string }) {
   );
 }
 
-function Toast({
+function HeroAction({
+  href,
   icon,
   title,
   text,
-  meta,
-  unread,
-  children,
+  primary,
 }: {
+  href: string;
   icon: React.ReactNode;
   title: string;
-  text?: string;
-  meta?: string;
-  unread?: boolean;
-  children?: React.ReactNode;
+  text: string;
+  primary?: boolean;
 }) {
   return (
-    <div className="flex items-start gap-3 rounded-2xl border border-neutral-200 bg-white p-3">
-      <span className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-neutral-100 text-neutral-700">
+    <Link
+      href={href}
+      className={`group flex items-center gap-3 rounded-2xl border p-3 transition ${
+        primary ? "border-neutral-950 bg-neutral-950 text-white hover:bg-neutral-800" : "border-neutral-200 bg-white hover:border-neutral-300 hover:shadow-sm"
+      }`}
+    >
+      <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${primary ? "bg-white/10 text-white" : "bg-neutral-100 text-neutral-700"}`}>
         {icon}
-        {unread && <span className="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full border-2 border-white bg-red-500" />}
       </span>
       <span className="min-w-0 flex-1">
-        <span className="flex items-baseline justify-between gap-2">
-          <span className="truncate text-xs font-semibold text-neutral-900">{title}</span>
-          {meta && <span className="shrink-0 text-[11px] text-neutral-400">{meta}</span>}
-        </span>
-        {text && <span className="mt-0.5 block text-xs leading-5 text-neutral-500">{text}</span>}
-        {children}
+        <span className={`block text-[13px] font-semibold leading-5 ${primary ? "text-white" : "text-neutral-900"}`}>{title}</span>
+        <span className={`block text-xs leading-5 ${primary ? "text-neutral-300" : "text-neutral-500"}`}>{text}</span>
       </span>
-    </div>
+      <ArrowRight className={`h-4 w-4 shrink-0 transition group-hover:translate-x-0.5 ${primary ? "text-white" : "text-neutral-400"}`} />
+    </Link>
   );
 }

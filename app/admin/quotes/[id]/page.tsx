@@ -10,6 +10,7 @@ import { requireAdmin } from "@/lib/auth/require-admin";
 import { sql } from "@/lib/db";
 
 import { deleteQuote, updateQuote } from "../actions";
+import QuoteEmailForm from "./quote-email-form";
 import { PLAN_NAMES, QUOTE_STATUSES, TIMELINES, addOnName, careName, serviceName, taka } from "../shared";
 
 export const metadata = { title: "Quote request — Admin" };
@@ -24,6 +25,17 @@ export default async function AdminQuotePage({ params }: { params: Promise<{ id:
     where q.id = ${id}
   `;
   if (!q) notFound();
+  // History of emails sent from here (empty if the table isn't migrated yet).
+  const emails = await sql`
+    select m.id, m.subject, m.body, m.status, m.error, m.created_at, p.full_name as sender
+    from quote_messages m left join profiles p on p.id = m.sender_id
+    where m.quote_id = ${id}
+    order by m.created_at desc
+  `.catch(() => [] as never[]);
+  const estimate =
+    q.plan === "care"
+      ? `${taka(q.monthly)}/month`
+      : `${q.plan === "custom" ? "from " : ""}${taka(q.estimate_low)}${q.estimate_high > q.estimate_low ? ` – ${taka(q.estimate_high)}` : ""}${q.plan !== "care" && q.monthly ? ` + ${taka(q.monthly)}/month` : ""}`;
 
   const whatsapp = q.phone ? `https://wa.me/${String(q.phone).replace(/[^0-9]/g, "").replace(/^0/, "880")}` : null;
   const rows: [string, string][] = [
@@ -89,6 +101,52 @@ export default async function AdminQuotePage({ params }: { params: Promise<{ id:
           <section className="rounded-2xl border border-neutral-200 bg-white p-5 sm:p-6">
             <h2 className="text-sm font-semibold text-neutral-950">Notes from the client</h2>
             <p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-neutral-700">{q.message || "—"}</p>
+          </section>
+
+          <QuoteEmailForm
+            quoteId={q.id}
+            reference={q.reference}
+            name={q.name}
+            email={q.email}
+            locale={q.locale}
+            estimate={estimate}
+            status={q.status}
+          />
+
+          <section className="rounded-2xl border border-neutral-200 bg-white p-5 sm:p-6">
+            <h2 className="text-sm font-semibold text-neutral-950">
+              Email history <span className="font-normal text-neutral-400">{emails.length}</span>
+            </h2>
+            {emails.length === 0 ? (
+              <p className="mt-3 text-sm text-neutral-500">No emails sent from here yet.</p>
+            ) : (
+              <ul className="mt-4 flex flex-col gap-3">
+                {emails.map((m) => (
+                  <li key={m.id}>
+                    <details className="group rounded-xl border border-neutral-200 p-3 open:bg-neutral-50">
+                      <summary className="flex cursor-pointer list-none items-start justify-between gap-3">
+                        <span className="min-w-0">
+                          <span className="block truncate text-sm font-medium text-neutral-900">{m.subject}</span>
+                          <span className="mt-0.5 block text-xs text-neutral-500">
+                            {formatDate(m.created_at, true)}
+                            {m.sender ? ` · ${m.sender}` : ""}
+                          </span>
+                        </span>
+                        <span
+                          className={`shrink-0 rounded-full px-2 py-0.5 text-[11px] font-semibold ${
+                            m.status === "sent" ? "bg-emerald-50 text-emerald-700" : "bg-red-50 text-red-700"
+                          }`}
+                        >
+                          {m.status === "sent" ? "Sent" : "Failed"}
+                        </span>
+                      </summary>
+                      <p className="mt-3 whitespace-pre-wrap border-t border-neutral-200 pt-3 text-sm leading-6 text-neutral-700">{m.body}</p>
+                      {m.error && <p className="mt-2 text-xs text-red-600">{m.error}</p>}
+                    </details>
+                  </li>
+                ))}
+              </ul>
+            )}
           </section>
         </div>
 

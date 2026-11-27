@@ -70,3 +70,30 @@ export async function sendEmail({
     console.error("sendEmail failed", error);
   }
 }
+
+/** Like sendEmail, but reports the outcome — for emails an admin writes and needs to know were sent. */
+export async function deliverEmail(args: {
+  to: string;
+  subject: string;
+  heading: string;
+  body: string;
+  cta?: { label: string; url: string };
+  replyTo?: string;
+}): Promise<{ ok: true; id: string | null } | { ok: false; error: string }> {
+  const client = getResend();
+  if (!client) return { ok: false, error: "Email isn't configured (RESEND_API_KEY is missing)." };
+  try {
+    const { data, error } = await client.emails.send({
+      from: FROM,
+      to: [args.to],
+      subject: args.subject,
+      replyTo: args.replyTo,
+      text: `${args.heading}\n\n${args.body}${args.cta ? `\n\n${args.cta.label}: ${args.cta.url}` : ""}`,
+      html: emailLayout(args),
+    });
+    if (error) return { ok: false, error: error.message || "The email provider rejected the message." };
+    return { ok: true, id: data?.id ?? null };
+  } catch (error) {
+    return { ok: false, error: error instanceof Error ? error.message : "Couldn't reach the email provider." };
+  }
+}

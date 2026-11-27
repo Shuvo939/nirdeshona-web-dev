@@ -54,6 +54,28 @@ export function timeAgo(value: string | Date, locale: Locale) {
   return new Intl.DateTimeFormat(locale === "bn" ? "bn-BD" : "en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "Asia/Dhaka" }).format(new Date(value));
 }
 
+/** Compact, Facebook-style age: 5s, 3m, 2h, 4d, 2w, 1y (Bangla: ৫সে, ৩মি, ২ঘ, ৪দি, ২স, ১ব). */
+export function shortAgo(value: string | Date, locale: Locale) {
+  const secs = Math.max(0, Math.floor((Date.now() - new Date(value).getTime()) / 1000));
+  const steps: [number, string, string][] = [
+    [60, "s", "সে"],
+    [60, "m", "মি"],
+    [24, "h", "ঘ"],
+    [7, "d", "দি"],
+    [52, "w", "স"],
+    [Infinity, "y", "ব"],
+  ];
+  let n = secs;
+  for (const [size, en, bn] of steps) {
+    if (n < size) {
+      const value = Math.max(1, n);
+      return locale === "bn" ? `${String(value).replace(/[0-9]/g, (d) => "০১২৩৪৫৬৭৮৯"[Number(d)])}${bn}` : `${value}${en}`;
+    }
+    n = Math.floor(n / size);
+  }
+  return "";
+}
+
 /** Date (and optionally time) in the locale's format, Dhaka time. */
 export function formatDateLocale(value: string | Date | null | undefined, locale: Locale, withTime = false) {
   if (!value) return "";

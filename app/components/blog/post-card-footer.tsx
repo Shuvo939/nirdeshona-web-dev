@@ -1,7 +1,5 @@
-import { MessageCircle } from "lucide-react";
+import { MessageCircle, ThumbsUp } from "lucide-react";
 
-import { REACTION_META } from "@/app/components/blog/reaction-meta";
-import type { ReactionType } from "@/lib/comments";
 import { sql } from "@/lib/db";
 import { getI18n } from "@/lib/i18n/server";
 
@@ -25,7 +23,6 @@ export default async function PostCardFooter({ post }: { post: PostCardStats }) 
     .slice(0, 2)
     .join("")
     .toUpperCase();
-  const top = (post.top_reactions ?? []).filter((t): t is ReactionType => t in REACTION_META).slice(0, 3);
 
   return (
     <div className="mt-4 flex items-center justify-between gap-3 border-t border-neutral-100 pt-4">
@@ -52,19 +49,7 @@ export default async function PostCardFooter({ post }: { post: PostCardStats }) 
           className="inline-flex items-center gap-1"
           title={L(`${post.reaction_count} reactions`, `${num(post.reaction_count)}টি রিঅ্যাকশন`)}
         >
-          {top.length > 0 ? (
-            <span className="flex -space-x-1" aria-hidden>
-              {top.map((t) => (
-                <span key={t} className="flex h-[18px] w-[18px] items-center justify-center rounded-full bg-white text-[11px] ring-1 ring-neutral-200">
-                  {REACTION_META[t].emoji}
-                </span>
-              ))}
-            </span>
-          ) : (
-            <span aria-hidden className="text-[13px] grayscale">
-              👍
-            </span>
-          )}
+          <ThumbsUp className="h-3.5 w-3.5" aria-hidden />
           <span className="sr-only">{L("Reactions", "রিঅ্যাকশন")}:</span>
           {num(post.reaction_count)}
         </span>
