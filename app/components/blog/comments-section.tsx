@@ -4,7 +4,8 @@ import { shortAgo } from "@/lib/i18n/config";
 import { useI18n } from "@/lib/i18n/client";
 
 import Link from "@/app/components/locale-link";
-import { usePathname } from "next/navigation";
+import LoginLink from "@/app/components/auth/login-link";
+import { useLoginPrompt } from "@/app/components/auth/auth-context";
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { ChevronDown, EyeOff, Flag, Link2, Loader2, MessageCircle, MoreVertical, Pencil, SendHorizonal, ShieldCheck, ThumbsUp, Trash2 } from "lucide-react";
 
@@ -479,8 +480,8 @@ export default function CommentsSection({
   initialComments: CommentNode[];
   viewer: Viewer;
 }) {
-  const pathname = usePathname();
   const { L, stat } = useI18n();
+  const openLogin = useLoginPrompt();
   const [comments, setComments] = useState(initialComments);
   const [sort, setSort] = useState<Sort>("relevant");
   const [replyTo, setReplyTo] = useState<{ rootId: string; targetId: string; mention: string | null; key: number } | null>(null);
@@ -586,7 +587,7 @@ export default function CommentsSection({
   }
 
   function react(c: CommentNode, next: ReactionType | null) {
-    if (!viewer) return void (window.location.href = `/login?next=${encodeURIComponent(pathname)}`);
+    if (!viewer) return void openLogin({ reason: L("Log in to react to comments.", "মন্তব্যে রিয়েক্ট করতে লগইন করুন।") });
     setComments((prev) =>
       prev.map((x) => {
         if (x.id !== c.id) return x;
@@ -625,7 +626,7 @@ export default function CommentsSection({
   }
 
   function startReply(c: CommentNode) {
-    if (!viewer) return void (window.location.href = `/login?next=${encodeURIComponent(pathname)}`);
+    if (!viewer) return void openLogin({ reason: L("Log in to reply.", "উত্তর দিতে লগইন করুন।") });
     const rootId = c.parent_id ?? c.id;
     const mention = c.user_id !== viewer.id && c.parent_id ? `@${c.full_name ?? L("Member", "সদস্য")} ` : null;
     setExpanded((e) => ({ ...e, [rootId]: true }));
@@ -664,9 +665,9 @@ export default function CommentsSection({
           <div id="comment-composer" className="flex flex-col items-start gap-3 rounded-2xl border border-neutral-200 bg-neutral-50 p-4 sm:flex-row sm:items-center sm:justify-between">
             <p className="text-sm text-neutral-600">{L("Sign in to join the conversation.", "আলোচনায় যোগ দিতে লগইন করুন।")}</p>
             <div className="flex gap-2">
-              <Link href={`/login?next=${encodeURIComponent(pathname)}`} className="rounded-full bg-neutral-950 px-4 py-2 text-xs font-semibold text-white hover:bg-neutral-800">
+              <LoginLink reason={L("Log in to join the conversation.", "আলোচনায় যোগ দিতে লগইন করুন।")} className="rounded-full bg-neutral-950 px-4 py-2 text-xs font-semibold text-white hover:bg-neutral-800">
                 {L("Sign in", "লগইন")}
-              </Link>
+              </LoginLink>
               <Link href="/register" className="rounded-full border border-neutral-200 bg-white px-4 py-2 text-xs font-semibold text-neutral-800 hover:bg-neutral-100">
                 {L("Create account", "অ্যাকাউন্ট খুলুন")}
               </Link>

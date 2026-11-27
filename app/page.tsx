@@ -138,8 +138,8 @@ export default async function HomePage() {
         <div aria-hidden className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_right,rgb(var(--c-black)/0.035)_1px,transparent_1px),linear-gradient(to_bottom,rgb(var(--c-black)/0.035)_1px,transparent_1px)] bg-[size:48px_48px] [mask-image:radial-gradient(ellipse_at_top,black_25%,transparent_70%)]" />
         <div aria-hidden className="pointer-events-none absolute left-1/2 top-0 h-[480px] w-[720px] -translate-x-1/2 rounded-full bg-neutral-100/80 blur-3xl" />
 
-        <div className="relative mx-auto max-w-7xl px-5 pb-16 pt-14 sm:px-6 sm:pb-24 sm:pt-20 lg:px-8 lg:pt-24">
-          <div className="grid grid-cols-1 items-center gap-14 lg:grid-cols-[1.15fr_.85fr]">
+        <div className="relative mx-auto max-w-7xl px-5 pb-14 pt-8 sm:px-6 sm:pb-24 sm:pt-20 lg:px-8 lg:pt-24">
+          <div className="grid grid-cols-1 items-center gap-12 lg:grid-cols-[1.15fr_.85fr] lg:gap-14">
             <div>
               <div className="inline-flex items-center gap-2 rounded-full border border-neutral-200 bg-white px-3.5 py-2 text-xs font-medium text-neutral-600 shadow-sm">
                 <span className="relative flex h-2 w-2">
@@ -149,35 +149,42 @@ export default async function HomePage() {
                 {L("Taking on new projects this month", "এ মাসে নতুন প্রজেক্ট নিচ্ছি")}
               </div>
 
-              <h1 className="mt-7 max-w-4xl text-[2.9rem] font-bold leading-[.98] tracking-[-0.055em] sm:text-6xl lg:text-[5.2rem]">
-                {L("We build digital", "আমরা বানাই এমন ডিজিটাল")}
-                <span className="block text-neutral-400">{L("products that matter.", "প্রোডাক্ট, যা কাজে লাগে।")}</span>
-              </h1>
+              {locale === "bn" ? (
+                <h1 className="mt-5 max-w-4xl text-balance text-[2.3rem] font-bold leading-[1.22] tracking-normal min-[380px]:text-[2.5rem] sm:mt-7 sm:text-6xl sm:leading-[1.15] lg:text-[4.4rem]">
+                  আমরা বানাই এমন ডিজিটাল প্রোডাক্ট,
+                  <span className="block text-neutral-400">যা কাজে লাগে।</span>
+                </h1>
+              ) : (
+                <h1 className="mt-5 max-w-4xl text-[2.6rem] font-bold leading-[1.02] tracking-[-0.045em] min-[380px]:text-[2.85rem] sm:mt-7 sm:text-6xl sm:leading-[.98] sm:tracking-[-0.055em] lg:text-[5.2rem]">
+                  We build digital
+                  <span className="block text-neutral-400">products that matter.</span>
+                </h1>
+              )}
 
-              <p className="mt-7 max-w-2xl text-base leading-7 text-neutral-600 sm:text-lg sm:leading-8">
+              <p className="mt-4 max-w-2xl text-[15px] leading-7 text-neutral-600 sm:mt-7 sm:text-lg sm:leading-8">
                 {L("Websites, web apps, WordPress and Android apps — plus Facebook and social media — for organisations, businesses and individuals. Designed mobile-first, built to last, and supported long after launch.", "প্রতিষ্ঠান, ব্যবসা ও ব্যক্তির জন্য ওয়েবসাইট, ওয়েব অ্যাপ, ওয়ার্ডপ্রেস ও অ্যান্ড্রয়েড অ্যাপ — সঙ্গে ফেসবুক ও সোশ্যাল মিডিয়া। মোবাইল-ফার্স্ট ডিজাইন, টেকসই নির্মাণ, আর লঞ্চের পরও দীর্ঘদিনের সাপোর্ট।")}
               </p>
 
-              <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-                <Link href="/pricing#order" className="group inline-flex h-12 items-center justify-center gap-2 rounded-full bg-neutral-950 px-6 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-neutral-800 hover:shadow-lg">
+              <div className="mt-7 grid grid-cols-2 gap-2.5 sm:mt-8 sm:flex sm:gap-3">
+                <Link href="/pricing#order" className="group inline-flex h-12 items-center justify-center gap-1.5 whitespace-nowrap rounded-full bg-neutral-950 px-3 text-sm sm:gap-2 sm:px-6 font-semibold text-white transition hover:-translate-y-0.5 hover:bg-neutral-800 hover:shadow-lg">
                   {L("Start a project", "প্রজেক্ট শুরু করুন")} <ArrowUpRight className="h-4 w-4 transition group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
                 </Link>
-                <Link href="/projects" className="inline-flex h-12 items-center justify-center gap-2 rounded-full border border-neutral-200 bg-white px-6 text-sm font-semibold text-neutral-800 transition hover:border-neutral-300 hover:bg-neutral-50">
+                <Link href="/projects" className="inline-flex h-12 items-center justify-center gap-1.5 whitespace-nowrap rounded-full border border-neutral-200 bg-white px-3 text-sm font-semibold text-neutral-800 sm:gap-2 sm:px-6 transition hover:border-neutral-300 hover:bg-neutral-50">
                   {L("See our work", "আমাদের কাজ দেখুন")} <ArrowRight className="h-4 w-4" />
                 </Link>
               </div>
 
-              <div className="mt-8 max-w-xl">
+              <div className="mt-3 max-w-xl sm:mt-8">
                 <HeroSearch />
               </div>
 
-              <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-3 text-xs text-neutral-500 sm:text-sm">
-                {[L("Written scope & fixed quote", "লিখিত পরিসর ও নির্দিষ্ট মূল্য"), L("Bengali + English", "বাংলা + ইংরেজি"), L("You own the code", "কোডের মালিক আপনি")].map((t) => (
-                  <span key={t} className="flex items-center gap-2">
-                    <CheckCircle2 className="h-4 w-4 text-emerald-600" /> {t}
-                  </span>
+              <ul className="mt-5 grid grid-cols-3 gap-2 sm:mt-8 sm:flex sm:flex-wrap sm:items-center sm:gap-x-6 sm:gap-y-3">
+                {[L("Fixed written quote", "লিখিত নির্দিষ্ট মূল্য"), L("Bengali + English", "বাংলা + ইংরেজি"), L("You own the code", "কোডের মালিক আপনি")].map((t) => (
+                  <li key={t} className="flex flex-col items-center gap-1.5 rounded-2xl border border-neutral-200 bg-white/70 px-1.5 py-2.5 text-center text-[11.5px] font-medium leading-4 text-neutral-600 sm:flex-row sm:gap-2 sm:rounded-none sm:border-0 sm:bg-transparent sm:p-0 sm:text-left sm:text-sm sm:font-normal sm:text-neutral-500">
+                    <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600" /> {t}
+                  </li>
                 ))}
-              </div>
+              </ul>
             </div>
 
             {/* Hero visual: a live-feeling snapshot of the client portal */}
@@ -405,7 +412,7 @@ export default async function HomePage() {
               <p className="mt-4 max-w-lg text-sm leading-7 text-neutral-400 sm:text-base">
                 {L("Every client gets a private portal: see progress, open support tickets, share files and get notified the moment we reply.", "প্রত্যেক ক্লায়েন্ট পান একটি নিজস্ব পোর্টাল: অগ্রগতি দেখুন, সাপোর্ট টিকেট খুলুন, ফাইল শেয়ার করুন, আর আমরা উত্তর দিলেই সঙ্গে সঙ্গে নোটিফিকেশন পান।")}
               </p>
-              <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+              <div className="mt-7 grid grid-cols-2 gap-2.5 sm:mt-8 sm:flex sm:gap-3">
                 <Link href="/client" className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-white px-6 text-sm font-semibold text-neutral-950 hover:bg-neutral-200">
                   {L("Open client portal", "ক্লায়েন্ট পোর্টাল খুলুন")} <ArrowUpRight className="h-4 w-4" />
                 </Link>

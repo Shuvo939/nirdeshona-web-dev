@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "@/app/components/locale-link";
+import LoginLink from "@/app/components/auth/login-link";
 import { ArrowUpRight, Building2, LogIn } from "lucide-react";
 
 import { PageHero, PrimaryButton, SecondaryButton } from "@/app/components/marketing";
@@ -87,9 +88,9 @@ export default async function ClientsPage() {
             <p className="text-base font-semibold text-neutral-950">{L("Already a client?", "আগে থেকেই ক্লায়েন্ট?")}</p>
             <p className="mt-1 text-sm text-neutral-600">{L("Sign in to see project progress, open support tickets and message our team.", "প্রজেক্টের অগ্রগতি দেখতে, সাপোর্ট টিকেট খুলতে ও আমাদের টিমকে বার্তা পাঠাতে লগইন করুন।")}</p>
           </div>
-          <Link href="/login?next=/client" className="inline-flex h-11 items-center gap-2 rounded-full bg-neutral-950 px-5 text-sm font-semibold text-white hover:bg-neutral-800">
+          <LoginLink goTo="/client" className="inline-flex h-11 items-center gap-2 rounded-full bg-neutral-950 px-5 text-sm font-semibold text-white hover:bg-neutral-800">
             <LogIn className="h-4 w-4" /> {L("Sign in", "লগইন")}
-          </Link>
+          </LoginLink>
         </div>
       </section>
     </>

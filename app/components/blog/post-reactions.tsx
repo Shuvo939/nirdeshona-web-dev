@@ -1,10 +1,9 @@
 "use client";
 
 import { useI18n } from "@/lib/i18n/client";
+import { useLoginPrompt } from "@/app/components/auth/auth-context";
 
-import { startNavigationProgress } from "@/app/components/navigation-progress";
 import { useEffect, useRef, useState, useTransition } from "react";
-import { usePathname, useRouter } from "next/navigation";
 import { Link2, MessageCircle, ThumbsUp } from "lucide-react";
 
 import type { ReactionType } from "@/lib/comments";
@@ -26,9 +25,8 @@ export default function PostReactions({
   signedIn: boolean;
   commentCount: number;
 }) {
-  const router = useRouter();
-  const pathname = usePathname();
   const { L, locale, stat } = useI18n();
+  const openLogin = useLoginPrompt();
   const [counts, setCounts] = useState(initialCounts);
   const [mine, setMine] = useState(initialMine);
   const [picker, setPicker] = useState(false);
@@ -48,8 +46,8 @@ export default function PostReactions({
   // Optimistic: update the UI immediately, save in the background, roll back on error.
   function choose(next: ReactionType | null) {
     if (!signedIn) {
-      startNavigationProgress();
-      router.push(`/login?next=${encodeURIComponent(pathname)}`);
+      setPicker(false);
+      openLogin({ reason: L("Log in to react to this post.", "পোস্টে রিয়েক্ট করতে লগইন করুন।") });
       return;
     }
     if (hoverTimer.current) window.clearTimeout(hoverTimer.current);
