@@ -130,7 +130,12 @@ export async function deleteComment(commentId: string): Promise<Result> {
   const isAdmin = user.role === "ADMIN";
   if (comment.user_id !== user.id && !isAdmin) return { ok: false, error: await msg("You can't delete this comment.", "এই মন্তব্যটি আপনি মুছতে পারবেন না।") };
 
-  await moveToTrash("comment", commentId, user.id);
+  try {
+    await moveToTrash("comment", commentId, user.id);
+  } catch (error) {
+    console.error("deleteComment failed", error);
+    return { ok: false, error: await msg("Couldn't delete the comment. Please try again.", "মন্তব্যটি মোছা যায়নি। আবার চেষ্টা করুন।") };
+  }
   if (isAdmin && comment.user_id !== user.id) {
     await logActivity(user.id, {
       action: "comment.delete",
