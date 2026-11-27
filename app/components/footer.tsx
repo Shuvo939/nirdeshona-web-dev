@@ -4,6 +4,7 @@ import Link from "@/app/components/locale-link";
 
 import { LanguageSwitcherFull } from "@/app/components/language-switcher";
 import { getContent } from "@/lib/content";
+import { site } from "@/lib/site";
 import { useI18n } from "@/lib/i18n/client";
 import {
   ArrowUpRight,
@@ -11,6 +12,7 @@ import {
   ChevronUp,
   Globe2,
   Mail,
+  Phone,
   MapPin,
   MessageCircle,
 } from "lucide-react";
@@ -89,7 +91,7 @@ export default function Footer() {
             </Link>
 
             <p className="mt-5 max-w-sm text-sm leading-6 text-neutral-400">
-              {L("Modern websites, web applications, WordPress solutions, and digital experiences designed around real-world needs.", "বাস্তব প্রয়োজন মাথায় রেখে তৈরি আধুনিক ওয়েবসাইট, ওয়েব অ্যাপ্লিকেশন, ওয়ার্ডপ্রেস সমাধান ও ডিজিটাল অভিজ্ঞতা।")}
+              {L("Modern websites, web applications, WordPress, Android apps and social media — designed around real-world needs.", "বাস্তব প্রয়োজন মাথায় রেখে তৈরি আধুনিক ওয়েবসাইট, ওয়েব অ্যাপ্লিকেশন, ওয়ার্ডপ্রেস, অ্যান্ড্রয়েড অ্যাপ ও সোশ্যাল মিডিয়া।")}
             </p>
 
             {/* Contact */}
@@ -101,6 +103,11 @@ export default function Footer() {
               >
                 <Mail className="h-4 w-4 text-neutral-500 transition group-hover:text-neutral-300" />
                 contact.nirdeshona@gmail.com
+              </a>
+
+              <a href={`tel:${site.phone}`} className="group flex items-center gap-2.5 text-sm text-neutral-400 transition hover:text-white">
+                <Phone className="h-4 w-4 text-neutral-500 transition group-hover:text-neutral-300" />
+                {L(site.phoneDisplay, digits(site.phoneDisplay))}
               </a>
 
               <div className="flex items-center gap-2.5 text-sm text-neutral-400">

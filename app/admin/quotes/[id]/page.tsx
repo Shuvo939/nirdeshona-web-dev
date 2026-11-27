@@ -28,15 +28,25 @@ export default async function AdminQuotePage({ params }: { params: Promise<{ id:
   const whatsapp = q.phone ? `https://wa.me/${String(q.phone).replace(/[^0-9]/g, "").replace(/^0/, "880")}` : null;
   const rows: [string, string][] = [
     ["Plan", PLAN_NAMES[q.plan] ?? q.plan],
-    ...(q.plan !== "care"
+    ...(q.plan !== "care" && q.plan !== "social"
       ? ([
           ["Project type", serviceName(q.service)],
-          ["Pages", String(q.pages)],
-          ["Add-ons", (q.add_ons as string[]).map(addOnName).join(", ") || "None"],
-          ["Estimate (one-time)", `${q.plan === "custom" ? "from " : ""}${taka(q.estimate_low)} – ${taka(q.estimate_high)}`],
+          ["Pages / screens", String(q.pages)],
         ] as [string, string][])
       : []),
-    ["Care plan", q.care_plan === null ? "None" : `${careName(q.care_plan)} · ${taka(q.monthly)}/month`],
+    ...(q.plan !== "care"
+      ? ([
+          ["Add-ons & services", (q.add_ons as string[]).map(addOnName).join(", ") || "None"],
+          [
+            "One-time",
+            q.plan === "social"
+              ? taka(q.estimate_low)
+              : `${q.plan === "custom" ? "from " : ""}${taka(q.estimate_low)} – ${taka(q.estimate_high)}`,
+          ],
+        ] as [string, string][])
+      : []),
+    ["Care plan", q.care_plan === null ? "None" : careName(q.care_plan)],
+    ["Monthly total", q.monthly ? `${taka(q.monthly)}/month` : "—"],
     ["Timeline", q.timeline ? TIMELINES[q.timeline] ?? q.timeline : "—"],
     ["Preferred contact", q.preferred_contact],
     ["Language", q.locale === "bn" ? "Bangla" : "English"],

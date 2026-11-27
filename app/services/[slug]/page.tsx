@@ -60,7 +60,9 @@ export default async function ServiceDetailPage({
         <div className="flex flex-col gap-3 sm:flex-row">
           <PrimaryButton
             href={
-              service.slug === "maintenance"
+              service.slug === "social-media"
+                ? "/pricing?plan=social#order"
+                : service.slug === "maintenance"
                 ? "/pricing?plan=care&care=0#order"
                 : `/pricing?plan=${service.slug === "custom-development" ? "custom" : "starter"}&service=${service.slug}#order`
             }

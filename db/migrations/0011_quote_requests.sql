@@ -9,7 +9,7 @@ create table if not exists public.quote_requests (
   email text not null,
   phone text,
   organisation text,
-  plan text not null check (plan in ('starter', 'business', 'custom', 'care')),
+  plan text not null check (plan in ('starter', 'business', 'custom', 'care', 'social')),
   service text,
   pages integer not null default 0,
   add_ons text[] not null default '{}',

@@ -6,7 +6,7 @@ import { getClientMemberships, requireUser } from "@/lib/auth/session";
 import { syncClientAccessForUser } from "@/lib/clients/access";
 import { sql } from "@/lib/db";
 import { createClient } from "@/lib/supabase/server";
-import SubmitButton from "@/app/components/submit-button";
+import ConfirmButton from "@/app/components/confirm-button";
 import { getI18n } from "@/lib/i18n/server";
 
 async function signOut() {
@@ -65,11 +65,21 @@ export default async function AccountLayout({ children }: { children: ReactNode 
         <aside className="hidden w-60 shrink-0 lg:block">
           <div className="sticky top-[70px] flex max-h-[calc(100vh-70px)] flex-col gap-6 overflow-y-auto py-8">
             <SideNav groups={groups} label={L("Account navigation", "অ্যাকাউন্ট নেভিগেশন")} />
-            <form action={signOut} className="border-t border-neutral-200 pt-4">
-              <SubmitButton pendingText={L("Logging out…", "লগ আউট হচ্ছে…")} icon={<LogOut className="h-[18px] w-[18px]" strokeWidth={1.8} />} className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium text-red-600 transition hover:bg-red-50 disabled:opacity-70">
+            <div className="border-t border-neutral-200 pt-4">
+              <ConfirmButton
+                action={signOut}
+                icon="logout"
+                tone="neutral"
+                title={L("Log out?", "লগ আউট করবেন?")}
+                description={L("You'll need to sign in again to see your account and projects.", "অ্যাকাউন্ট ও প্রজেক্ট দেখতে আবার লগইন করতে হবে।")}
+                confirmLabel={L("Log out", "লগ আউট")}
+                pendingLabel={L("Logging out…", "লগ আউট হচ্ছে…")}
+                className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium text-red-600 transition hover:bg-red-50"
+              >
+                <LogOut className="h-[18px] w-[18px]" strokeWidth={1.8} />
                 {L("Log out", "লগ আউট")}
-              </SubmitButton>
-            </form>
+              </ConfirmButton>
+            </div>
           </div>
         </aside>
 

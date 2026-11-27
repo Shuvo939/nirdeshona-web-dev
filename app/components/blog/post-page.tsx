@@ -10,6 +10,7 @@ import PostHero from "./post-hero";
 import PostReactions from "./post-reactions";
 import PostSidebar from "./post-sidebar";
 import RelatedPosts from "./related-posts";
+import { postCardStats } from "./post-card-footer";
 import type { Post, Tag } from "./types";
 
 export default async function PostPage({ post, tags }: { post: Post; tags: Tag[] }) {
@@ -19,8 +20,10 @@ export default async function PostPage({ post, tags }: { post: Post; tags: Tag[]
     getPostComments(post.id, user?.id ?? null),
     getPostReactionSummary(post.id, user?.id ?? null),
     sql`
-      select p.slug, ${tcol(locale, "p.title")} as title, ${tcol(locale, "p.excerpt")} as excerpt, p.cover_image_url, p.published_at
+      select p.slug, ${tcol(locale, "p.title")} as title, ${tcol(locale, "p.excerpt")} as excerpt, p.cover_image_url, p.published_at,
+             ${postCardStats()}
       from posts p
+      left join profiles pr on pr.id = p.author_id
       where p.status = 'published' and p.id <> ${post.id}
       order by (p.category_id is not distinct from ${post.category_id}::uuid) desc,
                (select count(*) from post_tags a join post_tags b on a.tag_id = b.tag_id

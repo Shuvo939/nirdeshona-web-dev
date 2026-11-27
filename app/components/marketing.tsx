@@ -9,9 +9,11 @@ import {
   Code2,
   Cpu,
   Globe,
+  Megaphone,
   Palette,
   ShieldCheck,
   ShoppingCart,
+  Smartphone,
 } from "lucide-react";
 
 import type { Service } from "@/lib/site";
@@ -146,6 +148,8 @@ const ICONS = {
   palette: Palette,
   cpu: Cpu,
   cart: ShoppingCart,
+  smartphone: Smartphone,
+  megaphone: Megaphone,
   shield: ShieldCheck,
 };
 

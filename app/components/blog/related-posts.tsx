@@ -1,9 +1,10 @@
 import Link from "@/app/components/locale-link";
 import { Newspaper } from "lucide-react";
 
+import PostCardFooter, { type PostCardStats } from "@/app/components/blog/post-card-footer";
 import { getI18n } from "@/lib/i18n/server";
 
-type Related = { slug: string; title: string; excerpt: string | null; cover_image_url: string | null };
+type Related = PostCardStats & { slug: string; title: string; excerpt: string | null; cover_image_url: string | null };
 
 export default async function RelatedPosts({ posts }: { posts: Related[] }) {
   if (posts.length === 0) return null;
@@ -13,7 +14,7 @@ export default async function RelatedPosts({ posts }: { posts: Related[] }) {
       <h2 className="text-xl font-bold tracking-tight text-neutral-950">{L("Keep reading", "আরও পড়ুন")}</h2>
       <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-3">
         {posts.map((p) => (
-          <Link key={p.slug} href={`/blog/${p.slug}`} className="group overflow-hidden rounded-2xl border border-neutral-200 bg-white transition hover:-translate-y-0.5 hover:shadow-lg">
+          <Link key={p.slug} href={`/blog/${p.slug}`} className="group flex flex-col overflow-hidden rounded-2xl border border-neutral-200 bg-white transition hover:-translate-y-0.5 hover:shadow-lg">
             <div className="aspect-[16/9] overflow-hidden bg-neutral-100">
               {p.cover_image_url ? (
                 // eslint-disable-next-line @next/next/no-img-element
@@ -24,9 +25,10 @@ export default async function RelatedPosts({ posts }: { posts: Related[] }) {
                 </div>
               )}
             </div>
-            <div className="p-4">
+            <div className="flex flex-1 flex-col p-4">
               <p className="line-clamp-2 text-sm font-semibold leading-snug text-neutral-950 group-hover:underline">{p.title}</p>
-              {p.excerpt && <p className="mt-1 line-clamp-2 text-xs leading-5 text-neutral-500">{p.excerpt}</p>}
+              {p.excerpt && <p className="mt-1 line-clamp-2 flex-1 text-xs leading-5 text-neutral-500">{p.excerpt}</p>}
+              <PostCardFooter post={p} />
             </div>
           </Link>
         ))}

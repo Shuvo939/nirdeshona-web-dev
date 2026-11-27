@@ -13,6 +13,7 @@ import type { CommentNode, ReactionType } from "@/lib/comments";
 
 import { addComment, deleteComment, editComment, hideComment, reportComment, setCommentReaction } from "./community-actions";
 import { REACTION_META, REACTION_ORDER, reactionLabel } from "./reaction-meta";
+import ReactorsDialog from "./reactors-dialog";
 
 export type Viewer = { id: string; name: string | null; avatarUrl: string | null; isAdmin: boolean } | null;
 type Sort = "relevant" | "newest" | "oldest";
@@ -172,12 +173,17 @@ function Composer({
 
 function ReactionSummary({ comment }: { comment: CommentNode }) {
   const { L, num } = useI18n();
+  const [open, setOpen] = useState(false);
   if (comment.reaction_count === 0) return null;
   const top = comment.top_reactions.length ? comment.top_reactions : (["like"] as ReactionType[]);
   return (
-    <span
+    <>
+    <button
+      type="button"
+      onClick={() => setOpen(true)}
       title={L(`${comment.reaction_count} reaction${comment.reaction_count === 1 ? "" : "s"}`, `${num(comment.reaction_count)}টি রিঅ্যাকশন`)}
-      className="absolute -bottom-3 right-2 flex items-center gap-0.5 rounded-full bg-white py-0.5 pl-0.5 pr-1.5 text-[12px] leading-none text-neutral-600 shadow-[0_1px_3px_rgba(0,0,0,0.2)]"
+      aria-label={L("See who reacted", "কে কে রিঅ্যাকশন দিয়েছেন দেখুন")}
+      className="absolute -bottom-3 right-2 flex items-center gap-0.5 rounded-full bg-white py-0.5 pl-0.5 pr-1.5 text-[12px] leading-none text-neutral-600 shadow-[0_1px_3px_rgba(0,0,0,0.2)] transition hover:shadow-[0_1px_4px_rgba(0,0,0,0.35)]"
     >
       <span className="flex -space-x-1">
         {top.slice(0, 3).map((r) => (
@@ -187,7 +193,9 @@ function ReactionSummary({ comment }: { comment: CommentNode }) {
         ))}
       </span>
       {comment.reaction_count > 1 && <span className="ml-0.5">{num(comment.reaction_count)}</span>}
-    </span>
+    </button>
+    {open && <ReactorsDialog target="comment" id={comment.id} onClose={() => setOpen(false)} />}
+    </>
   );
 }
 

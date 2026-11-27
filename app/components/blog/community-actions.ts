@@ -8,6 +8,7 @@ import { REACTIONS, getCommentReactionSummary, type CommentNode, type ReactionTy
 import { sql } from "@/lib/db";
 import { moveToTrash } from "@/lib/trash";
 import { msg } from "@/lib/i18n/server";
+import { notifyUsers } from "@/lib/notifications";
 
 type Result<T = object> = ({ ok: true } & T) | { ok: false; error: string };
 
@@ -20,11 +21,21 @@ async function activeUser() {
   return { user };
 }
 
-async function notify(userId: string, title: string, message: string, link: string) {
-  await sql`
-    insert into notifications (user_id, type, title, message, link)
-    values (${userId}, 'comment', ${title}, ${message.slice(0, 200)}, ${link})
-  `.catch(() => undefined);
+async function notify(userId: string, type: "comment" | "reply" | "reaction", title: string, message: string | null, link: string) {
+  await notifyUsers([userId], { type, title, message, link });
+}
+
+/** One reaction notification per person and target, and only for a brand-new reaction. */
+async function notifyReaction(ownerId: string | null, actor: { id: string; fullName: string | null }, title: string, link: string) {
+  if (!ownerId || ownerId === actor.id) return;
+  const [recent] = await sql`
+    select 1 from notifications
+    where user_id = ${ownerId} and type = 'reaction' and link = ${link} and title = ${title}
+      and created_at > now() - interval '1 day'
+    limit 1
+  `.catch(() => [] as unknown[]);
+  if (recent) return;
+  await notify(ownerId, "reaction", title, null, link);
 }
 
 export async function addComment(input: { postId: string; parentId?: string | null; content: string }): Promise<Result<{ comment: CommentNode }>> {
@@ -70,9 +81,9 @@ export async function addComment(input: { postId: string; parentId?: string | nu
   const link = `/blog/${post.slug}#comment-${row.id}`;
   const name = user.fullName || "Someone";
   if (parentAuthor && parentAuthor !== user.id) {
-    await notify(parentAuthor, `${name} replied to your comment`, content.data, link);
+    await notify(parentAuthor, "reply", `${name} replied to your comment`, content.data, link);
   } else if (!parentAuthor && post.author_id && post.author_id !== user.id) {
-    await notify(post.author_id, `${name} commented on “${post.title}”`, content.data, link);
+    await notify(post.author_id, "comment", `${name} commented on “${post.title}”`, content.data, link);
   }
 
   return {
@@ -149,11 +160,18 @@ export async function setCommentReaction(
   if (type && !REACTIONS.includes(type)) return { ok: false, error: await msg("Unknown reaction.", "অজানা রিঅ্যাকশন।") };
 
   if (type) {
-    await sql`
+    const [row] = await sql`
       insert into comment_likes (comment_id, user_id, reaction_type)
       select id, ${auth.user.id}, ${type} from comments where id = ${commentId} and status = 'visible'
       on conflict (comment_id, user_id) do update set reaction_type = excluded.reaction_type
+      returning (xmax = 0) as inserted
     `;
+    if (row?.inserted) {
+      const [c] = await sql`select c.user_id, p.slug from comments c join posts p on p.id = c.post_id where c.id = ${commentId}`;
+      if (c) {
+        await notifyReaction(c.user_id, auth.user, `${auth.user.fullName || "Someone"} reacted to your comment`, `/blog/${c.slug}#comment-${commentId}`);
+      }
+    }
   } else {
     await sql`delete from comment_likes where comment_id = ${commentId} and user_id = ${auth.user.id}`;
   }
@@ -178,13 +196,49 @@ export async function setPostReaction(postId: string, type: ReactionType | null)
   if (type && !REACTIONS.includes(type)) return { ok: false, error: await msg("Unknown reaction.", "অজানা রিঅ্যাকশন।") };
 
   if (type) {
-    await sql`
+    const [row] = await sql`
       insert into post_reactions (post_id, user_id, reaction_type)
       select id, ${auth.user.id}, ${type} from posts where id = ${postId} and status = 'published'
       on conflict (post_id, user_id) do update set reaction_type = excluded.reaction_type, created_at = now()
+      returning (xmax = 0) as inserted
     `;
+    if (row?.inserted) {
+      const [p] = await sql`select author_id, slug, title from posts where id = ${postId}`;
+      if (p) await notifyReaction(p.author_id, auth.user, `${auth.user.fullName || "Someone"} reacted to “${p.title}”`, `/blog/${p.slug}`);
+    }
   } else {
     await sql`delete from post_reactions where post_id = ${postId} and user_id = ${auth.user.id}`;
   }
   return { ok: true };
+}
+
+export type Reactor = { user_id: string; name: string; avatar_url: string | null; reaction_type: ReactionType; is_staff: boolean };
+
+/** People who reacted to a published post or a visible comment (names and avatars only). */
+export async function getReactors(target: "post" | "comment", id: string): Promise<Result<{ reactors: Reactor[] }>> {
+  if (!z.string().uuid().safeParse(id).success) return { ok: false, error: await msg("Not found.", "পাওয়া যায়নি।") };
+  const fallback = await msg("Member", "সদস্য");
+  const rows =
+    target === "post"
+      ? await sql`
+          select r.user_id, coalesce(nullif(p.full_name, ''), ${fallback}) as name, p.avatar_url, r.reaction_type,
+                 (p.role = 'ADMIN') as is_staff
+          from post_reactions r
+          join posts po on po.id = r.post_id and po.status = 'published'
+          join profiles p on p.id = r.user_id
+          where r.post_id = ${id}
+          order by r.created_at desc
+          limit 500
+        `
+      : await sql`
+          select l.user_id, coalesce(nullif(p.full_name, ''), ${fallback}) as name, p.avatar_url, l.reaction_type,
+                 (p.role = 'ADMIN') as is_staff
+          from comment_likes l
+          join comments c on c.id = l.comment_id and c.status = 'visible'
+          join profiles p on p.id = l.user_id
+          where l.comment_id = ${id}
+          order by l.created_at desc
+          limit 500
+        `;
+  return { ok: true, reactors: rows as unknown as Reactor[] };
 }

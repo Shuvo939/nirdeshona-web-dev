@@ -183,7 +183,7 @@ export function ProjectSkeleton() {
 export function PortalSkeleton() {
   return (
     <Shell>
-      <div className="flex flex-col gap-6">
+      <div className="flex flex-col gap-6 px-4 py-8 sm:px-6 lg:px-0">
         <div>
           <Bar className="h-3 w-40" />
           <Bar className="mt-4 h-8 w-64" />

@@ -1,5 +1,6 @@
 "use server";
 
+import { refreshPublicContent } from "@/lib/public-cache";
 import { logActivity } from "@/lib/audit";
 
 import { revalidatePath } from "next/cache";
@@ -99,6 +100,7 @@ export async function saveClient(clientId: string | null, _prev: ClientFormState
 
   await logActivity(actorId, { action: "client.save", entity: "client", summary: `Saved client “${String(formData.get("name") ?? "").trim()}”` });
   revalidatePath("/admin/clients");
+  refreshPublicContent();
   revalidatePath("/clients");
   if (!clientId) redirect(`/admin/clients/${id}`);
   return { ok: true, logoUrl: logo, savedAt: Date.now(), linked };
@@ -109,6 +111,7 @@ export async function deleteClient(clientId: string) {
   await moveToTrash("client", clientId, actorId);
   await logActivity(actorId, { action: "client.delete", entity: "client", summary: `Moved a client to the bin` });
   revalidatePath("/admin/clients");
+  refreshPublicContent();
   revalidatePath("/clients");
   redirect("/admin/clients");
 }
@@ -163,6 +166,7 @@ export async function addClientMember(clientId: string, _prev: FormState, formDa
 
   await logActivity(actorId, { action: "client.member_add", entity: "client", summary: `Gave ${email} access to a client portal` });
   revalidatePath(`/admin/clients/${clientId}`);
+  refreshPublicContent();
   return { ok: true };
 }
 
@@ -179,6 +183,7 @@ export async function removeClientMember(clientId: string, userId: string) {
   `;
   await logActivity(actorId, { action: "client.member_remove", entity: "client", summary: `Removed a user from a client portal` });
   revalidatePath(`/admin/clients/${clientId}`);
+  refreshPublicContent();
 }
 
 /** One-click access for a user suggested by a matching phone number. */
@@ -204,4 +209,5 @@ export async function grantClientAccess(clientId: string, userId: string) {
   });
   await logActivity(actorId, { action: "client.member_add", entity: "client", summary: `Gave ${user.email} access to ${client.name} (phone match)` });
   revalidatePath(`/admin/clients/${clientId}`);
+  refreshPublicContent();
 }

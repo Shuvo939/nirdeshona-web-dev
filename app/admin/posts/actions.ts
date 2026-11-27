@@ -1,5 +1,6 @@
 "use server";
 
+import { refreshPublicContent } from "@/lib/public-cache";
 import { logActivity } from "@/lib/audit";
 
 import { sql } from "@/lib/db";
@@ -193,6 +194,7 @@ export async function createPost(formData: FormData) {
     summary: `Created post “${String(formData.get("title") ?? "").trim()}”`,
   });
   revalidatePath("/admin/posts");
+  refreshPublicContent();
   revalidatePath("/blog");
   redirect("/admin/posts");
 }
@@ -264,6 +266,7 @@ export async function updatePost(id: string, formData: FormData) {
     summary: `Updated post “${String(formData.get("title") ?? "").trim()}”`,
   });
   revalidatePath("/admin/posts");
+  refreshPublicContent();
   revalidatePath("/blog");
   redirect("/admin/posts");
 }
@@ -281,5 +284,6 @@ export async function deletePost(id: string) {
     summary: `Moved a post to the bin`,
   });
   revalidatePath("/admin/posts");
+  refreshPublicContent();
   revalidatePath("/blog");
 }

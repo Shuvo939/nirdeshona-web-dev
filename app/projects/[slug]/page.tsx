@@ -390,7 +390,7 @@ export default async function ProjectDetailsPage({ params }: Props) {
             <p className="mt-2 text-sm leading-6 text-neutral-400">
               {L(
                 "Tell us about your idea — we'll reply within a working day with honest advice and a quote.",
-                "আপনার আইডিয়া জানান — এক কর্মদিবসের মধ্যে সৎ পরামর্শ ও খরচের হিসাবসহ উত্তর দেব।",
+                "আপনার আইডিয়া জানান — ২৪ ঘণ্টার মধ্যে সৎ পরামর্শ ও খরচের হিসাবসহ উত্তর দেব।",
               )}
             </p>
             <Link

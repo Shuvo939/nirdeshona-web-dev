@@ -108,7 +108,7 @@ export default function NewTicketForm({
       </div>
 
       <div className="flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <p className="text-xs text-neutral-500">{L("We usually reply within one business day. Urgent issues are handled the same day.", "সাধারণত এক কর্মদিবসের মধ্যে উত্তর দিই। জরুরি সমস্যা একই দিনে দেখা হয়।")}</p>
+        <p className="text-xs text-neutral-500">{L("We usually reply within 24 hours. Urgent issues are handled the same day.", "সাধারণত ২৪ ঘণ্টার মধ্যে উত্তর দিই। জরুরি সমস্যা একই দিনে দেখা হয়।")}</p>
         <button
           type="submit"
           disabled={pending || uploading}

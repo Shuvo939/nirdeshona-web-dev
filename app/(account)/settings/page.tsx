@@ -2,12 +2,12 @@ import type { Metadata } from "next";
 import { KeyRound, LogOut, Mail, ShieldCheck } from "lucide-react";
 
 import { signOutEverywhere } from "@/app/account-actions";
+import ConfirmButton from "@/app/components/confirm-button";
 import AccountHeader from "@/app/components/account-header";
 import { formatDate } from "@/app/components/marketing";
 import { requireUser } from "@/lib/auth/session";
 
 import { EmailForm, PasswordForm } from "./security-forms";
-import SubmitButton from "@/app/components/submit-button";
 import { getI18n, msg } from "@/lib/i18n/server";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -58,11 +58,21 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
         </Card>
 
         <Card icon={<LogOut className="h-5 w-5" />} title={L("Sessions", "সেশন")} description={L("Signed in on a shared or lost device? Sign out everywhere.", "শেয়ার করা বা হারানো ডিভাইসে লগ ইন আছে? সব জায়গা থেকে লগ আউট করুন।")}>
-          <form action={signOutEverywhere}>
-            <SubmitButton pendingText={L("Signing out…", "লগ আউট হচ্ছে…")} icon={<LogOut className="h-4 w-4" />} className="inline-flex h-11 items-center gap-2 rounded-full border border-red-200 bg-red-50 px-5 text-sm font-semibold text-red-700 hover:bg-red-100 disabled:opacity-70">
-              {L("Sign out of all devices", "সব ডিভাইস থেকে লগ আউট করুন")}
-            </SubmitButton>
-          </form>
+          <ConfirmButton
+            action={signOutEverywhere}
+            icon="logout"
+            title={L("Sign out of all devices?", "সব ডিভাইস থেকে লগ আউট করবেন?")}
+            description={L(
+              "You'll be signed out here and on every other phone, tablet or computer. You'll need your password to sign in again.",
+              "এই ডিভাইসসহ অন্য সব ফোন, ট্যাবলেট ও কম্পিউটার থেকে লগ আউট হয়ে যাবেন। আবার লগইন করতে পাসওয়ার্ড লাগবে।",
+            )}
+            confirmLabel={L("Sign out everywhere", "সব জায়গা থেকে লগ আউট")}
+            pendingLabel={L("Signing out…", "লগ আউট হচ্ছে…")}
+            className="inline-flex h-11 items-center gap-2 rounded-full border border-red-200 bg-red-50 px-5 text-sm font-semibold text-red-700 hover:bg-red-100"
+          >
+            <LogOut className="h-4 w-4" />
+            {L("Sign out of all devices", "সব ডিভাইস থেকে লগ আউট করুন")}
+          </ConfirmButton>
         </Card>
       </section>
     </div>

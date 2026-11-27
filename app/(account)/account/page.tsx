@@ -1,25 +1,12 @@
 import type { Metadata } from "next";
 import Link from "@/app/components/locale-link";
-import {
-  ReceiptText,
-  ArrowUpRight,
-  Bell,
-  CheckCircle2,
-  Circle,
-  FolderKanban,
-  Heart,
-  LifeBuoy,
-  MessageCircle,
-  Newspaper,
-  Settings,
-  ShieldCheck,
-  UserRound,
-} from "lucide-react";
+import { ArrowUpRight, Bell, CheckCircle2, Circle, FolderKanban, Heart, LifeBuoy, MessageCircle, Newspaper, ReceiptText, Settings, ShieldCheck, UserRound } from "lucide-react";
 
 import AccountHeader from "@/app/components/account-header";
 import { PROJECT_STATUS, StatusBadge, TICKET_STATUS, formatDate } from "@/app/components/marketing";
 import { getClientMemberships, requireUser } from "@/lib/auth/session";
 import { sql } from "@/lib/db";
+import { localizeNotification } from "@/lib/notifications-i18n";
 import { timeAgo as timeAgoLocale } from "@/lib/i18n/config";
 import { getI18n, msg } from "@/lib/i18n/server";
 
@@ -254,7 +241,7 @@ export default async function AccountPage() {
                       <p className="mt-1.5 line-clamp-2 text-sm text-neutral-700">{c.content}</p>
                       <p className="mt-2 flex items-center gap-3 text-xs text-neutral-500">
                         <span>👍 {num(c.likes)}</span>
-                        {!c.parent_id && <span>💬 {num(c.replies)} {L(c.replies === 1 ? "reply" : "replies", "উত্তর")}</span>}
+                        {!c.parent_id && <span className="inline-flex items-center gap-1"><MessageCircle className="h-3 w-3" /> {num(c.replies)} {L(c.replies === 1 ? "reply" : "replies", "উত্তর")}</span>}
                         <ArrowUpRight className="ml-auto h-3.5 w-3.5 opacity-0 transition group-hover:opacity-100" />
                       </p>
                     </Link>
@@ -297,7 +284,7 @@ export default async function AccountPage() {
                     <Link href={n.link || "/notifications"} className="flex gap-2.5 rounded-xl p-2 transition hover:bg-neutral-50">
                       <span className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${n.read_at ? "bg-neutral-200" : "bg-blue-500"}`} />
                       <span className="min-w-0">
-                        <span className="block truncate text-sm text-neutral-800">{n.title}</span>
+                        <span className="block truncate text-sm text-neutral-800">{localizeNotification({ title: n.title as string, message: null }, locale).title}</span>
                         <span className="text-xs text-neutral-400">{timeAgo(n.created_at)}</span>
                       </span>
                     </Link>

@@ -6,6 +6,7 @@ import { z } from "zod";
 
 import { verifyCaptcha } from "@/lib/captcha";
 import { sql } from "@/lib/db";
+import { notifyAdmins } from "@/lib/notifications";
 import { sendEmail } from "@/lib/email";
 import { deletePrivateObject, headPrivateObject, hasR2 } from "@/lib/r2";
 import { site } from "@/lib/site";
@@ -231,6 +232,13 @@ async function handleContact(request: Request) {
       returning id
     `;
 
+    await notifyAdmins({
+      type: "contact",
+      title: `New message from ${name}`,
+      message: `${service ? `${service} · ` : ""}${String(message).slice(0, 160)}`,
+      link: `/admin/contacts/${saved.id}`,
+    });
+
     /* --------------------------------------------------------
        EMAILS (best-effort; never fail the request)
     -------------------------------------------------------- */
@@ -262,7 +270,7 @@ async function handleContact(request: Request) {
         replyTo: adminEmail || site.email,
         subject: "We received your message — Nirdeshona Web",
         heading: `Thanks, ${name.split(" ")[0]}!`,
-        body: `We've received your message and will reply within one business day.\n\nHere's a copy of what you sent:\n\n${message}`,
+        body: `We've received your message and will reply within 24 hours.\n\nHere's a copy of what you sent:\n\n${message}`,
         cta: { label: "See our work while you wait", url: `${site.url}/projects` },
       }),
     ]);

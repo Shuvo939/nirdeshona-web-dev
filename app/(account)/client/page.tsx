@@ -22,6 +22,7 @@ import {
 import AccountHeader from "@/app/components/account-header";
 import { getClientMemberships, requireUser } from "@/lib/auth/session";
 import { sql } from "@/lib/db";
+import { localizeNotification } from "@/lib/notifications-i18n";
 import { getI18n, msg } from "@/lib/i18n/server";
 import { tcol } from "@/lib/i18n/sql";
 
@@ -285,7 +286,7 @@ export default async function ClientDashboardPage({
                       <Link href={n.link || "/notifications"} className="flex gap-3 rounded-xl p-2 transition hover:bg-neutral-50">
                         <span className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${n.read_at ? "bg-neutral-200" : "bg-blue-500"}`} />
                         <span className="min-w-0">
-                          <span className="block truncate text-sm font-medium text-neutral-900">{n.title}</span>
+                          <span className="block truncate text-sm font-medium text-neutral-900">{localizeNotification({ title: n.title as string, message: null }, locale).title}</span>
                           <span className="block text-xs text-neutral-500">{formatDate(n.created_at, true, locale)}</span>
                         </span>
                       </Link>

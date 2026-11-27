@@ -6,9 +6,12 @@ export const site = {
   legalName: "Nirdeshona Web Development",
   tagline: "Websites, web apps and digital products that work for real people.",
   description:
-    "Nirdeshona Web Development builds fast, modern websites, web applications and WordPress solutions for organisations, businesses and individuals.",
+    "Nirdeshona Web Development builds fast, modern websites, web applications, WordPress solutions and Android apps — and runs Facebook and social media for organisations, businesses and individuals.",
   url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://web.nirdeshona.com",
   email: "contact.nirdeshona@gmail.com",
+  phone: "+8801887336695",
+  phoneDisplay: "+880 1887-336695",
+  whatsapp: "https://wa.me/8801887336695",
   location: "Dhaka, Bangladesh",
   founded: 2022,
 };
@@ -19,6 +22,8 @@ export type ServiceSlug =
   | "design"
   | "custom-development"
   | "ecommerce"
+  | "android-app"
+  | "social-media"
   | "maintenance";
 
 export type Service = {
@@ -26,7 +31,7 @@ export type Service = {
   title: string;
   short: string;
   intro: string;
-  icon: "code" | "globe" | "palette" | "cpu" | "cart" | "shield";
+  icon: "code" | "globe" | "palette" | "cpu" | "cart" | "smartphone" | "megaphone" | "shield";
   deliverables: string[];
   outcomes: { title: string; text: string }[];
   stack: string[];
@@ -183,6 +188,66 @@ export const services: Service[] = [
     ],
   },
   {
+    slug: "android-app",
+    title: "Android App Development",
+    short: "Native Android apps in Kotlin — fast, offline-ready and published on Google Play.",
+    intro:
+      "Give your customers, members or field team an app they keep on their phone. We design and build native Android apps with Kotlin and Jetpack Compose, connect them to your website or database, and take care of the Google Play release.",
+    icon: "smartphone",
+    deliverables: [
+      "Native Android app built with Kotlin and Jetpack Compose",
+      "Clean, Material-style design that works on small and large screens",
+      "Offline support, local storage and background sync",
+      "Login, push notifications and in-app content from your admin panel",
+      "API or database connection shared with your website",
+      "Google Play Console setup, store listing and release",
+    ],
+    outcomes: [
+      { title: "Always in their pocket", text: "An app icon on the home screen brings people back far more often than a bookmark." },
+      { title: "Works on real networks", text: "Screens load from local data first, so the app stays usable on slow or patchy connections." },
+      { title: "One system, two front doors", text: "Your website and app share the same data, so you update content once." },
+    ],
+    stack: ["Android", "Kotlin", "Jetpack Compose", "Room", "Firebase", "Firebase Cloud Messaging", "Supabase", "Google Play Console", "Figma", "GitHub"],
+    idealFor: ["Businesses with repeat customers", "Schools, coaching centres & NGOs", "Field teams and internal tools", "Content and learning platforms"],
+    timeline: "5 – 12 weeks",
+    startingFrom: "৳40,000",
+    faqs: [
+      { q: "Do you build iPhone (iOS) apps too?", a: "Our focus is Android, which most people in Bangladesh use. If you also need iOS, we'll discuss a cross-platform plan during discovery." },
+      { q: "Will you publish the app on Google Play?", a: "Yes. We prepare the store listing, screenshots and privacy policy, and publish under your own Google Play developer account." },
+      { q: "Can the app use the same content as my website?", a: "Yes. We connect the app to the same database or API, so anything you publish from the admin panel appears in both." },
+    ],
+  },
+  {
+    slug: "social-media",
+    title: "Facebook & Social Media",
+    short: "Professional Facebook pages, ad campaigns, boosts and monthly social media management.",
+    intro:
+      "Most customers in Bangladesh find you on Facebook before they ever visit a website. We set up a professional page, design posts that match your brand, and run ads and boosts that are targeted, tracked and reported — so every taka spent has a reason.",
+    icon: "megaphone",
+    deliverables: [
+      "Professional Facebook page setup: name, username, profile, cover, About and call-to-action button",
+      "Meta Business Suite and Business Manager setup with safe admin access",
+      "Branded post and story templates",
+      "Ad account, Meta Pixel and conversion tracking",
+      "Targeted ad campaigns and post boosts",
+      "Monthly content calendar, page management and performance report",
+    ],
+    outcomes: [
+      { title: "A page people trust", text: "A complete, consistent page makes a strong first impression and answers questions before they are asked." },
+      { title: "Ads that reach the right people", text: "Careful targeting and tracking mean your budget goes to people likely to buy, join or enquire." },
+      { title: "Clear numbers every month", text: "A plain report on reach, messages, leads and cost — and what we'll change next month." },
+    ],
+    stack: ["Facebook", "Instagram", "Meta Business Suite", "Facebook Ads Manager", "Meta Pixel", "WhatsApp Business", "Canva", "Figma"],
+    idealFor: ["Shops and online sellers", "Restaurants and local services", "Organisations and campaigns", "Personal brands"],
+    timeline: "Setup in 3 – 5 days",
+    startingFrom: "৳5,000",
+    faqs: [
+      { q: "Is the ad budget included in your fee?", a: "No. Ad spend is paid directly to Meta from your own card or account, so you always see exactly where the money goes. Our fee covers planning, design, setup and management." },
+      { q: "Who owns the page and the ad account?", a: "You do. Everything is created under your business, and we work as a partner with limited access that you can remove at any time." },
+      { q: "Can you fix a page that was hacked or restricted?", a: "We can help secure the account, review restrictions and submit appeals through Meta's official channels, though the final decision is Meta's." },
+    ],
+  },
+  {
     slug: "maintenance",
     title: "Care & Maintenance",
     short: "Updates, backups, monitoring and priority support after launch.",
@@ -208,7 +273,7 @@ export const services: Service[] = [
     startingFrom: "৳3,000/mo",
     faqs: [
       { q: "Can you maintain a site you didn't build?", a: "Yes, after a short audit to understand the setup and fix any urgent issues." },
-      { q: "How fast do you respond to tickets?", a: "Within one business day on standard plans; urgent issues are prioritised the same day." },
+      { q: "How fast do you respond to tickets?", a: "Within 24 hours on standard plans; urgent issues are prioritised the same day." },
     ],
   },
 ];
@@ -220,7 +285,9 @@ export const techCategories: { name: string; items: string[] }[] = [
   { name: "Backend & data", items: ["PostgreSQL", "SQL", "SQLite", "Supabase", "Neon", "Firebase", "NextAuth.js", "Typesense"] },
   { name: "CMS & e-commerce", items: ["WordPress", "WooCommerce", "Sanity CMS", "Payload CMS", "Strapi"] },
   { name: "Hosting & DevOps", items: ["Vercel", "Cloudflare", "Bunny.net", "Render", "Docker", "GitHub"] },
-  { name: "Email, design & growth", items: ["Resend", "Brevo", "Figma", "SEO"] },
+  { name: "Mobile apps", items: ["Android", "Kotlin", "Jetpack Compose", "Room", "Firebase Cloud Messaging", "Google Play Console"] },
+  { name: "Email, design & growth", items: ["Resend", "Brevo", "Figma", "Canva", "SEO"] },
+  { name: "Social media & ads", items: ["Meta Business Suite", "Facebook Ads Manager", "Meta Pixel", "Instagram", "WhatsApp Business"] },
 ];
 
 export const allTech = techCategories.flatMap((c) => c.items);
@@ -325,7 +392,7 @@ export const faqGroups: { title: string; items: { q: string; a: string }[] }[] =
   {
     title: "Getting started",
     items: [
-      { q: "How do we start a project?", a: "Build your quote on the pricing page — choose a plan, add your details and confirm — or send us a message through the contact page. We'll reply within one business day with a written scope and a fixed quote." },
+      { q: "How do we start a project?", a: "Build your quote on the pricing page — choose a plan, add your details and confirm — or send us a message through the contact page. We'll reply within 24 hours with a written scope and a fixed quote." },
       { q: "What do you need from me?", a: "Your goals, any content you already have (text, logo, photos) and examples of sites you like. We'll guide you through the rest." },
       { q: "How long does a website take?", a: "A simple site typically takes 2–4 weeks; larger sites and web apps take 4–12 weeks depending on scope and how quickly feedback comes back." },
     ],
@@ -349,7 +416,7 @@ export const faqGroups: { title: string; items: { q: string; a: string }[] }[] =
   {
     title: "Technical",
     items: [
-      { q: "Which technologies do you use?", a: "Mostly Next.js, React, TypeScript and PostgreSQL for custom work, and WordPress where it's the better fit. Everything is hosted on reliable, modern infrastructure." },
+      { q: "Which technologies do you use?", a: "Mostly Next.js, React, TypeScript and PostgreSQL for custom work, WordPress where it's the better fit, and Kotlin with Jetpack Compose for Android apps. Everything is hosted on reliable, modern infrastructure." },
       { q: "Will my site work in Bengali?", a: "Yes — we build bilingual and Bengali-first sites regularly, with proper fonts and search that handles Bengali text." },
       { q: "Is my site going to be secure?", a: "We use HTTPS everywhere, secure authentication, row-level database security, spam protection and regular updates." },
     ],
@@ -360,7 +427,17 @@ export const faqGroups: { title: string; items: { q: string; a: string }[] }[] =
 /* Pricing extras — indicative prices, adjust to your current rates.   */
 /* ------------------------------------------------------------------ */
 
-export type AddOn = { id: string; name: string; description: string; price: number; unit?: string };
+export type AddOn = {
+  id: string;
+  name: string;
+  description: string;
+  price: number;
+  unit?: string;
+  /** Social media extras can be ordered with a website or on their own. */
+  group?: "social";
+  /** Billed every month instead of once. */
+  monthly?: boolean;
+};
 
 export const addOns: AddOn[] = [
   { id: "page", name: "Extra page", description: "Each additional designed page beyond the package.", price: 2000, unit: "per page" },
@@ -372,6 +449,11 @@ export const addOns: AddOn[] = [
   { id: "copy", name: "Copywriting", description: "We write the text for your main pages.", price: 1500, unit: "per page" },
   { id: "logo", name: "Logo & brand kit", description: "Logo concepts, colours and typography.", price: 7000 },
   { id: "migration", name: "Content migration", description: "Move posts and pages from your old site.", price: 6000 },
+  { id: "fb-page", name: "Facebook page setup", description: "Professional page with profile, cover, About, username and call-to-action button.", price: 5000, group: "social" },
+  { id: "social-kit", name: "Social media design kit", description: "Branded templates plus 10 ready-to-post designs.", price: 6000, group: "social" },
+  { id: "ads-setup", name: "Ads & boost setup", description: "Ad account, Meta Pixel, audiences and your first campaign.", price: 4000, group: "social" },
+  { id: "social-mgmt", name: "Monthly page management", description: "12 posts a month, replies to comments and a monthly report.", price: 8000, unit: "per month", group: "social", monthly: true },
+  { id: "ads-mgmt", name: "Monthly ads & boost management", description: "Plan, run and optimise campaigns. Ad spend is paid to Meta separately.", price: 5000, unit: "per month", group: "social", monthly: true },
 ];
 
 // What's included in each package (true = included, string = detail, false = not included).
