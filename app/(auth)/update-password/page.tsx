@@ -16,7 +16,6 @@ import { useI18n } from "@/lib/i18n/client";
 export default function ResetPasswordPage() {
   const router = useRouter();
   const { L, lp } = useI18n();
-  const supabase = createClient();
 
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -46,7 +45,7 @@ export default function ResetPasswordPage() {
 
     setLoading(true);
 
-    const { error } = await supabase.auth.updateUser({
+    const { error } = await createClient().auth.updateUser({
       password,
     });
 

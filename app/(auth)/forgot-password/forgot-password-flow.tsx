@@ -29,7 +29,6 @@ export default function ForgotPasswordFlow({
 }) {
   const router = useRouter();
   const { L, lp, num, tm } = useI18n();
-  const supabase = createClient();
   const embedded = Boolean(accountEmail);
 
   const [step, setStep] = useState<Step>("email");
@@ -115,7 +114,7 @@ export default function ForgotPasswordFlow({
 
     setLoading(true);
 
-    const { error } = await supabase.auth.verifyOtp({
+    const { error } = await createClient().auth.verifyOtp({
       email: email.trim(),
       token: cleanOtp,
       type: "recovery",
@@ -143,7 +142,7 @@ export default function ForgotPasswordFlow({
     setResending(true);
 
     const { error } =
-      await supabase.auth.resetPasswordForEmail(email.trim());
+      await createClient().auth.resetPasswordForEmail(email.trim());
 
     if (error) {
       setError(getAuthErrorMessage(error.message, L));
@@ -180,7 +179,7 @@ export default function ForgotPasswordFlow({
 
     setLoading(true);
 
-    const { error } = await supabase.auth.updateUser({
+    const { error } = await createClient().auth.updateUser({
       password,
     });
 

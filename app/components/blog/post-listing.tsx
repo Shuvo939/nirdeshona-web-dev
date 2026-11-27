@@ -298,7 +298,7 @@ export default async function PostListing({
                       <span className="min-w-0">
                         <span className="line-clamp-2 text-sm font-medium leading-snug text-neutral-800">{p.title}</span>
                         <span className="mt-1 flex items-center gap-1 text-xs text-neutral-400">
-                          <Eye className="h-3 w-3" /> {L(`${p.views_count.toLocaleString("en-US")} views`, `${stat(p.views_count)} বার পঠিত`)}
+                          <Eye className="h-3 w-3" /> {L(`${stat(p.views_count ?? 0)} views`, `${stat(p.views_count ?? 0)} বার পঠিত`)}
                         </span>
                       </span>
                     </Link>
