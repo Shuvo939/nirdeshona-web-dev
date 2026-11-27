@@ -25,7 +25,7 @@ export async function generateMetadata(): Promise<Metadata> {
 const VALUE_ICONS = [Compass, Smartphone, Layers3, HeartHandshake];
 
 export default async function AboutPage() {
-  const { L, locale, stat, digits } = await getI18n();
+  const { L, locale, stat, digits, num } = await getI18n();
   const { comparison, faqGroups, milestones, processSteps, services, site, team, techCategories, values } = getContent(locale);
   const [[stats], clients] = await Promise.all([
     sql`
@@ -299,7 +299,7 @@ export default async function AboutPage() {
           <ol className="mt-8 flex flex-col gap-3">
             {processSteps.map((step, index) => (
               <li key={step.title} className="flex gap-4 rounded-2xl border border-neutral-200 bg-white p-4">
-                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-neutral-950 text-xs font-semibold text-white">{stat(index + 1)}</span>
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-neutral-950 text-xs font-semibold text-white">{num(index + 1)}</span>
                 <div>
                   <h3 className="text-sm font-semibold text-neutral-950">{step.title}</h3>
                   <p className="mt-1 text-sm leading-6 text-neutral-600">{step.text}</p>

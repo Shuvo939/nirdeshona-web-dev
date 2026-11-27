@@ -110,7 +110,7 @@ const getHomeData = publicCache(async (locale: Locale) => {
 }, "home-data");
 
 export default async function HomePage() {
-  const { L, locale, date, stat } = await getI18n();
+  const { L, locale, date, stat, num, digits } = await getI18n();
   const { faqGroups, packages, processSteps, services, values } = getContent(locale);
   const { projects, stats, posts, clients, live } = await getHomeData(locale);
   const progress = live?.progress_percent ?? 70;
@@ -286,7 +286,7 @@ export default async function HomePage() {
               <p className="mt-3 text-[11px] text-neutral-500">{L("Next.js, WordPress, Supabase & more", "Next.js, WordPress, Supabase ও আরও")}</p>
             </StatCard>
             <StatCard icon={<Clock className="h-5 w-5" />} value={<span>{L("< 24h", "২৪ ঘণ্টার কম")}</span>} label={L("Support reply", "সাপোর্টে উত্তর")} dark>
-              <p className="mt-3 text-[11px] text-neutral-400">{L(`Since 2022 · ${years}+ years of Nirdeshona`, `২০২২ থেকে · নির্দেশনার ${stat(years)}+ বছর`)}</p>
+              <p className="mt-3 text-[11px] text-neutral-400">{L(`Since 2022 · ${years}+ years of Nirdeshona`, `২০২২ থেকে · নির্দেশনার ${num(years)}+ বছর`)}</p>
             </StatCard>
           </div>
         </div>
@@ -389,7 +389,7 @@ export default async function HomePage() {
             <div aria-hidden className="absolute left-0 right-0 top-[22px] hidden h-px bg-neutral-200 md:block" />
             {processSteps.map((step, i) => (
               <li key={step.title} className="relative flex gap-4 md:flex-col md:gap-0">
-                <span className="relative z-10 flex h-11 w-11 shrink-0 items-center justify-center rounded-full border-4 border-neutral-50 bg-neutral-950 text-sm font-bold text-white">{stat(i + 1)}</span>
+                <span className="relative z-10 flex h-11 w-11 shrink-0 items-center justify-center rounded-full border-4 border-neutral-50 bg-neutral-950 text-sm font-bold text-white">{num(i + 1)}</span>
                 <div className="md:mt-5">
                   <h3 className="font-semibold text-neutral-950">{step.title}</h3>
                   <p className="mt-1.5 text-sm leading-6 text-neutral-600">{step.text}</p>

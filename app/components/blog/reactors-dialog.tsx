@@ -7,6 +7,7 @@ import type { ReactionType } from "@/lib/comments";
 import { useI18n } from "@/lib/i18n/client";
 
 import { getReactors, type Reactor } from "./community-actions";
+import ReactionIcon from "./reaction-icon";
 import { REACTION_META, REACTION_ORDER, reactionLabel } from "./reaction-meta";
 
 /** Facebook-style "who reacted" list, opened from a reaction summary. */
@@ -76,7 +77,7 @@ export default function ReactorsDialog({
             </TabButton>
             {tabs.map((r) => (
               <TabButton key={r} active={tab === r} onClick={() => setTab(r)} label={reactionLabel(r, locale)}>
-                <span className="text-base leading-none">{REACTION_META[r].emoji}</span> {stat(counts[r] ?? 0)}
+                <ReactionIcon type={r} size={18} /> {stat(counts[r] ?? 0)}
               </TabButton>
             ))}
           </div>
@@ -115,10 +116,10 @@ export default function ReactorsDialog({
                     )}
                   </span>
                   <span
-                    className="absolute -bottom-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-white text-[12px] shadow-[0_1px_3px_rgba(0,0,0,0.25)]"
+                    className="absolute -bottom-1 -right-1 flex rounded-full ring-2 ring-white"
                     title={reactionLabel(r.reaction_type, locale)}
                   >
-                    {REACTION_META[r.reaction_type]?.emoji}
+                    <ReactionIcon type={r.reaction_type} size={18} />
                   </span>
                 </span>
                 <span className="flex min-w-0 items-center gap-1.5 text-sm font-medium text-neutral-900">

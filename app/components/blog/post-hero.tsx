@@ -22,7 +22,7 @@ function initials(name: string | null) {
  * title, standfirst, then the byline and a compact stats/share row.
  */
 export default async function PostHero({ post, commentCount, reactionCount }: { post: Post; commentCount: number; reactionCount: number }) {
-  const { L, stat, date } = await getI18n();
+  const { L, stat, date, num, digits } = await getI18n();
   const published = post.published_at || post.created_at;
   const minutes = Math.max(1, Math.round(post.content.trim().split(/\s+/).length / 220));
   const author = post.author_name || L("Nirdeshona Web", "নির্দেশনা ওয়েব");
@@ -63,7 +63,7 @@ export default async function PostHero({ post, commentCount, reactionCount }: { 
               <p className="mt-0.5 flex flex-wrap items-center gap-x-1.5 text-sm text-neutral-500">
                 <time dateTime={new Date(published).toISOString()}>{date(published, { day: "numeric", month: "short", year: "numeric" })}</time>
                 <span aria-hidden>·</span>
-                <span>{L(`${minutes} min read`, `${stat(minutes)} মিনিটে পড়া`)}</span>
+                <span>{L(`${minutes} min read`, `${num(minutes)} মিনিটে পড়া`)}</span>
               </p>
             </div>
           </div>

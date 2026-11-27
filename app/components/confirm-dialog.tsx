@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import { AlertTriangle } from "lucide-react";
 
 import { useI18n } from "@/lib/i18n/client";
-import Portal from "@/app/components/ui/portal";
+import Portal, { useScrollLock } from "@/app/components/ui/portal";
 
 // Controlled confirmation dialog (never window.confirm).
 export default function ConfirmDialog({
@@ -23,6 +23,7 @@ export default function ConfirmDialog({
   onCancel: () => void;
 }) {
   const { L } = useI18n();
+  useScrollLock();
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onCancel();
     document.addEventListener("keydown", onKey);

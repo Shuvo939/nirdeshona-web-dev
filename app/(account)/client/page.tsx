@@ -41,7 +41,7 @@ export default async function ClientDashboardPage({
 }: {
   searchParams: Promise<{ tickets?: string }>;
 }) {
-  const { L, locale, stat } = await getI18n();
+  const { L, locale, stat, num, digits } = await getI18n();
   const user = await requireUser("/client");
   const { tickets: rawFilter } = await searchParams;
   const filter = TICKET_FILTERS.some((f) => f.value === rawFilter) ? rawFilter! : "active";
@@ -144,7 +144,7 @@ export default async function ClientDashboardPage({
             <MessageSquareText className="h-4 w-4 shrink-0" />
             {L(
               `${counts.waiting} ticket${counts.waiting === 1 ? " is" : "s are"} waiting for your reply.`,
-              `${stat(counts.waiting)}টি টিকেট আপনার উত্তরের অপেক্ষায় আছে।`,
+              `${num(counts.waiting)}টি টিকেট আপনার উত্তরের অপেক্ষায় আছে।`,
             )}
           </div>
         )}
@@ -203,7 +203,7 @@ export default async function ClientDashboardPage({
                         </Link>
                         {project.open_tickets > 0 && (
                           <span className="ml-auto text-neutral-500">
-                            {L(`${project.open_tickets} open ticket${project.open_tickets === 1 ? "" : "s"}`, `${stat(project.open_tickets)}টি খোলা টিকেট`)}
+                            {L(`${project.open_tickets} open ticket${project.open_tickets === 1 ? "" : "s"}`, `${num(project.open_tickets)}টি খোলা টিকেট`)}
                           </span>
                         )}
                       </div>
@@ -245,7 +245,7 @@ export default async function ClientDashboardPage({
                     >
                       <div className="min-w-0">
                         <p className="text-xs text-neutral-500">
-                          #{stat(ticket.ticket_number)}
+                          #{digits(ticket.ticket_number)}
                           {ticket.project_title ? ` · ${ticket.project_title}` : ""}
                         </p>
                         <p className="mt-0.5 truncate font-medium text-neutral-950 group-hover:underline">{ticket.subject}</p>
@@ -254,7 +254,7 @@ export default async function ClientDashboardPage({
                           {" · "}
                           {L(
                             `${ticket.message_count} message${ticket.message_count === 1 ? "" : "s"} · updated ${formatDate(ticket.updated_at)}`,
-                            `${stat(ticket.message_count)}টি বার্তা · আপডেট ${formatDate(ticket.updated_at, false, locale)}`,
+                            `${num(ticket.message_count)}টি বার্তা · আপডেট ${formatDate(ticket.updated_at, false, locale)}`,
                           )}
                         </p>
                       </div>

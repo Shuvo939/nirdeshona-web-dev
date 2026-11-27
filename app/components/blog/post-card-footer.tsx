@@ -15,7 +15,7 @@ export type PostCardStats = {
 
 /** SQL fragment helpers live with the callers; this renders the card footer. */
 export default async function PostCardFooter({ post }: { post: PostCardStats }) {
-  const { L, stat, date } = await getI18n();
+  const { L, stat, date, num, digits } = await getI18n();
   const name = post.author_name || L("Nirdeshona Web", "নির্দেশনা ওয়েব");
   const initials = name
     .split(/\s+/)
@@ -39,7 +39,7 @@ export default async function PostCardFooter({ post }: { post: PostCardStats }) 
           <span className="block truncate text-xs font-semibold text-neutral-800">{name}</span>
           <span className="block truncate text-[11px] text-neutral-500">
             {post.published_at ? date(post.published_at) : ""}
-            {post.reading_minutes ? ` · ${L(`${post.reading_minutes} min read`, `${stat(post.reading_minutes)} মিনিট`)}` : ""}
+            {post.reading_minutes ? ` · ${L(`${post.reading_minutes} min read`, `${num(post.reading_minutes)} মিনিটে পড়া`)}` : ""}
           </span>
         </span>
       </div>

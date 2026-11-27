@@ -16,7 +16,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function AccountPage() {
   const user = await requireUser("/account");
-  const { L, locale, num, stat } = await getI18n();
+  const { L, locale, num, stat, digits } = await getI18n();
   const timeAgo = (value: string) => timeAgoLocale(value, locale);
   const memberships = await getClientMemberships(user.id);
   const clientIds = memberships.map((m) => m.id);
@@ -161,7 +161,7 @@ export default async function AccountPage() {
                     <Link key={t.id} href={`/client/tickets/${t.id}`} className="flex items-center justify-between gap-2 rounded-2xl border border-neutral-100 p-3 transition hover:border-neutral-200 hover:bg-neutral-50">
                       <span className="min-w-0">
                         <span className="block truncate text-sm font-medium">{t.subject}</span>
-                        <span className="text-xs text-neutral-500">#{stat(t.ticket_number)} · {timeAgo(t.updated_at)}</span>
+                        <span className="text-xs text-neutral-500">#{digits(t.ticket_number)} · {timeAgo(t.updated_at)}</span>
                       </span>
                       <StatusBadge map={TICKET_STATUS} value={t.status} />
                     </Link>
