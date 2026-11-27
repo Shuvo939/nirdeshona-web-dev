@@ -5,6 +5,8 @@ import { useActionState, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { CheckCircle2, Loader2 } from "lucide-react";
 
+import ConfirmDialog from "@/app/components/confirm-dialog";
+
 import AvatarCropper from "@/app/components/avatar-cropper";
 import { updateProfile } from "@/app/account-actions";
 import type { FormState } from "@/app/(account)/client/actions";
@@ -77,6 +79,7 @@ export default function ProfileForm({
     router.refresh();
   }
 
+  const [confirmRemove, setConfirmRemove] = useState(false);
   const initials = (initial.fullName || initial.email).slice(0, 1).toUpperCase();
 
   return (
@@ -111,7 +114,7 @@ export default function ProfileForm({
               <button
                 type="button"
                 disabled={uploading}
-                onClick={removeAvatar}
+                onClick={() => setConfirmRemove(true)}
                 className="h-9 rounded-full px-2 text-xs font-semibold text-neutral-500 transition hover:text-red-600 disabled:opacity-60"
               >
                 {L("Remove", "সরান")}
@@ -132,6 +135,19 @@ export default function ProfileForm({
           />
         </div>
       </div>
+
+      {confirmRemove && (
+        <ConfirmDialog
+          title={L("Remove profile photo?", "প্রোফাইল ছবি সরাবেন?")}
+          description={L("Your initial will show instead. You can upload a new photo any time.", "ছবির জায়গায় আপনার নামের প্রথম অক্ষর দেখাবে। যেকোনো সময় নতুন ছবি দিতে পারবেন।")}
+          confirmLabel={L("Remove", "সরান")}
+          onCancel={() => setConfirmRemove(false)}
+          onConfirm={() => {
+            setConfirmRemove(false);
+            void removeAvatar();
+          }}
+        />
+      )}
 
       {cropSrc && <AvatarCropper src={cropSrc} onCancel={() => setCropSrc(null)} onSave={upload} />}
 

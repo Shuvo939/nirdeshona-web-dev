@@ -31,16 +31,19 @@ export default async function ProfilePage() {
       <section className="flex max-w-3xl flex-col gap-6">
         <ProfileForm
           between={
+            // Only while something is still missing; a full profile needs no meter.
+            completeness < 100 && (
             <div className="rounded-3xl border border-neutral-200 bg-white p-5 sm:p-6">
               <div className="mb-2 flex justify-between text-xs text-neutral-500">
                 <span>{L("Profile completeness", "প্রোফাইল সম্পূর্ণতা")}</span>
                 <span className="font-semibold text-neutral-900">{num(completeness)}%</span>
               </div>
               <div className="h-2 overflow-hidden rounded-full bg-neutral-100">
-                <div className={`h-full rounded-full ${completeness === 100 ? "bg-emerald-500" : "bg-neutral-950"}`} style={{ width: `${completeness}%` }} />
+                <div className={`h-full rounded-full bg-neutral-950`} style={{ width: `${completeness}%` }} />
               </div>
               {missing.length > 0 && <p className="mt-3 text-xs text-neutral-500">{L("Still missing:", "এখনো বাকি:")} {missing.join(", ")}{L(".", "।")}</p>}
             </div>
+            )
           }
           initial={{
             fullName: user.fullName ?? "",
