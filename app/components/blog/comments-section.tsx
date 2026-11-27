@@ -339,7 +339,6 @@ function CommentItem({
   }
 
   const isAuthor = comment.user_id === postAuthorId;
-  const headline = comment.headline || (comment.role === "ADMIN" ? L("Nirdeshona Web Development", "নির্দেশনা ওয়েব ডেভেলপমেন্ট") : null);
 
   return (
     <div
@@ -363,12 +362,11 @@ function CommentItem({
                 </span>
               )}
             </div>
-            {headline && <p className="truncate text-xs leading-4 text-neutral-500">{headline}</p>}
           </div>
 
           <a
             href={`#comment-${comment.id}`}
-            className="shrink-0 pt-0.5 text-xs text-neutral-500 hover:underline"
+            className="shrink-0 text-xs leading-5 text-neutral-500 hover:underline"
             title={new Date(comment.created_at).toLocaleString(locale === "bn" ? "bn-BD" : "en-GB")}
           >
             {pending ? L("Posting…", "পোস্ট হচ্ছে…") : (
@@ -414,7 +412,7 @@ function CommentItem({
           )}
         </div>
 
-        <p className="mt-1.5 whitespace-pre-wrap break-words text-[15px] leading-6 text-neutral-900">
+        <p className="mt-1 whitespace-pre-wrap break-words text-[15px] leading-6 text-neutral-900">
           <RichText text={comment.content} />
         </p>
 
@@ -550,7 +548,6 @@ export default function CommentsSection({
       full_name: viewer.name,
       avatar_url: viewer.avatarUrl,
       role: viewer.isAdmin ? "ADMIN" : "USER",
-      headline: null,
       reaction_count: 0,
       top_reactions: [],
       my_reaction: null,

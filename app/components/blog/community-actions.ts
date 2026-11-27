@@ -86,11 +86,6 @@ export async function addComment(input: { postId: string; parentId?: string | nu
     await notify(post.author_id, "comment", `${name} commented on “${post.title}”`, content.data, link);
   }
 
-  const [profile] = await sql`
-    select coalesce(nullif(trim(company), ''), nullif(left(split_part(trim(coalesce(bio, '')), E'\n', 1), 90), '')) as headline
-    from profiles where id = ${user.id}
-  `.catch(() => [] as { headline: string | null }[]);
-
   return {
     ok: true,
     comment: {
@@ -98,7 +93,6 @@ export async function addComment(input: { postId: string; parentId?: string | nu
       full_name: user.fullName,
       avatar_url: user.avatarUrl,
       role: user.role,
-      headline: (profile?.headline as string | null) ?? null,
       reaction_count: 0,
       top_reactions: [],
       my_reaction: null,

@@ -10,8 +10,6 @@ export type CommentNode = {
   full_name: string | null;
   avatar_url: string | null;
   role: string;
-  /** One line under the name, LinkedIn-style: company, else the start of the bio. */
-  headline: string | null;
   reaction_count: number;
   top_reactions: ReactionType[];
   my_reaction: ReactionType | null;
@@ -24,7 +22,6 @@ export async function getPostComments(postId: string, viewerId: string | null) {
   return (await sql`
     select c.id, c.parent_id, c.content, c.created_at, c.edited_at, c.user_id,
            p.full_name, p.avatar_url, p.role,
-           coalesce(nullif(trim(p.company), ''), nullif(left(split_part(trim(coalesce(p.bio, '')), E'\n', 1), 90), '')) as headline,
            (select count(*)::int from comment_likes l where l.comment_id = c.id) as reaction_count,
            coalesce((select array_agg(t.reaction_type order by t.n desc, t.reaction_type)
                      from (select reaction_type, count(*) as n from comment_likes l where l.comment_id = c.id
