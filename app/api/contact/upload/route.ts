@@ -4,6 +4,7 @@ import { isAllowedOrigin } from "@/lib/same-origin";
 import { z } from "zod";
 
 import { hasR2, presignPrivatePut } from "@/lib/r2";
+import { allowRequest, ipHash } from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
 
@@ -99,6 +100,11 @@ export async function POST(request: Request) {
     /* --------------------------------------------------------
        CONFIGURATION
     -------------------------------------------------------- */
+
+    // At most 15 upload slots per visitor per hour, so storage can't be filled by a script.
+    if (!(await allowRequest("contact-upload", ipHash(request.headers), 15, 3600))) {
+      return NextResponse.json({ error: "Too many uploads. Please try again later." }, { status: 429 });
+    }
 
     if (!hasR2()) {
       console.error("R2 storage is not configured.");

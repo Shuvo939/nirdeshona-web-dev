@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "@/app/components/locale-link";
 import {
   ArrowRight,
@@ -29,12 +30,30 @@ import ProjectCard, { type ProjectCardData } from "@/app/components/project-card
 import { sql } from "@/lib/db";
 import type { Locale } from "@/lib/i18n/config";
 import { publicCache } from "@/lib/public-cache";
+import { pageMeta } from "@/lib/seo";
 import { getContent } from "@/lib/content";
 import { getI18n } from "@/lib/i18n/server";
 import { tcol } from "@/lib/i18n/sql";
 import { allTech } from "@/lib/site";
 
 export const revalidate = 300;
+
+export async function generateMetadata(): Promise<Metadata> {
+  const { L, locale } = await getI18n();
+  return pageMeta({
+    locale,
+    og: { title: "Nirdeshona Web — Website, Web App & Android App Development in Bangladesh" },
+    path: "/",
+    title: L(
+      "Nirdeshona Web — Website, Web App & Android App Development in Bangladesh",
+      "নির্দেশনা ওয়েব — বাংলাদেশে ওয়েবসাইট, ওয়েব অ্যাপ ও অ্যান্ড্রয়েড অ্যাপ তৈরি",
+    ),
+    description: L(
+      "Fast, mobile-first websites, web apps, WordPress sites and Android apps — plus Facebook page setup, ads and social media management. Fixed quotes, Bangla + English, and support after launch.",
+      "দ্রুত, মোবাইল-ফার্স্ট ওয়েবসাইট, ওয়েব অ্যাপ, ওয়ার্ডপ্রেস সাইট ও অ্যান্ড্রয়েড অ্যাপ — সঙ্গে ফেসবুক পেজ সেটআপ, বিজ্ঞাপন ও সোশ্যাল মিডিয়া ব্যবস্থাপনা। নির্দিষ্ট মূল্য, বাংলা ও ইংরেজি, আর লঞ্চের পরও সাপোর্ট।",
+    ),
+  });
+}
 
 const STACK = allTech;
 const VALUE_ICONS = [Compass, Smartphone, Layers3, HeartHandshake];

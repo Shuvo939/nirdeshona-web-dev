@@ -5,18 +5,21 @@ import { ArrowUpRight, Check, Compass, Eye, HeartHandshake, Layers3, Minus, Smar
 import { FaqList, PageHero, PrimaryButton, SecondaryButton, SectionHeading, ServiceIcon } from "@/app/components/marketing";
 import { sql } from "@/lib/db";
 import { getContent } from "@/lib/content";
-import { getI18n, localeAlternates } from "@/lib/i18n/server";
+import { pageMeta } from "@/lib/seo";
+import { getI18n } from "@/lib/i18n/server";
 
 export async function generateMetadata(): Promise<Metadata> {
   const { L, locale } = await getI18n();
-  return {
+  return pageMeta({
+    locale,
+    og: { title: "About" },
+    path: "/about",
     title: L("About — Nirdeshona Web", "আমাদের সম্পর্কে — নির্দেশনা ওয়েব"),
     description: L(
       "Nirdeshona Web Development is a small, focused studio from Bangladesh building modern websites and web applications.",
       "নির্দেশনা ওয়েব ডেভেলপমেন্ট বাংলাদেশের একটি ছোট, মনোযোগী স্টুডিও, যারা আধুনিক ওয়েবসাইট ও ওয়েব অ্যাপ্লিকেশন বানায়।",
     ),
-    alternates: localeAlternates(locale, "/about"),
-  };
+  });
 }
 
 const VALUE_ICONS = [Compass, Smartphone, Layers3, HeartHandshake];

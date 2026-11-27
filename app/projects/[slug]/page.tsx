@@ -25,7 +25,8 @@ import ShareButton from "@/app/components/projects/share-button";
 import { sql } from "@/lib/db";
 import { getLocalizedService } from "@/lib/content";
 import type { Locale } from "@/lib/i18n/config";
-import { getI18n, getLocale, localeAlternates, makeI18n } from "@/lib/i18n/server";
+import { getI18n, getLocale, makeI18n } from "@/lib/i18n/server";
+import { breadcrumbLd, pageMeta } from "@/lib/seo";
 import { tcol } from "@/lib/i18n/sql";
 import { categoryLabel } from "@/lib/projects/categories";
 import { jsonLd } from "@/lib/json-ld";
@@ -75,17 +76,16 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!project) return { title: L("Project not found — Nirdeshona Web", "প্রজেক্ট পাওয়া যায়নি — নির্দেশনা ওয়েব") };
   const description =
     project.short_description || L(`${project.title} — a project by Nirdeshona Web Development.`, `${project.title} — নির্দেশনা ওয়েব ডেভেলপমেন্টের একটি প্রজেক্ট।`);
-  return {
+  return pageMeta({
+    locale,
+    path: `/projects/${project.slug}`,
     title: `${project.title} — ${L("Nirdeshona Web", "নির্দেশনা ওয়েব")}`,
     description,
-    alternates: localeAlternates(locale, `/projects/${project.slug}`),
-    openGraph: {
-      title: project.title,
-      description,
-      type: "article",
-      images: project.cover_image_url ? [{ url: project.cover_image_url }] : undefined,
-    },
-  };
+    image: project.cover_image_url,
+    eyebrow: L("Project", "প্রজেক্ট"),
+    type: "article",
+    og: { title: locale === "bn" ? ((await getProject(slug, "en"))?.title ?? project.title) : project.title, eyebrow: "Project" },
+  });
 }
 
 function makeFmt(locale: Locale) {
@@ -192,7 +192,16 @@ export default async function ProjectDetailsPage({ params }: Props) {
 
   return (
     <main className="bg-white">
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(schema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{
+          __html: jsonLd([
+            schema,
+            breadcrumbLd(locale, [
+              [L("Home", "হোম"), "/"],
+              [L("Our work", "আমাদের কাজ"), "/projects"],
+              [project.title, `/projects/${project.slug}`],
+            ]),
+          ]),
+        }} />
 
       {/* Hero */}
       <section className="relative overflow-hidden border-b border-neutral-200 bg-neutral-50">

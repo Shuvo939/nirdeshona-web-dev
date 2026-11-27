@@ -1,19 +1,22 @@
 import type { Metadata } from "next";
 
 import LegalPage from "@/app/components/legal-page";
-import { getI18n, localeAlternates } from "@/lib/i18n/server";
+import { pageMeta } from "@/lib/seo";
+import { getI18n } from "@/lib/i18n/server";
 import { site } from "@/lib/site";
 
 export async function generateMetadata(): Promise<Metadata> {
   const { L, locale } = await getI18n();
-  return {
+  return pageMeta({
+    locale,
+    og: { title: "Privacy Policy" },
+    path: "/privacy",
     title: L("Privacy Policy — Nirdeshona Web", "গোপনীয়তা নীতি — নির্দেশনা ওয়েব"),
     description: L(
       "How Nirdeshona Web Development collects, uses and protects your information.",
       "নির্দেশনা ওয়েব ডেভেলপমেন্ট কীভাবে আপনার তথ্য সংগ্রহ, ব্যবহার ও সুরক্ষিত রাখে।",
     ),
-    alternates: localeAlternates(locale, "/privacy"),
-  };
+  });
 }
 
 export default async function PrivacyPage() {

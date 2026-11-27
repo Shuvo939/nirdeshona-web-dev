@@ -4,16 +4,19 @@ import { ArrowUpRight, Building2, LogIn } from "lucide-react";
 
 import { PageHero, PrimaryButton, SecondaryButton } from "@/app/components/marketing";
 import { sql } from "@/lib/db";
-import { getI18n, localeAlternates } from "@/lib/i18n/server";
+import { pageMeta } from "@/lib/seo";
+import { getI18n } from "@/lib/i18n/server";
 import { categoryLabel } from "@/lib/projects/categories";
 
 export async function generateMetadata(): Promise<Metadata> {
   const { L, locale } = await getI18n();
-  return {
+  return pageMeta({
+    locale,
+    og: { title: "Clients" },
+    path: "/clients",
     title: L("Clients — Nirdeshona Web", "ক্লায়েন্ট — নির্দেশনা ওয়েব"),
     description: L("Organisations and people we've had the privilege to work with.", "যেসব প্রতিষ্ঠান ও মানুষের সঙ্গে কাজ করার সৌভাগ্য হয়েছে।"),
-    alternates: localeAlternates(locale, "/clients"),
-  };
+  });
 }
 
 export default async function ClientsPage() {

@@ -16,16 +16,19 @@ import {
 
 import ContactForm from "@/app/components/contact/contact-form";
 import { getContent } from "@/lib/content";
-import { getI18n, localeAlternates } from "@/lib/i18n/server";
+import { pageMeta } from "@/lib/seo";
+import { getI18n } from "@/lib/i18n/server";
 import { site } from "@/lib/site";
 
 export async function generateMetadata(): Promise<Metadata> {
   const { L, locale } = await getI18n();
-  return {
+  return pageMeta({
+    locale,
+    og: { title: "Contact" },
+    path: "/contact",
     title: L("Contact — Nirdeshona Web", "যোগাযোগ — নির্দেশনা ওয়েব"),
     description: L("Tell us about your project. We reply within 24 hours.", "আপনার প্রজেক্ট সম্পর্কে জানান। আমরা ২৪ ঘণ্টার মধ্যে উত্তর দিই।"),
-    alternates: localeAlternates(locale, "/contact"),
-  };
+  });
 }
 
 export default async function ContactPage({

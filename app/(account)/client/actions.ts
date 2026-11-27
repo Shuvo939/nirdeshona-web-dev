@@ -18,7 +18,7 @@ export type FormState = {
 
 const NewTicketSchema = z.object({
   clientId: z.string().uuid("Choose an organisation"),
-  projectId: z.union([z.string().uuid(), z.literal("")]).optional(),
+  projectId: z.union([z.guid(), z.literal("")]).optional(),
   subject: z.string().trim().min(4, "Subject must be at least 4 characters").max(160, "Subject is too long"),
   message: z.string().trim().min(10, "Please describe the issue in a little more detail").max(5000, "Message is too long"),
   priority: z.enum(["LOW", "NORMAL", "HIGH", "URGENT"]),

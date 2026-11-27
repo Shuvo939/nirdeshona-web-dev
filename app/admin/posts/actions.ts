@@ -24,7 +24,7 @@ const PostSchema = z.object({
   slug: z.string().trim().min(1, "Slug is required."),
   excerpt: z.string().trim().optional(),
   content: z.string().min(1, "Content is required."),
-  category_id: z.string().uuid().optional().or(z.literal("")),
+  category_id: z.guid().optional().or(z.literal("")),
   status: z.enum(["draft", "published", "archived"]),
   seo_title: z.string().trim().optional(),
   seo_description: z.string().trim().optional(),

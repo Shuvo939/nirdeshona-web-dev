@@ -3,19 +3,22 @@ import type { Metadata } from "next";
 import { PageHero } from "@/app/components/marketing";
 import ProjectExplorer, { type ExplorerProject } from "@/app/components/projects/project-explorer";
 import { sql } from "@/lib/db";
-import { getI18n, localeAlternates } from "@/lib/i18n/server";
+import { pageMeta } from "@/lib/seo";
+import { getI18n } from "@/lib/i18n/server";
 import { tcol } from "@/lib/i18n/sql";
 
 export async function generateMetadata(): Promise<Metadata> {
   const { L, locale } = await getI18n();
-  return {
+  return pageMeta({
+    locale,
+    og: { title: "Our Work" },
+    path: "/projects",
     title: L("Our Work — Nirdeshona Web", "আমাদের কাজ — নির্দেশনা ওয়েব"),
     description: L(
       "Websites, web applications and digital products built by Nirdeshona Web Development.",
       "নির্দেশনা ওয়েব ডেভেলপমেন্টের তৈরি ওয়েবসাইট, ওয়েব অ্যাপ্লিকেশন ও ডিজিটাল প্রোডাক্ট।",
     ),
-    alternates: localeAlternates(locale, "/projects"),
-  };
+  });
 }
 
 export default async function ProjectsPage({

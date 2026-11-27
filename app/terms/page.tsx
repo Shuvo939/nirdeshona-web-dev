@@ -1,19 +1,22 @@
 import type { Metadata } from "next";
 
 import LegalPage from "@/app/components/legal-page";
-import { getI18n, localeAlternates } from "@/lib/i18n/server";
+import { pageMeta } from "@/lib/seo";
+import { getI18n } from "@/lib/i18n/server";
 import { site } from "@/lib/site";
 
 export async function generateMetadata(): Promise<Metadata> {
   const { L, locale } = await getI18n();
-  return {
+  return pageMeta({
+    locale,
+    og: { title: "Terms of Service" },
+    path: "/terms",
     title: L("Terms of Service — Nirdeshona Web", "সেবার শর্তাবলি — নির্দেশনা ওয়েব"),
     description: L(
       "The terms that apply when you use this website and work with Nirdeshona Web Development.",
       "এই ওয়েবসাইট ব্যবহার ও নির্দেশনা ওয়েব ডেভেলপমেন্টের সঙ্গে কাজ করার ক্ষেত্রে প্রযোজ্য শর্তাবলি।",
     ),
-    alternates: localeAlternates(locale, "/terms"),
-  };
+  });
 }
 
 export default async function TermsPage() {

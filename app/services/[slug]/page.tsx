@@ -12,7 +12,10 @@ import {
   ServiceIcon,
 } from "@/app/components/marketing";
 import { getContent, getLocalizedService } from "@/lib/content";
-import { getI18n, localeAlternates } from "@/lib/i18n/server";
+import { getI18n } from "@/lib/i18n/server";
+import { jsonLd } from "@/lib/json-ld";
+import { breadcrumbLd, faqLd, pageMeta } from "@/lib/seo";
+import { site } from "@/lib/site";
 import { getService, services } from "@/lib/site";
 
 export function generateStaticParams() {
@@ -28,11 +31,14 @@ export async function generateMetadata({
   const { L, locale } = await getI18n();
   const service = getLocalizedService(locale, slug);
   if (!service) return {};
-  return {
+  return pageMeta({
+    locale,
+    path: `/services/${service.slug}`,
     title: `${service.title} — ${L("Nirdeshona Web", "নির্দেশনা ওয়েব")}`,
-    description: service.short,
-    alternates: localeAlternates(locale, `/services/${service.slug}`),
-  };
+    description: `${service.short} ${L(`From ${service.startingFrom}.`, `${service.startingFrom} থেকে শুরু।`)}`,
+    eyebrow: L("Service", "সার্ভিস"),
+    og: { title: getService(slug)?.title ?? service.title, eyebrow: "Service" },
+  });
 }
 
 export default async function ServiceDetailPage({
@@ -49,8 +55,30 @@ export default async function ServiceDetailPage({
 
   const others = localized.filter((item) => item.slug !== service.slug).slice(0, 3);
 
+  const price = Number(String(service.startingFrom).replace(/[^0-9০-৯]/g, "").replace(/[০-৯]/g, (d) => String("০১২৩৪৫৬৭৮৯".indexOf(d))));
+  const structured = [
+    {
+      "@context": "https://schema.org",
+      "@type": "Service",
+      name: service.title,
+      description: service.intro,
+      serviceType: englishTitle,
+      provider: { "@id": `${site.url}/#organization` },
+      areaServed: { "@type": "Country", name: "Bangladesh" },
+      url: `${site.url}/${locale}/services/${service.slug}`,
+      ...(price ? { offers: { "@type": "Offer", priceCurrency: "BDT", price, priceSpecification: { "@type": "PriceSpecification", minPrice: price, priceCurrency: "BDT" } } } : {}),
+    },
+    faqLd(service.faqs),
+    breadcrumbLd(locale, [
+      [L("Home", "হোম"), "/"],
+      [L("Services", "সার্ভিস"), "/services"],
+      [service.title, `/services/${service.slug}`],
+    ]),
+  ];
+
   return (
     <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(structured) }} />
       <PageHero
         eyebrow={service.title}
         title={service.short}

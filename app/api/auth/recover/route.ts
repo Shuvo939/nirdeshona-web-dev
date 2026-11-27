@@ -4,6 +4,7 @@ import { z } from "zod";
 import { friendlyAuthError } from "@/lib/auth/errors";
 import { getSessionUser } from "@/lib/auth/session";
 import { verifyCaptcha } from "@/lib/captcha";
+import { allowRequest, ipHash } from "@/lib/rate-limit";
 import { createClient } from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
@@ -26,6 +27,13 @@ export async function POST(request: Request) {
   if (!ownEmail) {
     const captcha = await verifyCaptcha(captchaToken, captchaAnswer);
     if (!captcha.ok) return NextResponse.json({ error: captcha.error, captcha: true }, { status: 400 });
+  }
+
+  // Limit reset emails: 5 per visitor and 3 per address per hour.
+  const okIp = await allowRequest("recover-ip", ipHash(request.headers), 5, 3600);
+  const okEmail = okIp && (await allowRequest("recover-email", email.toLowerCase(), 3, 3600));
+  if (!okIp || !okEmail) {
+    return NextResponse.json({ error: "Too many reset requests. Please wait an hour and try again." }, { status: 429 });
   }
 
   const supabase = await createClient();

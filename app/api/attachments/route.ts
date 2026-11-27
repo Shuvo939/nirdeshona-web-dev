@@ -10,7 +10,7 @@ import { ATTACHMENT_TYPES, MAX_ATTACHMENT_SIZE } from "@/lib/tickets/attachments
 export const runtime = "nodejs";
 
 const Schema = z.object({
-  ticketId: z.string().uuid().optional(),
+  ticketId: z.guid().optional(),
   fileName: z.string().trim().min(1).max(200),
   contentType: z.string().refine((t) => t in ATTACHMENT_TYPES, "This file type isn't allowed."),
   size: z.number().int().positive().max(MAX_ATTACHMENT_SIZE, "Files must be 10 MB or smaller."),

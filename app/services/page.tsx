@@ -9,18 +9,21 @@ import {
   ServiceCard,
 } from "@/app/components/marketing";
 import { getContent } from "@/lib/content";
-import { getI18n, localeAlternates } from "@/lib/i18n/server";
+import { pageMeta } from "@/lib/seo";
+import { getI18n } from "@/lib/i18n/server";
 
 export async function generateMetadata(): Promise<Metadata> {
   const { L, locale } = await getI18n();
-  return {
+  return pageMeta({
+    locale,
+    og: { title: "Services" },
+    path: "/services",
     title: L("Services — Nirdeshona Web", "সার্ভিস — নির্দেশনা ওয়েব"),
     description: L(
-      "Web development, WordPress, UI/UX design, e-commerce, custom portals and website care from Nirdeshona Web Development.",
-      "নির্দেশনা ওয়েব ডেভেলপমেন্টের ওয়েব ডেভেলপমেন্ট, ওয়ার্ডপ্রেস, ইউআই/ইউএক্স ডিজাইন, ই-কমার্স, কাস্টম পোর্টাল ও ওয়েবসাইট কেয়ার।",
+      "Web development, WordPress, UI/UX design, e-commerce, Android apps, Facebook & social media, custom portals and website care from Nirdeshona Web Development.",
+      "নির্দেশনা ওয়েব ডেভেলপমেন্টের ওয়েব ডেভেলপমেন্ট, ওয়ার্ডপ্রেস, ইউআই/ইউএক্স ডিজাইন, ই-কমার্স, অ্যান্ড্রয়েড অ্যাপ, ফেসবুক ও সোশ্যাল মিডিয়া, কাস্টম পোর্টাল ও ওয়েবসাইট কেয়ার।",
     ),
-    alternates: localeAlternates(locale, "/services"),
-  };
+  });
 }
 
 export default async function ServicesPage() {

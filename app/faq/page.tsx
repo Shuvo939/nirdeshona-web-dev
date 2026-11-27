@@ -5,15 +5,18 @@ import { MessageCircle } from "lucide-react";
 import { FaqList, PageHero } from "@/app/components/marketing";
 import { getContent } from "@/lib/content";
 import { jsonLd as toJsonLd } from "@/lib/json-ld";
-import { getI18n, localeAlternates } from "@/lib/i18n/server";
+import { pageMeta } from "@/lib/seo";
+import { getI18n } from "@/lib/i18n/server";
 
 export async function generateMetadata(): Promise<Metadata> {
   const { L, locale } = await getI18n();
-  return {
+  return pageMeta({
+    locale,
+    og: { title: "FAQ" },
+    path: "/faq",
     title: L("FAQ — Nirdeshona Web", "প্রশ্নোত্তর — নির্দেশনা ওয়েব"),
     description: L("Answers to common questions about working with Nirdeshona Web Development.", "নির্দেশনা ওয়েব ডেভেলপমেন্টের সঙ্গে কাজ নিয়ে সাধারণ প্রশ্নের উত্তর।"),
-    alternates: localeAlternates(locale, "/faq"),
-  };
+  });
 }
 
 // Anchors use the English group titles so links work in both languages.

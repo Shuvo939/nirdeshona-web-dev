@@ -49,10 +49,7 @@ const ProjectSchema = z.object({
     .enum(PROJECT_CATEGORIES)
     .optional(),
 
-  client_id: z
-    .string()
-    .uuid()
-    .optional(),
+  client_id: z.guid().optional(),
 
   status: z.enum([
     "PLANNED",

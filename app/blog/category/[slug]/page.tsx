@@ -4,7 +4,8 @@ import { notFound } from "next/navigation";
 import PostListing, { parseSort } from "@/app/components/blog/post-listing";
 import { PageHero } from "@/app/components/marketing";
 import { sql } from "@/lib/db";
-import { getI18n, getLocale, localeAlternates } from "@/lib/i18n/server";
+import { getI18n, getLocale } from "@/lib/i18n/server";
+import { pageMeta } from "@/lib/seo";
 import { tcol } from "@/lib/i18n/sql";
 
 async function getCategory(slug: string) {
@@ -17,10 +18,13 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const category = await getCategory(slug);
   if (!category) return {};
   const { L, locale } = await getI18n();
-  return {
+  return pageMeta({
+    locale,
+    path: `/blog/category/${category.slug}`,
     title: `${category.name} — ${L("Blog — Nirdeshona Web", "ব্লগ — নির্দেশনা ওয়েব")}`,
-    alternates: localeAlternates(locale, `/blog/category/${category.slug}`),
-  };
+    description: L(`Articles about ${category.name} from the Nirdeshona Web blog.`, `নির্দেশনা ওয়েব ব্লগে ${category.name} বিষয়ের লেখা।`),
+    eyebrow: L("Category", "বিভাগ"),
+  });
 }
 
 export default async function BlogCategoryPage({
