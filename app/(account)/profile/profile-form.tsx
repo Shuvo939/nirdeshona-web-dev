@@ -3,7 +3,7 @@
 import { compressImage } from "@/lib/image-compress";
 import { useActionState, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Camera, CheckCircle2, Loader2, Trash2 } from "lucide-react";
+import { CheckCircle2, Loader2 } from "lucide-react";
 
 import AvatarCropper from "@/app/components/avatar-cropper";
 import { updateProfile } from "@/app/account-actions";
@@ -81,52 +81,40 @@ export default function ProfileForm({
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-col items-start gap-5 rounded-3xl border border-neutral-200 bg-white p-5 sm:flex-row sm:items-center sm:p-6">
-        <button
-          type="button"
-          onClick={() => fileRef.current?.click()}
-          disabled={uploading}
-          aria-label={avatar ? L("Change profile photo", "প্রোফাইল ছবি বদলান") : L("Upload profile photo", "প্রোফাইল ছবি আপলোড করুন")}
-          className="group relative rounded-full"
-        >
-          <div className="flex h-24 w-24 items-center justify-center overflow-hidden rounded-full bg-neutral-100 text-3xl font-semibold text-neutral-600 ring-4 ring-white shadow">
-            {avatar ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={avatar} alt={L("Your profile photo", "আপনার প্রোফাইল ছবি")} className="h-full w-full object-cover" />
-            ) : (
-              initials
-            )}
-          </div>
-          {uploading ? (
-            <div className="absolute inset-0 flex items-center justify-center rounded-full bg-white/70">
-              <Loader2 className="h-6 w-6 animate-spin" />
-            </div>
+      <div className="flex items-center gap-4 rounded-3xl border border-neutral-200 bg-white p-5 sm:gap-5 sm:p-6">
+        <div className="relative flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-full bg-neutral-100 text-2xl font-semibold text-neutral-600 sm:h-20 sm:w-20">
+          {avatar ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={avatar} alt={L("Your profile photo", "আপনার প্রোফাইল ছবি")} className="h-full w-full object-cover" />
           ) : (
-            <span className="absolute bottom-0 right-0 flex h-8 w-8 items-center justify-center rounded-full border-2 border-white bg-neutral-950 text-white shadow transition group-hover:scale-110">
-              <Camera className="h-3.5 w-3.5" />
-            </span>
+            initials
           )}
-        </button>
-        <div>
+          {uploading && (
+            <div className="absolute inset-0 flex items-center justify-center bg-white/70">
+              <Loader2 className="h-5 w-5 animate-spin text-neutral-700" />
+            </div>
+          )}
+        </div>
+        <div className="min-w-0 flex-1">
           <p className="text-sm font-semibold text-neutral-950">{L("Profile photo", "প্রোফাইল ছবি")}</p>
-          <p className="mt-1 text-xs text-neutral-500">{L("JPG, PNG or WebP — any size. Crop, zoom, rotate and flip before saving.", "JPG, PNG বা WebP — যেকোনো সাইজ। সেভের আগে ক্রপ, জুম, রোটেট ও ফ্লিপ করুন।")}</p>
-          <div className="mt-3 flex gap-2">
+          <p className="mt-0.5 text-xs text-neutral-500">{L("JPG, PNG or WebP. You can crop it before saving.", "JPG, PNG বা WebP। সেভের আগে ক্রপ করে নিতে পারবেন।")}</p>
+          <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2">
             <button
               type="button"
               disabled={uploading}
               onClick={() => fileRef.current?.click()}
-              className="inline-flex h-9 items-center gap-2 rounded-full bg-neutral-950 px-4 text-xs font-semibold text-white hover:bg-neutral-800 disabled:opacity-60"
+              className="inline-flex h-9 items-center rounded-full border border-neutral-300 bg-white px-4 text-xs font-semibold text-neutral-900 transition hover:border-neutral-400 hover:bg-neutral-50 disabled:opacity-60"
             >
-              <Camera className="h-3.5 w-3.5" /> {avatar ? L("Change photo", "ছবি বদলান") : L("Upload photo", "ছবি আপলোড করুন")}
+              {avatar ? L("Change photo", "ছবি বদলান") : L("Upload photo", "ছবি আপলোড করুন")}
             </button>
             {avatar && (
               <button
                 type="button"
                 disabled={uploading}
                 onClick={removeAvatar}
-                className="inline-flex h-9 items-center gap-2 rounded-full border border-neutral-200 px-4 text-xs font-semibold text-neutral-700 hover:bg-neutral-50 disabled:opacity-60"
+                className="h-9 rounded-full px-2 text-xs font-semibold text-neutral-500 transition hover:text-red-600 disabled:opacity-60"
               >
-                <Trash2 className="h-3.5 w-3.5" /> {L("Remove", "সরান")}
+                {L("Remove", "সরান")}
               </button>
             )}
           </div>
