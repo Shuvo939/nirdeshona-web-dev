@@ -1,12 +1,12 @@
 "use client";
 
-import { timeAgo as timeAgoLocale } from "@/lib/i18n/config";
+import { shortAgo } from "@/lib/i18n/config";
 import { useI18n } from "@/lib/i18n/client";
 
 import Link from "@/app/components/locale-link";
 import { usePathname } from "next/navigation";
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
-import { CornerDownRight, EyeOff, Flag, Link2, Loader2, MoreVertical, Pencil, SendHorizonal, ShieldCheck, Trash2 } from "lucide-react";
+import { ChevronDown, EyeOff, Flag, Link2, Loader2, MessageCircle, MoreVertical, Pencil, SendHorizonal, ShieldCheck, ThumbsUp, Trash2 } from "lucide-react";
 
 import ConfirmDialog from "@/app/components/confirm-dialog";
 import type { CommentNode, ReactionType } from "@/lib/comments";
@@ -24,10 +24,10 @@ type Sort = "relevant" | "newest" | "oldest";
 
 function useShortAgo() {
   const { locale } = useI18n();
-  return (value: string) => timeAgoLocale(value, locale);
+  return (value: string) => shortAgo(value, locale);
 }
 
-function Avatar({ name, url, size = "h-9 w-9" }: { name: string | null; url: string | null; size?: string }) {
+function Avatar({ name, url, size = "h-10 w-10" }: { name: string | null; url: string | null; size?: string }) {
   return (
     <span className={`${size} flex shrink-0 items-center justify-center overflow-hidden rounded-full bg-neutral-200 text-xs font-semibold text-neutral-700`}>
       {url ? (
@@ -120,9 +120,9 @@ function Composer({
 
   return (
     <div id={id} className="flex scroll-mt-28 items-start gap-2.5">
-      <Avatar name={viewer.name} url={viewer.avatarUrl} size={compact ? "h-8 w-8" : "h-9 w-9"} />
+      <Avatar name={viewer.name} url={viewer.avatarUrl} size={compact ? "h-8 w-8" : "h-10 w-10"} />
       <div className="min-w-0 flex-1">
-        <div className="flex items-end gap-1 rounded-2xl bg-neutral-100 px-3.5 py-2 focus-within:bg-neutral-50 focus-within:ring-2 focus-within:ring-neutral-200">
+        <div className="flex items-end gap-1 rounded-[22px] border border-neutral-300 bg-white py-1.5 pl-4 pr-1.5 transition focus-within:border-neutral-500 focus-within:ring-1 focus-within:ring-neutral-500">
           <textarea
             ref={ref}
             value={text}
@@ -138,30 +138,23 @@ function Composer({
             }}
             placeholder={placeholder}
             aria-label={placeholder}
-            className="max-h-60 min-h-[24px] flex-1 resize-none bg-transparent py-0.5 text-sm leading-6 text-neutral-900 outline-none placeholder:text-neutral-500"
+            className="max-h-60 min-h-[28px] flex-1 resize-none bg-transparent py-1 text-sm leading-5 text-neutral-900 outline-none placeholder:text-neutral-500"
           />
           <button
             type="button"
             onClick={submit}
             disabled={!text.trim() || busy}
-            aria-label={L("Send", "পাঠান")}
-            className="mb-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-blue-600 transition hover:bg-blue-50 disabled:text-neutral-300 disabled:hover:bg-transparent"
+            aria-label={L("Post", "পোস্ট করুন")}
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-neutral-950 text-white transition hover:bg-neutral-800 disabled:bg-transparent disabled:text-neutral-300"
           >
             {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <SendHorizonal className="h-4 w-4" />}
           </button>
         </div>
-        <div className="mt-1 flex items-center gap-2 px-3 text-[11px] text-neutral-400">
-          <span className="hidden sm:inline">{L("Enter to post · Shift + Enter for a new line", "পোস্ট করতে Enter · নতুন লাইনে Shift + Enter")}</span>
-          <span className="sm:hidden">{L("Tap send to post", "পোস্ট করতে পাঠান চাপুন")}</span>
-          {onCancel && (
-            <>
-              <span>·</span>
-              <button type="button" onClick={onCancel} className="font-semibold text-blue-600 hover:underline">
-                {L("Cancel", "বাতিল")}
-              </button>
-            </>
-          )}
-        </div>
+        {onCancel && (
+          <button type="button" onClick={onCancel} className="mt-1 px-4 text-xs font-semibold text-neutral-500 hover:text-neutral-800 hover:underline">
+            {L("Cancel", "বাতিল")}
+          </button>
+        )}
       </div>
     </div>
   );
@@ -178,48 +171,58 @@ function ReactionSummary({ comment }: { comment: CommentNode }) {
   const top = comment.top_reactions.length ? comment.top_reactions : (["like"] as ReactionType[]);
   return (
     <>
-    <button
-      type="button"
-      onClick={() => setOpen(true)}
-      title={L(`${comment.reaction_count} reaction${comment.reaction_count === 1 ? "" : "s"}`, `${num(comment.reaction_count)}টি রিঅ্যাকশন`)}
-      aria-label={L("See who reacted", "কে কে রিঅ্যাকশন দিয়েছেন দেখুন")}
-      className="absolute -bottom-3 right-2 flex items-center gap-0.5 rounded-full bg-white py-0.5 pl-0.5 pr-1.5 text-[12px] leading-none text-neutral-600 shadow-[0_1px_3px_rgba(0,0,0,0.2)] transition hover:shadow-[0_1px_4px_rgba(0,0,0,0.35)]"
-    >
-      <span className="flex -space-x-1">
-        {top.slice(0, 3).map((r) => (
-          <span key={r} className="flex h-[18px] w-[18px] items-center justify-center rounded-full bg-white text-[13px]">
-            {REACTION_META[r].emoji}
-          </span>
-        ))}
-      </span>
-      {comment.reaction_count > 1 && <span className="ml-0.5">{num(comment.reaction_count)}</span>}
-    </button>
-    {open && <ReactorsDialog target="comment" id={comment.id} onClose={() => setOpen(false)} />}
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        title={L(`${comment.reaction_count} reaction${comment.reaction_count === 1 ? "" : "s"}`, `${num(comment.reaction_count)}টি রিঅ্যাকশন`)}
+        aria-label={L("See who reacted", "কে কে রিঅ্যাকশন দিয়েছেন দেখুন")}
+        className="flex items-center rounded-full p-0.5 transition hover:bg-neutral-100"
+      >
+        <span className="flex -space-x-1">
+          {top.map((r, i) => (
+            <span key={r} style={{ zIndex: 3 - i }} className="relative flex h-5 w-5 items-center justify-center rounded-full bg-white text-[12px] ring-2 ring-white">
+              {REACTION_META[r]?.emoji}
+            </span>
+          ))}
+        </span>
+      </button>
+      {open && <ReactorsDialog target="comment" id={comment.id} onClose={() => setOpen(false)} />}
     </>
   );
 }
 
 function ReactButton({ comment, onReact }: { comment: CommentNode; onReact: (c: CommentNode, r: ReactionType | null) => void }) {
-  const { L, locale } = useI18n();
+  const { L, locale, num } = useI18n();
   const [open, setOpen] = useState(false);
   const hover = useRef<number | null>(null);
   const press = useRef<number | null>(null);
   const long = useRef(false);
+  const wrap = useRef<HTMLSpanElement>(null);
   const mine = comment.my_reaction ? REACTION_META[comment.my_reaction] : null;
 
-  const openSoon = () => {
+  // Hover opens the bar only for a real mouse; touch uses a long-press.
+  const openSoon = (e: React.PointerEvent) => {
+    if (e.pointerType !== "mouse") return;
     if (hover.current) window.clearTimeout(hover.current);
     hover.current = window.setTimeout(() => setOpen(true), 450);
   };
-  const closeSoon = () => {
+  const closeSoon = (e: React.PointerEvent) => {
+    if (e.pointerType !== "mouse") return;
     if (hover.current) window.clearTimeout(hover.current);
     hover.current = window.setTimeout(() => setOpen(false), 300);
   };
 
+  useEffect(() => {
+    if (!open) return;
+    const onDown = (e: PointerEvent) => !wrap.current?.contains(e.target as Node) && setOpen(false);
+    document.addEventListener("pointerdown", onDown);
+    return () => document.removeEventListener("pointerdown", onDown);
+  }, [open]);
+
   return (
-    <span className="relative" onMouseEnter={openSoon} onMouseLeave={closeSoon}>
+    <span ref={wrap} className="relative" onPointerEnter={openSoon} onPointerLeave={closeSoon}>
       {open && (
-        <span role="menu" aria-label={L("React", "রিঅ্যাকশন")} className="absolute bottom-full left-[-8px] z-30 mb-1.5 flex gap-0.5 rounded-full border border-neutral-200 bg-white p-1 shadow-xl">
+        <span role="menu" aria-label={L("React", "রিঅ্যাকশন")} className="absolute bottom-full left-[-6px] z-30 mb-1.5 flex gap-0.5 rounded-full border border-neutral-200 bg-white p-1 shadow-xl">
           {REACTION_ORDER.map((r) => (
             <button
               key={r}
@@ -228,6 +231,7 @@ function ReactButton({ comment, onReact }: { comment: CommentNode; onReact: (c: 
               title={reactionLabel(r, locale)}
               aria-label={reactionLabel(r, locale)}
               onClick={() => {
+                if (hover.current) window.clearTimeout(hover.current);
                 setOpen(false);
                 onReact(comment, comment.my_reaction === r ? null : r);
               }}
@@ -240,6 +244,8 @@ function ReactButton({ comment, onReact }: { comment: CommentNode; onReact: (c: 
       )}
       <button
         type="button"
+        aria-label={mine ? (locale === "bn" ? mine.labelBn : mine.label) : L("Like", "লাইক")}
+        aria-pressed={Boolean(mine)}
         onClick={() => {
           if (long.current) {
             long.current = false;
@@ -255,10 +261,12 @@ function ReactButton({ comment, onReact }: { comment: CommentNode; onReact: (c: 
           }, 400);
         }}
         onTouchEnd={() => press.current && window.clearTimeout(press.current)}
+        onTouchMove={() => press.current && window.clearTimeout(press.current)}
         onContextMenu={(e) => e.preventDefault()}
-        className={`select-none font-semibold hover:underline ${mine ? mine.color : "text-neutral-600"}`}
+        className={`inline-flex h-8 select-none items-center gap-1.5 rounded-full px-2 text-[13px] font-semibold transition hover:bg-neutral-100 ${mine ? mine.color : "text-neutral-600"}`}
       >
-        {mine ? (locale === "bn" ? mine.labelBn : mine.label) : L("Like", "লাইক")}
+        {mine ? <span className="text-[17px] leading-none">{mine.emoji}</span> : <ThumbsUp className="h-[18px] w-[18px]" strokeWidth={1.8} />}
+        {comment.reaction_count > 0 && <span>{num(comment.reaction_count)}</span>}
       </button>
     </span>
   );
@@ -270,6 +278,7 @@ function CommentItem({
   postAuthorId,
   highlighted,
   isReply,
+  replyCount = 0,
   onReply,
   onReact,
   onEdit,
@@ -278,6 +287,7 @@ function CommentItem({
   onReport,
 }: {
   comment: CommentNode;
+  replyCount?: number;
   viewer: Viewer;
   postAuthorId: string | null;
   highlighted: boolean;
@@ -289,7 +299,7 @@ function CommentItem({
   onHide: (c: CommentNode) => void;
   onReport: (c: CommentNode) => void;
 }) {
-  const { L, locale } = useI18n();
+  const { L, locale, num } = useI18n();
   const ago = useShortAgo();
   const [menu, setMenu] = useState(false);
   const [editing, setEditing] = useState(false);
@@ -328,85 +338,112 @@ function CommentItem({
     );
   }
 
-  return (
-    <div id={`comment-${comment.id}`} className={`flex scroll-mt-28 gap-2 ${pending ? "opacity-60" : ""}`}>
-      <Avatar name={comment.full_name} url={comment.avatar_url} size={isReply ? "h-8 w-8" : "h-9 w-9"} />
-      <div className="min-w-0 flex-1">
-        <div
-          className={`relative inline-block max-w-full rounded-[18px] px-3 py-2 transition-colors duration-700 ${
-            highlighted ? "bg-amber-100 ring-2 ring-amber-300" : "bg-[#f0f2f5]"
-          } ${comment.reaction_count > 0 ? "mb-2" : ""}`}
-        >
-          <div className="flex flex-wrap items-center gap-x-1.5">
-            <span className="text-[13px] font-semibold leading-5 text-neutral-950">{comment.full_name || L("Member", "সদস্য")}</span>
-            {comment.user_id === postAuthorId && (
-              <span className="rounded bg-neutral-950 px-1.5 py-px text-[10px] font-semibold text-white">{L("Author", "লেখক")}</span>
-            )}
-            {comment.role === "ADMIN" && comment.user_id !== postAuthorId && (
-              <span className="inline-flex items-center gap-0.5 rounded bg-blue-50 px-1.5 py-px text-[10px] font-semibold text-blue-700">
-                <ShieldCheck className="h-2.5 w-2.5" /> {L("Team", "টিম")}
-              </span>
-            )}
-          </div>
-          <p className="whitespace-pre-wrap break-words text-[15px] leading-5 text-neutral-900">
-            <RichText text={comment.content} />
-          </p>
-          <ReactionSummary comment={comment} />
-        </div>
+  const isAuthor = comment.user_id === postAuthorId;
 
-        <div className="mt-0.5 flex flex-wrap items-center gap-x-3 px-3 text-xs text-neutral-500">
-          <a href={`#comment-${comment.id}`} className="hover:underline" title={new Date(comment.created_at).toLocaleString(locale === "bn" ? "bn-BD" : "en-GB")}>
-            {pending ? L("Posting…", "পোস্ট হচ্ছে…") : ago(comment.created_at)}
-          </a>
-          {!pending && (
-            <>
-              {viewer ? (
-                <ReactButton comment={comment} onReact={onReact} />
-              ) : (
-                <button type="button" onClick={() => onReact(comment, "like")} className="font-semibold text-neutral-600 hover:underline">
-                  {L("Like", "লাইক")}
-                </button>
+  return (
+    <div
+      id={`comment-${comment.id}`}
+      className={`flex scroll-mt-28 gap-2.5 rounded-2xl transition-colors duration-700 ${pending ? "opacity-60" : ""} ${
+        highlighted ? "-mx-2 bg-amber-50 px-2 py-1.5 ring-1 ring-amber-200" : ""
+      }`}
+    >
+      <Avatar name={comment.full_name} url={comment.avatar_url} size={isReply ? "h-8 w-8" : "h-10 w-10"} />
+      <div className="min-w-0 flex-1">
+        <div className="flex items-start gap-2">
+          <div className="min-w-0 flex-1">
+            <div className="flex min-w-0 flex-wrap items-center gap-x-1.5 gap-y-0.5">
+              <span className="truncate text-sm font-semibold leading-5 text-neutral-950">{comment.full_name || L("Member", "সদস্য")}</span>
+              {isAuthor && (
+                <span className="rounded bg-neutral-100 px-1.5 py-px text-[11px] font-medium text-neutral-600">{L("Author", "লেখক")}</span>
               )}
-              <button type="button" onClick={() => onReply(comment)} className="font-semibold text-neutral-600 hover:underline">
-                {L("Reply", "উত্তর দিন")}
-              </button>
-              {comment.edited_at && <span>{L("Edited", "সম্পাদিত")}</span>}
-              {viewer && (
-                <span ref={menuRef} className="relative">
-                  <button
-                    type="button"
-                    aria-label={L("Comment options", "মন্তব্যের অপশন")}
-                    aria-expanded={menu}
-                    onClick={() => setMenu((v) => !v)}
-                    className="-my-1 flex h-7 w-7 items-center justify-center rounded-full text-neutral-500 transition hover:bg-neutral-100 hover:text-neutral-800"
-                  >
-                    <MoreVertical className="h-4 w-4" />
-                  </button>
-                  {menu && (
-                    <span className="absolute left-0 top-full z-30 mt-1 block w-48 overflow-hidden rounded-xl border border-neutral-200 bg-white p-1 shadow-xl">
-                      <MenuButton
-                        icon={<Link2 className="h-4 w-4" />}
-                        label={L("Copy link", "লিংক কপি")}
-                        onClick={() => {
-                          setMenu(false);
-                          void navigator.clipboard?.writeText(`${window.location.href.split("#")[0]}#comment-${comment.id}`);
-                        }}
-                      />
-                      {mine && <MenuButton icon={<Pencil className="h-4 w-4" />} label={L("Edit", "সম্পাদনা")} onClick={() => { setMenu(false); setEditing(true); }} />}
-                      {(mine || viewer.isAdmin) && (
-                        <MenuButton danger icon={<Trash2 className="h-4 w-4" />} label={L("Delete", "মুছুন")} onClick={() => { setMenu(false); onDelete(comment); }} />
-                      )}
-                      {viewer.isAdmin && !mine && (
-                        <MenuButton icon={<EyeOff className="h-4 w-4" />} label={L("Hide comment", "মন্তব্য লুকান")} onClick={() => { setMenu(false); onHide(comment); }} />
-                      )}
-                      {!mine && <MenuButton icon={<Flag className="h-4 w-4" />} label={L("Report", "রিপোর্ট")} onClick={() => { setMenu(false); onReport(comment); }} />}
-                    </span>
-                  )}
+              {comment.role === "ADMIN" && !isAuthor && (
+                <span className="inline-flex items-center gap-0.5 rounded bg-blue-50 px-1.5 py-px text-[11px] font-medium text-blue-700">
+                  <ShieldCheck className="h-3 w-3" /> {L("Team", "টিম")}
                 </span>
               )}
-            </>
+            </div>
+          </div>
+
+          <a
+            href={`#comment-${comment.id}`}
+            className="shrink-0 text-xs leading-5 text-neutral-500 hover:underline"
+            title={new Date(comment.created_at).toLocaleString(locale === "bn" ? "bn-BD" : "en-GB")}
+          >
+            {pending ? L("Posting…", "পোস্ট হচ্ছে…") : (
+              <>
+                {comment.edited_at && <span className="mr-1">{L("(edited)", "(সম্পাদিত)")}</span>}
+                {ago(comment.created_at)}
+              </>
+            )}
+          </a>
+
+          {viewer && !pending && (
+            <span ref={menuRef} className="relative -mr-1.5 -mt-1 shrink-0">
+              <button
+                type="button"
+                aria-label={L("Comment options", "মন্তব্যের অপশন")}
+                aria-expanded={menu}
+                onClick={() => setMenu((v) => !v)}
+                className="flex h-8 w-8 items-center justify-center rounded-full text-neutral-500 transition hover:bg-neutral-100 hover:text-neutral-800"
+              >
+                <MoreVertical className="h-4 w-4" />
+              </button>
+              {menu && (
+                <span className="absolute right-0 top-full z-30 mt-1 block w-48 overflow-hidden rounded-xl border border-neutral-200 bg-white p-1 shadow-xl">
+                  <MenuButton
+                    icon={<Link2 className="h-4 w-4" />}
+                    label={L("Copy link", "লিংক কপি")}
+                    onClick={() => {
+                      setMenu(false);
+                      void navigator.clipboard?.writeText(`${window.location.href.split("#")[0]}#comment-${comment.id}`);
+                    }}
+                  />
+                  {mine && <MenuButton icon={<Pencil className="h-4 w-4" />} label={L("Edit", "সম্পাদনা")} onClick={() => { setMenu(false); setEditing(true); }} />}
+                  {(mine || viewer.isAdmin) && (
+                    <MenuButton danger icon={<Trash2 className="h-4 w-4" />} label={L("Delete", "মুছুন")} onClick={() => { setMenu(false); onDelete(comment); }} />
+                  )}
+                  {viewer.isAdmin && !mine && (
+                    <MenuButton icon={<EyeOff className="h-4 w-4" />} label={L("Hide comment", "মন্তব্য লুকান")} onClick={() => { setMenu(false); onHide(comment); }} />
+                  )}
+                  {!mine && <MenuButton icon={<Flag className="h-4 w-4" />} label={L("Report", "রিপোর্ট")} onClick={() => { setMenu(false); onReport(comment); }} />}
+                </span>
+              )}
+            </span>
           )}
         </div>
+
+        <p className="mt-1 whitespace-pre-wrap break-words text-[15px] leading-6 text-neutral-900">
+          <RichText text={comment.content} />
+        </p>
+
+        {!pending && (
+          <div className="-ml-2 mt-1 flex items-center gap-0.5">
+            {viewer ? (
+              <ReactButton comment={comment} onReact={onReact} />
+            ) : (
+              <button
+                type="button"
+                aria-label={L("Like", "লাইক")}
+                onClick={() => onReact(comment, "like")}
+                className="inline-flex h-8 items-center gap-1.5 rounded-full px-2 text-[13px] font-semibold text-neutral-600 hover:bg-neutral-100"
+              >
+                <ThumbsUp className="h-[18px] w-[18px]" strokeWidth={1.8} />
+                {comment.reaction_count > 0 && <span>{num(comment.reaction_count)}</span>}
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={() => onReply(comment)}
+              aria-label={L("Reply", "উত্তর দিন")}
+              className="inline-flex h-8 items-center gap-1.5 rounded-full px-2 text-[13px] font-semibold text-neutral-600 transition hover:bg-neutral-100"
+            >
+              <MessageCircle className="h-[18px] w-[18px]" strokeWidth={1.8} />
+              {replyCount > 0 && <span>{num(replyCount)}</span>}
+            </button>
+            <span className="flex-1" />
+            <ReactionSummary comment={comment} />
+          </div>
+        )}
       </div>
     </div>
   );
@@ -604,24 +641,25 @@ export default function CommentsSection({
           {L("Comments", "মন্তব্য")} <span className="text-neutral-400">{num(total)}</span>
         </h2>
         {roots.length > 1 && (
-          <label className="flex items-center gap-2 text-xs text-neutral-500">
-            {L("Sort by", "সাজান")}
+          <label className="relative flex items-center text-sm font-semibold text-neutral-800">
+            <span className="sr-only">{L("Sort by", "সাজান")}</span>
             <select
               value={sort}
               onChange={(e) => setSort(e.target.value as Sort)}
-              className="h-8 rounded-lg border border-neutral-200 bg-white px-2 text-xs font-medium text-neutral-800 outline-none"
+              className="h-9 cursor-pointer appearance-none rounded-full bg-transparent pl-3 pr-8 text-sm font-semibold text-neutral-800 outline-none hover:bg-neutral-100"
             >
               <option value="relevant">{L("Most relevant", "সবচেয়ে প্রাসঙ্গিক")}</option>
               <option value="newest">{L("Newest", "নতুন আগে")}</option>
               <option value="oldest">{L("Oldest", "পুরোনো আগে")}</option>
             </select>
+            <ChevronDown className="pointer-events-none absolute right-2.5 h-4 w-4" />
           </label>
         )}
       </div>
 
       <div className="mt-5">
         {viewer ? (
-          <Composer id="comment-composer" viewer={viewer} placeholder={L("Write a comment…", "একটি মন্তব্য লিখুন…")} onSubmit={(t) => submit(t, null)} />
+          <Composer id="comment-composer" viewer={viewer} placeholder={L("Add a comment…", "মন্তব্য লিখুন…")} onSubmit={(t) => submit(t, null)} />
         ) : (
           <div id="comment-composer" className="flex flex-col items-start gap-3 rounded-2xl border border-neutral-200 bg-neutral-50 p-4 sm:flex-row sm:items-center sm:justify-between">
             <p className="text-sm text-neutral-600">{L("Sign in to join the conversation.", "আলোচনায় যোগ দিতে লগইন করুন।")}</p>
@@ -640,7 +678,7 @@ export default function CommentsSection({
       {roots.length === 0 ? (
         <p className="mt-8 text-center text-sm text-neutral-500">{L("No comments yet. Start the conversation!", "এখনো কোনো মন্তব্য নেই। আলোচনা শুরু করুন!")}</p>
       ) : (
-        <ul className="mt-6 flex flex-col gap-5">
+        <ul className="mt-6 flex flex-col gap-6">
           {roots.slice(0, visibleRoots).map((root) => {
             const thread = replies[root.id] ?? [];
             const open = expanded[root.id] || thread.length <= 1;
@@ -653,6 +691,7 @@ export default function CommentsSection({
                   postAuthorId={postAuthorId}
                   highlighted={highlight === root.id}
                   isReply={false}
+                  replyCount={thread.length}
                   onReply={startReply}
                   onReact={react}
                   onEdit={edit}
@@ -662,15 +701,14 @@ export default function CommentsSection({
                 />
 
                 {(thread.length > 0 || replyTo?.rootId === root.id) && (
-                  <div className="ml-[22px] mt-3 flex flex-col gap-3 border-l-2 border-neutral-100 pl-6">
+                  <div className="ml-5 mt-2 flex flex-col gap-4 border-l border-neutral-200 pl-4 sm:pl-6">
                     {!open && (
                       <button
                         type="button"
                         onClick={() => setExpanded((e) => ({ ...e, [root.id]: true }))}
-                        className="w-fit text-left text-[13px] font-semibold text-neutral-600 hover:underline"
+                        className="w-fit text-left text-[13px] font-semibold text-neutral-600 hover:text-neutral-950 hover:underline"
                       >
-                        <CornerDownRight className="mr-1 inline h-3.5 w-3.5" />
-                        {L(`View all ${thread.length} replies`, `সব ${num(thread.length)}টি উত্তর দেখুন`)}
+                        {L(`See ${thread.length} replies`, `${num(thread.length)}টি উত্তর দেখুন`)}
                       </button>
                     )}
                     {shown.map((reply) => (

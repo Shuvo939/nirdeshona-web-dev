@@ -483,7 +483,7 @@ export default function OrderBuilder({
                     disabled={socialOnly ? selection.addOns.length === 0 : !careOnly && !selection.service}
                     className="inline-flex h-12 items-center gap-2 rounded-full bg-neutral-950 px-6 text-sm font-semibold text-white transition hover:bg-neutral-800 disabled:opacity-40"
                   >
-                    {L("Continue", "এগিয়ে যান")} <ArrowRight className="h-4 w-4" />
+                    {L("Next", "পরবর্তী")} <ArrowRight className="h-4 w-4" />
                   </button>
                 </div>
               </div>
@@ -553,7 +553,7 @@ export default function OrderBuilder({
                     <ArrowLeft className="h-4 w-4" /> {L("Back", "পেছনে")}
                   </button>
                   <button type="submit" className="inline-flex h-12 items-center gap-2 rounded-full bg-neutral-950 px-6 text-sm font-semibold text-white hover:bg-neutral-800">
-                    {L("Review", "পর্যালোচনা")} <ArrowRight className="h-4 w-4" />
+                    {L("Next", "পরবর্তী")} <ArrowRight className="h-4 w-4" />
                   </button>
                 </div>
               </form>

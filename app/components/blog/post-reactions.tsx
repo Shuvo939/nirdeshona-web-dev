@@ -3,7 +3,7 @@
 import { useI18n } from "@/lib/i18n/client";
 
 import { startNavigationProgress } from "@/app/components/navigation-progress";
-import { useRef, useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { Link2, MessageCircle, ThumbsUp } from "lucide-react";
 
@@ -38,6 +38,7 @@ export default function PostReactions({
   const hoverTimer = useRef<number | null>(null);
   const pressTimer = useRef<number | null>(null);
   const longPressed = useRef(false);
+  const pickerRef = useRef<HTMLDivElement>(null);
 
   const total = Object.values(counts).reduce((a, b) => a + (b ?? 0), 0);
   const top = REACTION_ORDER.filter((r) => (counts[r] ?? 0) > 0)
@@ -51,6 +52,7 @@ export default function PostReactions({
       router.push(`/login?next=${encodeURIComponent(pathname)}`);
       return;
     }
+    if (hoverTimer.current) window.clearTimeout(hoverTimer.current);
     setPicker(false);
     const prevMine = mine;
     const prevCounts = counts;
@@ -68,14 +70,27 @@ export default function PostReactions({
     });
   }
 
-  function openSoon() {
+  // Hover only for a real mouse: touch taps fire emulated mouse events that would reopen the bar.
+  function openSoon(e: React.PointerEvent) {
+    if (e.pointerType !== "mouse") return;
     if (hoverTimer.current) window.clearTimeout(hoverTimer.current);
     hoverTimer.current = window.setTimeout(() => setPicker(true), 350);
   }
-  function closeSoon() {
+  function closeSoon(e: React.PointerEvent) {
+    if (e.pointerType !== "mouse") return;
     if (hoverTimer.current) window.clearTimeout(hoverTimer.current);
     hoverTimer.current = window.setTimeout(() => setPicker(false), 300);
   }
+
+  // A long-press opens the bar on touch; tapping anywhere else closes it.
+  useEffect(() => {
+    if (!picker) return;
+    const onDown = (e: PointerEvent) => {
+      if (!pickerRef.current?.contains(e.target as Node)) setPicker(false);
+    };
+    document.addEventListener("pointerdown", onDown);
+    return () => document.removeEventListener("pointerdown", onDown);
+  }, [picker]);
 
   async function share() {
     const url = window.location.href.split("#")[0];
@@ -127,13 +142,12 @@ export default function PostReactions({
       </div>
 
       <div className="grid grid-cols-3 border-t border-neutral-100 p-1.5">
-        <div className="relative" onMouseEnter={openSoon} onMouseLeave={closeSoon}>
+        <div ref={pickerRef} className="relative" onPointerEnter={openSoon} onPointerLeave={closeSoon}>
           {picker && (
             <div
               role="menu"
               aria-label={L("Choose a reaction", "রিঅ্যাকশন বাছুন")}
               className="absolute bottom-full left-0 z-20 mb-2 flex gap-1 rounded-full border border-neutral-200 bg-white p-1.5 shadow-xl"
-              onMouseEnter={openSoon}
             >
               {REACTION_ORDER.map((r) => (
                 <button
@@ -167,6 +181,7 @@ export default function PostReactions({
               }, 400);
             }}
             onTouchEnd={() => pressTimer.current && window.clearTimeout(pressTimer.current)}
+            onTouchMove={() => pressTimer.current && window.clearTimeout(pressTimer.current)}
             onContextMenu={(e) => e.preventDefault()}
             className={`flex h-11 w-full select-none items-center justify-center gap-2 rounded-2xl text-sm font-semibold transition hover:bg-neutral-50 ${meta ? meta.color : "text-neutral-600"}`}
           >
