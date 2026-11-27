@@ -637,12 +637,13 @@ export default function CommentsSection({
   const total = comments.filter((c) => !c.id.startsWith("temp-")).length;
 
   return (
-    <section id="comments" className="mt-12 scroll-mt-24">
-      <div className="flex items-center justify-between gap-3">
-        <h2 className="text-xl font-bold tracking-tight text-neutral-950">
-          {L("Comments", "মন্তব্য")} <span className="text-neutral-400">{stat(total)}</span>
-        </h2>
-        {roots.length > 1 && (
+    <section id="comments" className="mt-8 scroll-mt-24">
+      {/* The count already shows in the reactions bar above; keep a heading for screen readers only. */}
+      <h2 className="sr-only">
+        {L("Comments", "মন্তব্য")} ({stat(total)})
+      </h2>
+      {roots.length > 1 && (
+        <div className="mb-3 flex justify-end">
           <label className="relative flex items-center text-sm font-semibold text-neutral-800">
             <span className="sr-only">{L("Sort by", "সাজান")}</span>
             <select
@@ -656,10 +657,10 @@ export default function CommentsSection({
             </select>
             <ChevronDown className="pointer-events-none absolute right-2.5 h-4 w-4" />
           </label>
-        )}
-      </div>
+        </div>
+      )}
 
-      <div className="mt-5">
+      <div>
         {viewer ? (
           <Composer id="comment-composer" viewer={viewer} placeholder={L("Add a comment…", "মন্তব্য লিখুন…")} onSubmit={(t) => submit(t, null)} />
         ) : (
