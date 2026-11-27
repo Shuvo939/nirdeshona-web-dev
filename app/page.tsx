@@ -135,7 +135,7 @@ export default async function HomePage() {
     <main className="overflow-hidden bg-white text-neutral-950">
       {/* ================= HERO ================= */}
       <section className="relative border-b border-neutral-200">
-        <div aria-hidden className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_right,rgba(0,0,0,0.035)_1px,transparent_1px),linear-gradient(to_bottom,rgba(0,0,0,0.035)_1px,transparent_1px)] bg-[size:48px_48px] [mask-image:radial-gradient(ellipse_at_top,black_25%,transparent_70%)]" />
+        <div aria-hidden className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_right,rgb(var(--c-black)/0.035)_1px,transparent_1px),linear-gradient(to_bottom,rgb(var(--c-black)/0.035)_1px,transparent_1px)] bg-[size:48px_48px] [mask-image:radial-gradient(ellipse_at_top,black_25%,transparent_70%)]" />
         <div aria-hidden className="pointer-events-none absolute left-1/2 top-0 h-[480px] w-[720px] -translate-x-1/2 rounded-full bg-neutral-100/80 blur-3xl" />
 
         <div className="relative mx-auto max-w-7xl px-5 pb-16 pt-14 sm:px-6 sm:pb-24 sm:pt-20 lg:px-8 lg:pt-24">
@@ -361,7 +361,7 @@ export default async function HomePage() {
             {values.map((v, i) => {
               const Icon = VALUE_ICONS[i % VALUE_ICONS.length];
               return (
-                <div key={v.title} className={`rounded-3xl border border-neutral-200 p-6 ${i % 3 === 0 ? "bg-neutral-950 text-white" : "bg-white"}`}>
+                <div key={v.title} className={`rounded-3xl border border-neutral-200 p-6 ${i % 3 === 0 ? "theme-fixed bg-neutral-950 text-white" : "bg-white"}`}>
                   <span className={`flex h-11 w-11 items-center justify-center rounded-2xl ${i % 3 === 0 ? "bg-white/10" : "bg-neutral-100 text-neutral-800"}`}>
                     <Icon className="h-5 w-5" />
                   </span>
@@ -395,7 +395,7 @@ export default async function HomePage() {
 
       {/* ================= CLIENT PORTAL ================= */}
       <section className="mx-auto max-w-7xl px-5 py-20 sm:px-6 lg:px-8 lg:py-24">
-        <div className="relative overflow-hidden rounded-[2rem] bg-neutral-950 px-6 py-12 text-white sm:px-12 sm:py-16">
+        <div className="theme-fixed relative overflow-hidden rounded-[2rem] bg-neutral-950 px-6 py-12 text-white sm:px-12 sm:py-16">
           <div aria-hidden className="pointer-events-none absolute -right-24 -top-24 h-80 w-80 rounded-full bg-white/10 blur-3xl" />
           <div aria-hidden className="pointer-events-none absolute -bottom-32 left-10 h-72 w-72 rounded-full bg-emerald-400/10 blur-3xl" />
           <div className="relative grid grid-cols-1 gap-10 lg:grid-cols-2 lg:items-center">
@@ -438,7 +438,7 @@ export default async function HomePage() {
           <Heading eyebrow={L("Pricing", "প্রাইসিং")} title={L("Simple packages. Honest prices.", "সহজ প্যাকেজ। সৎ মূল্য।")} text={L("Every project starts with a written scope and fixed quote.", "প্রতিটি প্রজেক্ট শুরু হয় লিখিত পরিসর ও নির্দিষ্ট মূল্য দিয়ে।")} link={{ href: "/pricing", label: L("Full pricing & care plans", "পূর্ণ প্রাইসিং ও কেয়ার প্ল্যান") }} />
           <div className="mt-10 grid grid-cols-1 gap-4 lg:grid-cols-3">
             {packages.map((p) => (
-              <div key={p.name} className={`flex flex-col rounded-3xl border p-6 ${p.highlighted ? "border-neutral-950 bg-neutral-950 text-white" : "border-neutral-200 bg-white"}`}>
+              <div key={p.name} className={`flex flex-col rounded-3xl border p-6 ${p.highlighted ? "theme-fixed border-neutral-950 bg-neutral-950 text-white" : "border-neutral-200 bg-white"}`}>
                 <div className="flex items-center justify-between">
                   <h3 className="font-semibold">{p.name}</h3>
                   {p.highlighted && <span className="inline-flex items-center gap-1 rounded-full bg-white/10 px-2.5 py-1 text-[11px]"><Sparkles className="h-3 w-3" /> {L("Popular", "জনপ্রিয়")}</span>}
@@ -468,13 +468,13 @@ export default async function HomePage() {
           <Heading eyebrow={L("From the blog", "ব্লগ থেকে")} title={L("Ideas and guides for your website.", "আপনার ওয়েবসাইটের জন্য ভাবনা ও গাইড।")} link={{ href: "/blog", label: L("All articles", "সব লেখা") }} />
           <div className="mt-10 grid grid-cols-1 gap-5 md:grid-cols-3">
             {posts.map((p) => (
-              <Link key={p.slug} href={`/blog/${p.slug}`} className="group flex flex-col overflow-hidden rounded-3xl border border-neutral-200 bg-white transition hover:-translate-y-1 hover:shadow-[0_20px_50px_rgba(0,0,0,0.08)]">
+              <Link key={p.slug} href={`/blog/${p.slug}`} className="group flex flex-col overflow-hidden rounded-3xl border border-neutral-200 bg-white transition hover:-translate-y-1 hover:shadow-[0_20px_50px_rgb(var(--c-black)/0.08)]">
                 <div className="aspect-[16/9] overflow-hidden bg-neutral-100">
                   {p.cover_image_url ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img src={p.cover_image_url} alt="" loading="lazy" className="h-full w-full object-cover transition duration-700 group-hover:scale-105" />
                   ) : (
-                    <div className="flex h-full items-center justify-center bg-[radial-gradient(circle_at_30%_20%,#fafafa,#e5e5e5)]">
+                    <div className="flex h-full items-center justify-center bg-[radial-gradient(circle_at_30%_20%,#fafafa,rgb(var(--c-neutral-200)))]">
                       <Newspaper className="h-10 w-10 text-neutral-300" />
                     </div>
                   )}
@@ -570,7 +570,7 @@ function StatCard({
   return (
     <div
       className={`flex flex-col rounded-3xl border p-4 transition hover:-translate-y-0.5 sm:p-5 ${
-        dark ? "border-neutral-950 bg-neutral-950 text-white" : "border-neutral-200 bg-white hover:shadow-[0_16px_40px_rgba(0,0,0,0.06)]"
+        dark ? "theme-fixed border-neutral-950 bg-neutral-950 text-white" : "border-neutral-200 bg-white hover:shadow-[0_16px_40px_rgb(var(--c-black)/0.06)]"
       }`}
     >
       <span className={`flex h-9 w-9 items-center justify-center rounded-xl ${dark ? "bg-white/10 text-emerald-300" : "bg-neutral-100 text-neutral-800"}`}>{icon}</span>

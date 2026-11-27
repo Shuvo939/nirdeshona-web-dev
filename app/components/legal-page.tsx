@@ -38,7 +38,7 @@ export default async function LegalPage({
             </div>
           </aside>
           <div className="flex min-w-0 flex-col gap-5">
-            <div className="rounded-3xl border border-neutral-950 bg-neutral-950 p-6 text-white sm:p-8">
+            <div className="theme-fixed rounded-3xl border border-neutral-950 bg-neutral-950 p-6 text-white sm:p-8">
               <p className="text-sm font-semibold">{L("In short", "সংক্ষেপে")}</p>
               <ul className="mt-4 flex flex-col gap-2">
                 {summary.map((line) => (

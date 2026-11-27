@@ -155,7 +155,7 @@ export default function SearchDialog({ open, onClose }: { open: boolean; onClose
 
   return (
     <div className="fixed inset-0 z-[9999] h-[100dvh] w-screen" onKeyDown={onKeyDown}>
-      <button type="button" aria-label={L("Close search", "সার্চ বন্ধ করুন")} onClick={onClose} className="absolute inset-0 h-full w-full cursor-default bg-black/50 backdrop-blur-md" />
+      <button type="button" aria-label={L("Close search", "সার্চ বন্ধ করুন")} onClick={onClose} className="absolute inset-0 h-full w-full cursor-default bg-scrim/50 backdrop-blur-md" />
       <div className="pointer-events-none relative flex h-full w-full justify-center px-3 pb-6 pt-[6vh] sm:px-4 sm:pt-[10vh]">
         <div
           role="dialog"

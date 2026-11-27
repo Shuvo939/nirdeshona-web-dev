@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { ArrowUpRight, LogIn, Sparkles } from "lucide-react";
 
 import { LanguageSwitcher } from "@/app/components/language-switcher";
+import ThemeToggle from "@/app/components/theme-toggle";
 import { getSessionUser } from "@/lib/auth/session";
 import { sql } from "@/lib/db";
 import { localizePath } from "@/lib/i18n/config";
@@ -178,6 +179,8 @@ export default async function Header() {
             <div>
               <SearchTrigger />
             </div>
+
+            <ThemeToggle className="hidden sm:block" />
 
             <LanguageSwitcher />
 

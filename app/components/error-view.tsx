@@ -80,7 +80,7 @@ export default function ErrorView({ error, retry }: { error: Error & { digest?: 
         <div
           className="absolute inset-0 opacity-40"
           style={{
-            backgroundImage: "linear-gradient(to right, #e5e5e5 1px, transparent 1px), linear-gradient(to bottom, #e5e5e5 1px, transparent 1px)",
+            backgroundImage: "linear-gradient(to right, rgb(var(--c-neutral-200)) 1px, transparent 1px), linear-gradient(to bottom, rgb(var(--c-neutral-200)) 1px, transparent 1px)",
             backgroundSize: "56px 56px",
             maskImage: "radial-gradient(circle at center, black, transparent 70%)",
             WebkitMaskImage: "radial-gradient(circle at center, black, transparent 70%)",

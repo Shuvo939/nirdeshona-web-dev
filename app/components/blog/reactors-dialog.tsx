@@ -58,7 +58,7 @@ export default function ReactorsDialog({
 
   return (
     <div
-      className="fixed inset-0 z-[130] flex items-end justify-center bg-neutral-950/40 backdrop-blur-sm sm:items-center sm:p-4"
+      className="fixed inset-0 z-[130] flex items-end justify-center bg-scrim/45 backdrop-blur-sm sm:items-center sm:p-4"
       onClick={onClose}
     >
       <div

@@ -40,7 +40,7 @@ export function PageHero({
     <section className="relative overflow-hidden border-b border-neutral-200 bg-neutral-50">
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_right,rgba(0,0,0,0.04)_1px,transparent_1px),linear-gradient(to_bottom,rgba(0,0,0,0.04)_1px,transparent_1px)] bg-[size:44px_44px] [mask-image:radial-gradient(ellipse_at_top,black_30%,transparent_75%)]"
+        className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_right,rgb(var(--c-black)/0.04)_1px,transparent_1px),linear-gradient(to_bottom,rgb(var(--c-black)/0.04)_1px,transparent_1px)] bg-[size:44px_44px] [mask-image:radial-gradient(ellipse_at_top,black_30%,transparent_75%)]"
       />
       <div aria-hidden className="pointer-events-none absolute -right-32 -top-32 h-80 w-80 rounded-full bg-neutral-200/70 blur-3xl" />
 
@@ -147,7 +147,7 @@ export function ServiceCard({ service }: { service: Service }) {
   return (
     <Link
       href={`/services/${service.slug}`}
-      className="group flex h-full flex-col rounded-3xl border border-neutral-200 bg-white p-6 transition duration-300 hover:-translate-y-1 hover:border-neutral-300 hover:shadow-[0_20px_50px_rgba(0,0,0,0.08)]"
+      className="group flex h-full flex-col rounded-3xl border border-neutral-200 bg-white p-6 transition duration-300 hover:-translate-y-1 hover:border-neutral-300 hover:shadow-[0_20px_50px_rgb(var(--c-black)/0.08)]"
     >
       <div className="flex items-start justify-between">
         <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-neutral-950 text-white shadow-sm">

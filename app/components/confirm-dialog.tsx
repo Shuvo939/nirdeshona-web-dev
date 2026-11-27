@@ -29,7 +29,7 @@ export default function ConfirmDialog({
   }, [onCancel]);
 
   return (
-    <div className="fixed inset-0 z-[120] flex items-center justify-center bg-neutral-950/40 p-4 backdrop-blur-sm" onClick={onCancel}>
+    <div className="fixed inset-0 z-[120] flex items-center justify-center bg-scrim/45 p-4 backdrop-blur-sm" onClick={onCancel}>
       <div role="alertdialog" aria-modal="true" className="w-full max-w-sm rounded-3xl bg-white p-6 shadow-2xl" onClick={(e) => e.stopPropagation()}>
         <div className={`flex h-11 w-11 items-center justify-center rounded-2xl ${danger ? "bg-red-50 text-red-600" : "bg-neutral-100 text-neutral-700"}`}>
           <AlertTriangle className="h-5 w-5" />

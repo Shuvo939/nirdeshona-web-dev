@@ -242,7 +242,7 @@ export default async function ContactPage({
 
             {/* Process */}
 
-            <div className="rounded-3xl border border-neutral-200 bg-neutral-950 p-6 text-white shadow-sm sm:p-7">
+            <div className="theme-fixed rounded-3xl border border-neutral-200 bg-neutral-950 p-6 text-white shadow-sm sm:p-7">
               <p className="text-xs font-semibold uppercase tracking-[0.14em] text-neutral-500">
                 {L("What happens next?", "এরপর কী হবে?")}
               </p>

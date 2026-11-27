@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Check, Share2 } from "lucide-react";
+import { Check, Link2 } from "lucide-react";
 
 import { useI18n } from "@/lib/i18n/client";
 
@@ -30,9 +30,9 @@ export default function PostShareButton({ title }: { title: string }) {
       type="button"
       onClick={share}
       aria-label={L("Share this post", "পোস্টটি শেয়ার করুন")}
-      className="inline-flex h-9 items-center gap-1.5 rounded-full px-3 text-sm font-medium text-neutral-600 transition hover:bg-black/[0.04] hover:text-neutral-950"
+      className="inline-flex h-9 items-center gap-1.5 rounded-full px-2 text-sm text-neutral-500 transition hover:bg-black/[0.04] hover:text-neutral-950"
     >
-      {copied ? <Check className="h-4 w-4 text-emerald-600" /> : <Share2 className="h-4 w-4" />}
+      {copied ? <Check className="h-[18px] w-[18px] text-emerald-600" /> : <Link2 className="h-[18px] w-[18px]" />}
       <span>{copied ? L("Link copied", "লিংক কপি হয়েছে") : L("Share", "শেয়ার")}</span>
     </button>
   );

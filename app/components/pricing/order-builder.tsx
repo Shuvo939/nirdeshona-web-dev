@@ -634,7 +634,7 @@ export default function OrderBuilder({
           </div>
 
           <aside className="lg:sticky lg:top-24 lg:self-start">
-            <div className="rounded-3xl bg-neutral-950 p-6 text-white sm:p-7">
+            <div className="theme-fixed rounded-3xl bg-neutral-950 p-6 text-white sm:p-7">
               <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-neutral-400">
                 <ClipboardList className="h-4 w-4" /> {L("Your selection", "আপনার বাছাই")}
               </p>

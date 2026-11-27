@@ -107,8 +107,12 @@ export default function PostReactions({
   const meta = mine ? REACTION_META[mine] : null;
 
   return (
-    <section className="mt-12 border-y border-neutral-200" aria-label={L("Reactions", "রিঅ্যাকশন")}>
-      <div className="flex items-center justify-between gap-3 py-2.5 text-sm text-neutral-500">
+    <section
+      id="reactions"
+      className="-mx-5 mt-12 scroll-mt-24 border-y border-neutral-200 sm:-mx-8 lg:mx-0"
+      aria-label={L("Reactions", "রিঅ্যাকশন")}
+    >
+      <div className="flex items-center justify-between gap-3 px-5 py-2.5 text-sm text-neutral-500 sm:px-8 lg:px-0">
         <div className="flex min-w-0 items-center gap-2">
           {top.length > 0 ? (
             <button
@@ -141,7 +145,7 @@ export default function PostReactions({
         </a>
       </div>
 
-      <div className="grid grid-cols-3 border-t border-neutral-100 py-1">
+      <div className="grid grid-cols-3 border-t border-neutral-100 px-2 py-1 sm:px-6 lg:px-0">
         <div ref={pickerRef} className="relative" onPointerEnter={openSoon} onPointerLeave={closeSoon}>
           {picker && (
             <div

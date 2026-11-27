@@ -206,7 +206,7 @@ export default async function ProjectDetailsPage({ params }: Props) {
 
       {/* Hero */}
       <section className="relative overflow-hidden border-b border-neutral-200 bg-neutral-50">
-        <div aria-hidden className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_0%,rgba(16,185,129,0.08),transparent_45%),radial-gradient(circle_at_90%_10%,rgba(0,0,0,0.05),transparent_40%)]" />
+        <div aria-hidden className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_0%,rgba(16,185,129,0.08),transparent_45%),radial-gradient(circle_at_90%_10%,rgb(var(--c-black)/0.05),transparent_40%)]" />
         <div className="relative mx-auto max-w-7xl px-4 pb-12 pt-8 sm:px-6 sm:pt-10 lg:px-8">
           <Breadcrumbs items={[{ label: L("Our work", "আমাদের কাজ"), href: "/projects" }, { label: project.title }]} />
 
@@ -388,7 +388,7 @@ export default async function ProjectDetailsPage({ params }: Props) {
             )}
           </div>
 
-          <div className="rounded-3xl bg-neutral-950 p-6 text-white">
+          <div className="theme-fixed rounded-3xl bg-neutral-950 p-6 text-white">
             <MessageSquare className="h-6 w-6 text-emerald-300" />
             <h3 className="mt-4 text-lg font-semibold">{L("Want something similar?", "এমন কিছু চান?")}</h3>
             <p className="mt-2 text-sm leading-6 text-neutral-400">

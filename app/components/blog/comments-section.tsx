@@ -811,7 +811,7 @@ function ReportDialog({ onCancel, onSubmit }: { onCancel: () => void; onSubmit: 
   const [reason, setReason] = useState(REPORT_REASONS[0][0]);
   const [busy, setBusy] = useState(false);
   return (
-    <div className="fixed inset-0 z-[120] flex items-center justify-center bg-neutral-950/40 p-4 backdrop-blur-sm" onClick={onCancel}>
+    <div className="fixed inset-0 z-[120] flex items-center justify-center bg-scrim/45 p-4 backdrop-blur-sm" onClick={onCancel}>
       <div role="dialog" aria-modal="true" className="w-full max-w-sm rounded-3xl bg-white p-6 shadow-2xl" onClick={(e) => e.stopPropagation()}>
         <h2 className="text-lg font-semibold text-neutral-950">{L("Report comment", "মন্তব্য রিপোর্ট করুন")}</h2>
         <p className="mt-1 text-sm text-neutral-500">{L("Why are you reporting this?", "কেন রিপোর্ট করছেন?")}</p>

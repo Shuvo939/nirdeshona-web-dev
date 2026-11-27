@@ -111,7 +111,7 @@ export default async function PricingPage() {
               <Link
                 key={s.slug}
                 href={`/services/${s.slug}`}
-                className="group flex flex-col rounded-3xl border border-neutral-200 bg-white p-6 transition hover:-translate-y-0.5 hover:shadow-[0_20px_50px_rgba(0,0,0,0.07)]"
+                className="group flex flex-col rounded-3xl border border-neutral-200 bg-white p-6 transition hover:-translate-y-0.5 hover:shadow-[0_20px_50px_rgb(var(--c-black)/0.07)]"
               >
                 <div className="flex items-start justify-between gap-3">
                   <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-neutral-950 text-white">

@@ -438,7 +438,7 @@ function DeleteConfirmationDialog({
         aria-label="Close confirmation dialog"
         onClick={onCancel}
         disabled={deleting}
-        className="absolute inset-0 cursor-default bg-black/40 backdrop-blur-[2px]"
+        className="absolute inset-0 cursor-default bg-scrim/40 backdrop-blur-[2px]"
       />
 
       <div className="relative w-full max-w-md overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-2xl">

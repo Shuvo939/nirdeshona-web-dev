@@ -112,7 +112,7 @@ export default async function AboutPage() {
             </div>
           </div>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-1">
-            <div className="rounded-3xl bg-neutral-950 p-7 text-white">
+            <div className="theme-fixed rounded-3xl bg-neutral-950 p-7 text-white">
               <Target className="h-6 w-6 text-emerald-300" />
               <h3 className="mt-4 text-lg font-semibold">{L("Our mission", "আমাদের লক্ষ্য")}</h3>
               <p className="mt-2 text-sm leading-6 text-neutral-400">

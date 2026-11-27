@@ -46,7 +46,7 @@ export default function DeleteProjectButton({
       {/* Confirmation modal */}
       {open && (
         <div
-          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 px-4 backdrop-blur-sm"
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-scrim/50 px-4 backdrop-blur-sm"
           role="dialog"
           aria-modal="true"
           aria-labelledby="delete-project-title"
