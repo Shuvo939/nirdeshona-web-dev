@@ -97,7 +97,7 @@ export function EmptyBinButton({ count, action }: { count: number; action: () =>
 
 function ConfirmDialog({ title, text, confirmLabel, pending, onCancel, onConfirm }: { title: string; text: string; confirmLabel: string; pending: boolean; onCancel: () => void; onConfirm: () => void }) {
   return (
-    <div className="fixed inset-0 z-[120] flex items-center justify-center bg-neutral-950/40 p-4 backdrop-blur-sm" onClick={() => !pending && onCancel()}>
+    <div className="fixed inset-0 z-[120] flex items-center justify-center bg-scrim/45 p-4 backdrop-blur-sm" onClick={() => !pending && onCancel()}>
       <div role="alertdialog" aria-modal="true" className="w-full max-w-sm rounded-3xl bg-white p-6 text-left shadow-2xl" onClick={(e) => e.stopPropagation()}>
         <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-red-50 text-red-600">
           <AlertTriangle className="h-5 w-5" />

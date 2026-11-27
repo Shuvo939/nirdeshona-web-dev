@@ -23,7 +23,7 @@ export default function ProjectCard({ project }: { project: ProjectCardData }) {
   return (
     <Link
       href={`/projects/${project.slug}`}
-      className="group flex h-full flex-col overflow-hidden rounded-3xl border border-neutral-200 bg-white transition duration-300 hover:-translate-y-1 hover:shadow-[0_20px_50px_rgba(0,0,0,0.08)]"
+      className="group flex h-full flex-col overflow-hidden rounded-3xl border border-neutral-200 bg-white transition duration-300 hover:-translate-y-1 hover:shadow-[0_20px_50px_rgb(var(--c-black)/0.08)]"
     >
       <div className="relative aspect-[16/10] overflow-hidden bg-neutral-100">
         {project.cover_image_url ? (
@@ -35,7 +35,7 @@ export default function ProjectCard({ project }: { project: ProjectCardData }) {
             className="h-full w-full object-cover object-top transition duration-700 group-hover:scale-105"
           />
         ) : (
-          <div className="flex h-full items-center justify-center bg-[radial-gradient(circle_at_30%_20%,#f5f5f5,#e5e5e5)]">
+          <div className="flex h-full items-center justify-center bg-[radial-gradient(circle_at_30%_20%,#f5f5f5,rgb(var(--c-neutral-200)))]">
             <Layers3 className="h-10 w-10 text-neutral-300" />
           </div>
         )}

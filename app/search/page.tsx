@@ -116,7 +116,7 @@ export default async function SearchPage({
           className="absolute inset-0 opacity-[0.3]"
           style={{
             backgroundImage:
-              "linear-gradient(to right, #e5e5e5 1px, transparent 1px), linear-gradient(to bottom, #e5e5e5 1px, transparent 1px)",
+              "linear-gradient(to right, rgb(var(--c-neutral-200)) 1px, transparent 1px), linear-gradient(to bottom, rgb(var(--c-neutral-200)) 1px, transparent 1px)",
             backgroundSize: "64px 64px",
             maskImage: "linear-gradient(to bottom, black, transparent 75%)",
             WebkitMaskImage:

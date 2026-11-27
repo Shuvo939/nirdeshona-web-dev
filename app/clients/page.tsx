@@ -59,7 +59,7 @@ export default async function ClientsPage() {
               <Link
                 key={client.id}
                 href={client.top_project_slug ? `/projects/${client.top_project_slug}` : "/projects"}
-                className="group flex items-center gap-4 rounded-3xl border border-neutral-200 bg-white p-5 transition hover:-translate-y-0.5 hover:shadow-[0_20px_50px_rgba(0,0,0,0.06)]"
+                className="group flex items-center gap-4 rounded-3xl border border-neutral-200 bg-white p-5 transition hover:-translate-y-0.5 hover:shadow-[0_20px_50px_rgb(var(--c-black)/0.06)]"
               >
                 <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-neutral-100 bg-neutral-50 text-lg font-bold text-neutral-700">
                   {client.logo_url ? (

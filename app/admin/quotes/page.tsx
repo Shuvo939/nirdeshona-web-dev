@@ -72,7 +72,7 @@ export default async function AdminQuotesPage({ searchParams }: { searchParams: 
                     </div>
                     <div className="flex items-center justify-between gap-4 sm:block sm:text-right">
                       <p className="text-sm font-semibold text-neutral-950">
-                        {q.plan === "care"
+                        {q.plan === "care" || (q.estimate_low === 0 && q.monthly)
                           ? `${taka(q.monthly)}/mo`
                           : `${taka(q.estimate_low)}${q.estimate_high > q.estimate_low ? ` – ${taka(q.estimate_high)}` : ""}${q.monthly ? ` + ${taka(q.monthly)}/mo` : ""}`}
                       </p>

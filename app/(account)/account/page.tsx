@@ -80,7 +80,7 @@ export default async function AccountPage() {
       <AccountHeader title={`${greeting}${firstName ? `, ${firstName}` : ""}`} description={L("Here's what's happening with your account.", "আপনার অ্যাকাউন্টের সর্বশেষ অবস্থা এখানে।")} />
 
       {/* Identity card */}
-      <div className="relative overflow-hidden rounded-3xl bg-neutral-950 p-6 text-white sm:p-8">
+      <div className="theme-fixed relative overflow-hidden rounded-3xl bg-neutral-950 p-6 text-white sm:p-8">
         <div aria-hidden className="pointer-events-none absolute -right-16 -top-20 h-64 w-64 rounded-full bg-white/10 blur-3xl" />
         <div className="relative flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-4">

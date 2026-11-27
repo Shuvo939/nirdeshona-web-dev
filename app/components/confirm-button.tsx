@@ -48,7 +48,7 @@ export default function ConfirmButton({
       </button>
       {open && (
         <div
-          className="fixed inset-0 z-[120] flex items-end justify-center bg-neutral-950/40 p-4 backdrop-blur-sm sm:items-center"
+          className="fixed inset-0 z-[120] flex items-end justify-center bg-scrim/45 p-4 backdrop-blur-sm sm:items-center"
           onClick={() => !pending && setOpen(false)}
         >
           <div

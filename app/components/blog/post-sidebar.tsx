@@ -133,7 +133,7 @@ export default async function PostSidebar({
 
         <Link
           href="#comments"
-          className="group flex items-center justify-between rounded-3xl border border-neutral-200 bg-neutral-950 p-5 text-white transition hover:bg-neutral-800"
+          className="theme-fixed group flex items-center justify-between rounded-3xl border border-neutral-200 bg-neutral-950 p-5 text-white transition hover:bg-neutral-800"
         >
           <div>
             <p className="text-sm font-semibold">

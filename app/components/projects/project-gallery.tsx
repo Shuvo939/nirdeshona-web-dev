@@ -56,7 +56,7 @@ export default function ProjectGallery({ items, title }: { items: Item[]; title:
       </div>
 
       {current && (
-        <div className="fixed inset-0 z-[100] flex flex-col bg-black/95" role="dialog" aria-modal="true" aria-label={L("Image viewer", "ছবি দেখুন")} onClick={() => setOpen(null)}>
+        <div className="fixed inset-0 z-[100] flex flex-col bg-scrim/95" role="dialog" aria-modal="true" aria-label={L("Image viewer", "ছবি দেখুন")} onClick={() => setOpen(null)}>
           <div className="flex items-center justify-between px-4 py-3 text-sm text-white/80">
             <span>
               {num(open! + 1)} / {num(items.length)}

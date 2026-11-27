@@ -338,7 +338,7 @@ export default async function PostListing({
             </div>
           )}
 
-          <div className="rounded-3xl bg-neutral-950 p-6 text-white">
+          <div className="theme-fixed rounded-3xl bg-neutral-950 p-6 text-white">
             <h3 className="text-base font-semibold">{L("Have a project in mind?", "মাথায় কোনো প্রজেক্ট আছে?")}</h3>
             <p className="mt-2 text-sm leading-6 text-neutral-400">{L("We build fast, modern websites and web apps.", "আমরা দ্রুত, আধুনিক ওয়েবসাইট ও ওয়েব অ্যাপ বানাই।")}</p>
             <Link href="/contact" className="mt-4 inline-flex rounded-full bg-white px-4 py-2 text-sm font-semibold text-neutral-950 hover:bg-neutral-200">
@@ -375,7 +375,7 @@ function Cover({ post, className }: { post: ListedPost; className: string }) {
     // eslint-disable-next-line @next/next/no-img-element
     <img src={post.cover_image_url} alt="" loading="lazy" className={`${className} object-cover transition duration-700 group-hover:scale-105`} />
   ) : (
-    <div className={`${className} flex items-center justify-center bg-[radial-gradient(circle_at_30%_20%,#fafafa,#e5e5e5)]`}>
+    <div className={`${className} flex items-center justify-center bg-[radial-gradient(circle_at_30%_20%,rgb(var(--c-neutral-50)),rgb(var(--c-neutral-200)))]`}>
       <Newspaper className="h-10 w-10 text-neutral-300" />
     </div>
   );
@@ -384,7 +384,7 @@ function Cover({ post, className }: { post: ListedPost; className: string }) {
 async function FeaturedPost({ post }: { post: ListedPost }) {
   const { L } = await getI18n();
   return (
-    <Link href={`/blog/${post.slug}`} className="group grid grid-cols-1 overflow-hidden rounded-3xl border border-neutral-200 bg-white transition hover:shadow-[0_20px_50px_rgba(0,0,0,0.08)] md:grid-cols-2">
+    <Link href={`/blog/${post.slug}`} className="group grid grid-cols-1 overflow-hidden rounded-3xl border border-neutral-200 bg-white transition hover:shadow-[0_20px_50px_rgb(var(--c-black)/0.08)] md:grid-cols-2">
       <div className="overflow-hidden">
         <Cover post={post} className="aspect-[16/10] h-full w-full" />
       </div>
@@ -407,7 +407,7 @@ async function FeaturedPost({ post }: { post: ListedPost }) {
 
 function PostCard({ post }: { post: ListedPost }) {
   return (
-    <Link href={`/blog/${post.slug}`} className="group flex flex-col overflow-hidden rounded-3xl border border-neutral-200 bg-white transition hover:-translate-y-1 hover:shadow-[0_20px_50px_rgba(0,0,0,0.08)]">
+    <Link href={`/blog/${post.slug}`} className="group flex flex-col overflow-hidden rounded-3xl border border-neutral-200 bg-white transition hover:-translate-y-1 hover:shadow-[0_20px_50px_rgb(var(--c-black)/0.08)]">
       <div className="overflow-hidden">
         <Cover post={post} className="aspect-[16/9] w-full" />
       </div>

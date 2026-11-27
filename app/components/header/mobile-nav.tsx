@@ -2,6 +2,7 @@
 
 import { ServiceIcon } from "@/app/components/marketing";
 import { LanguageSwitcherFull } from "@/app/components/language-switcher";
+import { ThemeSwitch } from "@/app/components/theme-toggle";
 import { getContent } from "@/lib/content";
 import { useI18n } from "@/lib/i18n/client";
 import Link from "@/app/components/locale-link";
@@ -381,7 +382,7 @@ export default function MobileNav({
               ================================================== */}
               {!authenticated && (
                 <section className="mt-8">
-                  <div className="rounded-2xl bg-neutral-950 p-5 text-white">
+                  <div className="theme-fixed rounded-2xl bg-neutral-950 p-5 text-white">
                     <div className="flex items-start justify-between gap-4">
                       <div>
                         <p className="text-sm font-semibold">
@@ -433,8 +434,9 @@ export default function MobileNav({
               {/* =================================================
                   FOOTER
               ================================================== */}
-              <div className="flex justify-center pt-8">
+              <div className="flex flex-col items-center gap-3 pt-8">
                 <LanguageSwitcherFull />
+                <ThemeSwitch />
               </div>
               <div className="pb-8 pt-6 text-center">
                 <p className="text-[11px] text-neutral-400">

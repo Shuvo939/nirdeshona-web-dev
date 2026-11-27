@@ -122,7 +122,7 @@ export default function AvatarCropper({
     "flex h-10 w-10 items-center justify-center rounded-full border border-neutral-200 text-neutral-700 transition hover:bg-neutral-50 disabled:opacity-50";
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-end justify-center bg-black/60 sm:items-center sm:p-4" role="dialog" aria-modal="true" aria-labelledby="crop-title">
+    <div className="fixed inset-0 z-[100] flex items-end justify-center bg-scrim/60 sm:items-center sm:p-4" role="dialog" aria-modal="true" aria-labelledby="crop-title">
       <div className="flex max-h-[100dvh] w-full max-w-lg flex-col overflow-hidden rounded-t-3xl bg-white shadow-2xl sm:rounded-3xl">
         <div className="flex items-center justify-between border-b border-neutral-100 px-5 py-4">
           <h2 id="crop-title" className="text-base font-semibold text-neutral-950">

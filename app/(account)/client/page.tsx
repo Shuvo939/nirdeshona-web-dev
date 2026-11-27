@@ -322,7 +322,7 @@ export default async function ClientDashboardPage({
               </div>
             </div>
 
-            <div className="rounded-3xl bg-neutral-950 p-5 text-white">
+            <div className="theme-fixed rounded-3xl bg-neutral-950 p-5 text-white">
               <h2 className="text-sm font-semibold">{L("Need something new?", "নতুন কিছু দরকার?")}</h2>
               <p className="mt-1 text-sm leading-6 text-neutral-400">{L("New feature, redesign or another site — tell us about it.", "নতুন ফিচার, রিডিজাইন বা আরেকটি সাইট — আমাদের জানান।")}</p>
               <Link href="/contact" className="mt-4 inline-flex rounded-full bg-white px-4 py-2 text-xs font-semibold text-neutral-950 hover:bg-neutral-200">

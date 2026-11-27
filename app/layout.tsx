@@ -13,6 +13,8 @@ import NavigationProgress from "@/app/components/navigation-progress";
 import { site } from "@/lib/site";
 import { jsonLd } from "@/lib/json-ld";
 import { socialMeta } from "@/lib/seo";
+import { THEME_COOKIE, themeInitScript } from "@/lib/theme";
+import { cookies } from "next/headers";
 import { LocaleProvider } from "@/lib/i18n/client";
 import { getI18n } from "@/lib/i18n/server";
 
@@ -52,7 +54,10 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export const viewport: Viewport = {
-  themeColor: "#0a0a0a",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
+    { media: "(prefers-color-scheme: dark)", color: "#121212" },
+  ],
 };
 
 const organizationJsonLd = {
@@ -103,8 +108,13 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const { locale } = await getI18n();
+  const saved = (await cookies()).get(THEME_COOKIE)?.value;
+  const theme = saved === "light" || saved === "dark" ? saved : "system";
   return (
-    <html lang={locale === "bn" ? "bn" : "en"}>
+    <html lang={locale === "bn" ? "bn" : "en"} className={theme === "dark" ? "dark" : undefined} data-theme={theme} suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
+      </head>
       <body className={`min-h-screen bg-white text-neutral-950 antialiased ${locale === "bn" ? "font-bangla" : ""}`}>
         <LocaleProvider locale={locale}>
         <script

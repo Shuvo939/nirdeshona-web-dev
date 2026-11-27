@@ -3,6 +3,7 @@
 import Link from "@/app/components/locale-link";
 
 import { LanguageSwitcherFull } from "@/app/components/language-switcher";
+import { ThemeSwitch } from "@/app/components/theme-toggle";
 import { getContent } from "@/lib/content";
 import { site } from "@/lib/site";
 import { useI18n } from "@/lib/i18n/client";
@@ -23,7 +24,7 @@ export default function Footer() {
   const { services } = getContent(locale);
 
   return (
-    <footer className="border-t border-neutral-200 bg-neutral-950 text-white">
+    <footer className="theme-fixed border-t border-neutral-200 bg-neutral-950 text-white">
       {/* =====================================================
           CTA
       ====================================================== */}
@@ -223,6 +224,7 @@ export default function Footer() {
 
           <div className="flex flex-wrap items-center gap-5">
             <LanguageSwitcherFull dark />
+            <ThemeSwitch dark />
             <Link
               href="/privacy"
               className="text-xs text-neutral-500 transition hover:text-white"
