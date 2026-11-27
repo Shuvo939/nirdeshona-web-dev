@@ -4,17 +4,23 @@ import { Search } from "lucide-react";
 import PostListing, { parseSort } from "@/app/components/blog/post-listing";
 import { PageHero } from "@/app/components/marketing";
 import NavSubmitButton from "@/app/components/nav-submit-button";
-import { getI18n, localeAlternates } from "@/lib/i18n/server";
+import { getI18n } from "@/lib/i18n/server";
+import { pageMeta } from "@/lib/seo";
 
 export async function generateMetadata(): Promise<Metadata> {
   const { L, locale } = await getI18n();
   return {
-    title: L("Blog — Nirdeshona Web", "ব্লগ — নির্দেশনা ওয়েব"),
-    description: L(
-      "Notes on web development, design, WordPress and running a website — from the Nirdeshona Web team.",
-      "ওয়েব ডেভেলপমেন্ট, ডিজাইন, ওয়ার্ডপ্রেস ও ওয়েবসাইট পরিচালনা নিয়ে নির্দেশনা ওয়েব টিমের লেখা।",
-    ),
-    alternates: { ...localeAlternates(locale, "/blog"), types: { "application/rss+xml": "/blog/rss.xml" } },
+    ...pageMeta({
+      locale,
+    og: { title: "Blog", eyebrow: "Blog" },
+      path: "/blog",
+      title: L("Blog — Nirdeshona Web", "ব্লগ — নির্দেশনা ওয়েব"),
+      description: L(
+        "Practical guides on websites, design, WordPress, SEO, Facebook marketing and running a website — from the Nirdeshona Web team.",
+        "ওয়েবসাইট, ডিজাইন, ওয়ার্ডপ্রেস, এসইও, ফেসবুক মার্কেটিং ও ওয়েবসাইট পরিচালনা নিয়ে নির্দেশনা ওয়েব টিমের কাজের গাইড।",
+      ),
+      eyebrow: L("Blog", "ব্লগ"),
+    }),
   };
 }
 

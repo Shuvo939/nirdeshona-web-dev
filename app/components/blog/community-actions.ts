@@ -45,7 +45,7 @@ export async function addComment(input: { postId: string; parentId?: string | nu
 
   const content = ContentSchema.safeParse(input.content);
   if (!content.success) return { ok: false, error: content.error.issues[0].message };
-  if (!z.string().uuid().safeParse(input.postId).success) return { ok: false, error: await msg("Post not found.", "লেখাটি পাওয়া যায়নি।") };
+  if (!z.guid().safeParse(input.postId).success) return { ok: false, error: await msg("Post not found.", "লেখাটি পাওয়া যায়নি।") };
 
   const [post] = await sql`select id, slug, title, author_id from posts where id = ${input.postId} and status = 'published'`;
   if (!post) return { ok: false, error: await msg("Post not found.", "লেখাটি পাওয়া যায়নি।") };
@@ -100,9 +100,12 @@ export async function addComment(input: { postId: string; parentId?: string | nu
   };
 }
 
+const isUuid = (v: unknown) => z.guid().safeParse(v).success;
+
 export async function editComment(commentId: string, raw: string): Promise<Result<{ content: string; edited_at: string }>> {
   const auth = await activeUser();
   if ("error" in auth) return { ok: false, error: auth.error! };
+  if (!isUuid(commentId)) return { ok: false, error: await msg("Comment not found.", "মন্তব্যটি পাওয়া যায়নি।") };
   const content = ContentSchema.safeParse(raw);
   if (!content.success) return { ok: false, error: content.error.issues[0].message };
 
@@ -116,6 +119,7 @@ export async function editComment(commentId: string, raw: string): Promise<Resul
 }
 
 export async function deleteComment(commentId: string): Promise<Result> {
+  if (!isUuid(commentId)) return { ok: false, error: await msg("Comment not found.", "মন্তব্যটি পাওয়া যায়নি।") };
   const user = await getSessionUser();
   if (!user) return { ok: false, error: await msg("Please sign in.", "লগইন করুন।") };
 
@@ -139,6 +143,7 @@ export async function deleteComment(commentId: string): Promise<Result> {
 }
 
 export async function hideComment(commentId: string): Promise<Result> {
+  if (!isUuid(commentId)) return { ok: false, error: await msg("Comment not found.", "মন্তব্যটি পাওয়া যায়নি।") };
   const user = await getSessionUser();
   if (!user || user.role !== "ADMIN") return { ok: false, error: await msg("Not allowed.", "অনুমতি নেই।") };
   const [row] = await sql`
@@ -157,6 +162,7 @@ export async function setCommentReaction(
 ): Promise<Result<{ count: number; top: ReactionType[]; mine: ReactionType | null }>> {
   const auth = await activeUser();
   if ("error" in auth) return { ok: false, error: auth.error! };
+  if (!isUuid(commentId)) return { ok: false, error: await msg("Comment not found.", "মন্তব্যটি পাওয়া যায়নি।") };
   if (type && !REACTIONS.includes(type)) return { ok: false, error: await msg("Unknown reaction.", "অজানা রিঅ্যাকশন।") };
 
   if (type) {
@@ -179,6 +185,7 @@ export async function setCommentReaction(
 }
 
 export async function reportComment(commentId: string, reason: string): Promise<Result> {
+  if (!isUuid(commentId)) return { ok: false, error: await msg("Comment not found.", "মন্তব্যটি পাওয়া যায়নি।") };
   const auth = await activeUser();
   if ("error" in auth) return { ok: false, error: auth.error! };
   const text = reason.trim().slice(0, 300) || "Inappropriate";
@@ -193,6 +200,7 @@ export async function reportComment(commentId: string, reason: string): Promise<
 export async function setPostReaction(postId: string, type: ReactionType | null): Promise<Result> {
   const auth = await activeUser();
   if ("error" in auth) return { ok: false, error: auth.error! };
+  if (!isUuid(postId)) return { ok: false, error: await msg("Post not found.", "লেখাটি পাওয়া যায়নি।") };
   if (type && !REACTIONS.includes(type)) return { ok: false, error: await msg("Unknown reaction.", "অজানা রিঅ্যাকশন।") };
 
   if (type) {
@@ -216,7 +224,7 @@ export type Reactor = { user_id: string; name: string; avatar_url: string | null
 
 /** People who reacted to a published post or a visible comment (names and avatars only). */
 export async function getReactors(target: "post" | "comment", id: string): Promise<Result<{ reactors: Reactor[] }>> {
-  if (!z.string().uuid().safeParse(id).success) return { ok: false, error: await msg("Not found.", "পাওয়া যায়নি।") };
+  if (!z.guid().safeParse(id).success) return { ok: false, error: await msg("Not found.", "পাওয়া যায়নি।") };
   const fallback = await msg("Member", "সদস্য");
   const rows =
     target === "post"

@@ -4,7 +4,8 @@ import { notFound } from "next/navigation";
 import PostListing, { parseSort } from "@/app/components/blog/post-listing";
 import { PageHero } from "@/app/components/marketing";
 import { sql } from "@/lib/db";
-import { getI18n, getLocale, localeAlternates } from "@/lib/i18n/server";
+import { getI18n, getLocale } from "@/lib/i18n/server";
+import { pageMeta } from "@/lib/seo";
 import { tcol } from "@/lib/i18n/sql";
 
 async function getTag(slug: string) {
@@ -17,10 +18,13 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const tag = await getTag(slug);
   if (!tag) return {};
   const { L, locale } = await getI18n();
-  return {
+  return pageMeta({
+    locale,
+    path: `/blog/tag/${tag.slug}`,
     title: `${tag.name} — ${L("Blog — Nirdeshona Web", "ব্লগ — নির্দেশনা ওয়েব")}`,
-    alternates: localeAlternates(locale, `/blog/tag/${tag.slug}`),
-  };
+    description: L(`Articles about ${tag.name} from the Nirdeshona Web blog.`, `নির্দেশনা ওয়েব ব্লগে ${tag.name} বিষয়ের লেখা।`),
+    eyebrow: L("Tag", "ট্যাগ"),
+  });
 }
 
 export default async function BlogTagPage({

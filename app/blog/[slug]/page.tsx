@@ -3,6 +3,9 @@ import { notFound } from "next/navigation";
 
 import { sql } from "@/lib/db";
 import { getI18n } from "@/lib/i18n/server";
+import { jsonLd } from "@/lib/json-ld";
+import { absoluteUrl, breadcrumbLd, ogImageUrl, pageMeta } from "@/lib/seo";
+import { site } from "@/lib/site";
 import { tcol } from "@/lib/i18n/sql";
 import { trackPostView } from "@/lib/posts/views";
 import PostPage from "@/app/components/blog/post-page";
@@ -23,15 +26,20 @@ export async function generateMetadata({
 
   const [post] = await sql`
     select
-      ${tcol(locale, "title")} as title,
-      ${tcol(locale, "excerpt")} as excerpt,
-      ${tcol(locale, "seo_title")} as seo_title,
-      ${tcol(locale, "seo_description")} as seo_description,
-      cover_image_url,
-      (title_bn is not null and title_bn <> '') as has_bn
-    from public.posts
-    where slug = ${slug}
-      and status = 'published'
+      ${tcol(locale, "p.title")} as title,
+      p.title as title_en,
+      ${tcol(locale, "p.excerpt")} as excerpt,
+      ${tcol(locale, "p.seo_title")} as seo_title,
+      ${tcol(locale, "p.seo_description")} as seo_description,
+      p.cover_image_url, p.published_at, p.updated_at,
+      (p.title_bn is not null and p.title_bn <> '') as has_bn,
+      pr.full_name as author_name,
+      ${tcol(locale, "pc.name")} as category_name
+    from public.posts p
+    left join public.profiles pr on pr.id = p.author_id
+    left join public.post_categories pc on pc.id = p.category_id
+    where p.slug = ${slug}
+      and p.status = 'published'
     limit 1
   `;
 
@@ -48,44 +56,25 @@ export async function generateMetadata({
     post.excerpt ||
     L(`Read ${post.title} on Nirdeshona.`, `নির্দেশনায় পড়ুন: ${post.title}`);
 
-  return {
+  const meta = pageMeta({
+    locale,
+    path: `/blog/${slug}`,
     title,
     description,
-    alternates: {
-      canonical: lp(`/blog/${slug}`),
-      languages: { "bn-BD": `/bn/blog/${slug}`, en: `/en/blog/${slug}`, "x-default": `/bn/blog/${slug}` },
-    },
-
+    image: post.cover_image_url ? String(post.cover_image_url) : null,
+    eyebrow: L("Blog", "ব্লগ"),
+    type: "article",
+    og: { title: String(post.title_en), eyebrow: "Blog" },
+  });
+  return {
+    ...meta,
     openGraph: {
-      title,
-      description,
+      ...meta.openGraph,
       type: "article",
-
-      ...(post.cover_image_url
-        ? {
-            images: [
-              {
-                url: String(post.cover_image_url),
-                alt: String(post.title),
-              },
-            ],
-          }
-        : {}),
-    },
-
-    twitter: {
-      card: post.cover_image_url
-        ? "summary_large_image"
-        : "summary",
-
-      title,
-      description,
-
-      ...(post.cover_image_url
-        ? {
-            images: [String(post.cover_image_url)],
-          }
-        : {}),
+      publishedTime: post.published_at ? new Date(post.published_at).toISOString() : undefined,
+      modifiedTime: post.updated_at ? new Date(post.updated_at).toISOString() : undefined,
+      authors: post.author_name ? [String(post.author_name)] : undefined,
+      section: post.category_name ? String(post.category_name) : undefined,
     },
   };
 }
@@ -161,7 +150,37 @@ export default async function SinglePostPage({
     order by t.name asc
   `) as Tag[];
 
+  const url = `${site.url}/${locale}/blog/${post.slug}`;
+  const structured = [
+    {
+      "@context": "https://schema.org",
+      "@type": "BlogPosting",
+      headline: post.title,
+      description: post.excerpt ?? undefined,
+      image: post.cover_image_url ? [post.cover_image_url] : [absoluteUrl(ogImageUrl(post.title))],
+      datePublished: post.published_at ? new Date(post.published_at).toISOString() : undefined,
+      dateModified: new Date(post.updated_at ?? post.published_at ?? post.created_at).toISOString(),
+      inLanguage: locale === "bn" ? "bn-BD" : "en",
+      mainEntityOfPage: { "@type": "WebPage", "@id": url },
+      url,
+      author: { "@type": "Person", name: post.author_name || site.legalName },
+      publisher: { "@id": `${site.url}/#organization` },
+      articleSection: post.category_name ?? undefined,
+      keywords: tags.map((t) => t.name).join(", ") || undefined,
+      wordCount: post.content.trim().split(/\s+/).length,
+      interactionStatistic: { "@type": "InteractionCounter", interactionType: "https://schema.org/ReadAction", userInteractionCount: Number(post.views_count) },
+    },
+    breadcrumbLd(locale, [
+      [locale === "bn" ? "হোম" : "Home", "/"],
+      [locale === "bn" ? "ব্লগ" : "Blog", "/blog"],
+      [post.title, `/blog/${post.slug}`],
+    ]),
+  ];
+
   return (
-    <PostPage post={post} tags={tags} />
+    <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(structured) }} />
+      <PostPage post={post} tags={tags} />
+    </>
   );
 }

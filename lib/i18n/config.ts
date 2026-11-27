@@ -13,9 +13,9 @@ export function isLocale(value: unknown): value is Locale {
 /** Paths that are never localized (admin panel, APIs, auth callbacks, files). */
 export function isUnlocalizedPath(pathname: string) {
   return (
-    /^\/(admin|api|auth|_next|monitoring)(\/|$)/.test(pathname) ||
+    /^\/(admin|api|auth|_next|monitoring|og|icons)(\/|$)/.test(pathname) ||
     /^\/blog\/rss\.xml$/.test(pathname) ||
-    /^\/(robots\.txt|sitemap\.xml|manifest\.webmanifest|favicon\.ico|icon\.svg)$/.test(pathname) ||
+    /^\/(robots\.txt|sitemap\.xml|manifest\.webmanifest|favicon\.ico|icon\.svg|apple-icon(\.png)?)$/.test(pathname) ||
     /\.[a-z0-9]{2,5}$/i.test(pathname)
   );
 }

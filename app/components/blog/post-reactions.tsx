@@ -156,7 +156,7 @@ export default function PostReactions({
                   role="menuitem"
                   title={reactionLabel(r, locale)}
                   aria-label={reactionLabel(r, locale)}
-                  onClick={() => choose(r)}
+                  onClick={() => choose(mine === r ? null : r)}
                   className={`flex h-10 w-10 items-center justify-center rounded-full text-2xl transition duration-150 hover:-translate-y-1 hover:scale-125 ${mine === r ? "bg-neutral-100" : ""}`}
                 >
                   {REACTION_META[r].emoji}

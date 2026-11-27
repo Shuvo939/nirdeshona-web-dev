@@ -10,7 +10,8 @@ import { getSessionUser } from "@/lib/auth/session";
 import { createCaptcha } from "@/lib/captcha";
 import { ORDER_SERVICES, toTaka } from "@/lib/pricing";
 import { getContent } from "@/lib/content";
-import { getI18n, localeAlternates } from "@/lib/i18n/server";
+import { pageMeta } from "@/lib/seo";
+import { getI18n } from "@/lib/i18n/server";
 import { type Package } from "@/lib/site";
 
 const TERM_ICONS = [FileSignature, CalendarCheck, Landmark, Banknote];
@@ -18,14 +19,16 @@ const TERM_ICONS = [FileSignature, CalendarCheck, Landmark, Banknote];
 
 export async function generateMetadata(): Promise<Metadata> {
   const { L, locale } = await getI18n();
-  return {
+  return pageMeta({
+    locale,
+    og: { title: "Pricing" },
+    path: "/pricing",
     title: L("Pricing — Nirdeshona Web", "প্রাইসিং — নির্দেশনা ওয়েব"),
     description: L(
       "Clear, upfront website packages and monthly care plans from Nirdeshona Web Development.",
       "নির্দেশনা ওয়েব ডেভেলপমেন্টের স্পষ্ট, আগেভাগে জানানো ওয়েবসাইট প্যাকেজ ও মাসিক কেয়ার প্ল্যান।",
     ),
-    alternates: localeAlternates(locale, "/pricing"),
-  };
+  });
 }
 
 export default async function PricingPage() {
