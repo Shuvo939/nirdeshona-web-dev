@@ -1,4 +1,4 @@
-import { Eye, MessageCircle, ThumbsUp } from "lucide-react";
+import { Eye, MessageCircle } from "lucide-react";
 
 import Breadcrumbs from "@/app/components/breadcrumbs";
 import { getI18n } from "@/lib/i18n/server";
@@ -21,7 +21,7 @@ function initials(name: string | null) {
  * border underneath), with an editorial, left-aligned layout: breadcrumb,
  * title, standfirst, then the byline and a compact stats/share row.
  */
-export default async function PostHero({ post, commentCount, reactionCount }: { post: Post; commentCount: number; reactionCount: number }) {
+export default async function PostHero({ post, commentCount }: { post: Post; commentCount: number }) {
   const { L, stat, date, num, digits } = await getI18n();
   const published = post.published_at || post.created_at;
   const minutes = Math.max(1, Math.round(post.content.trim().split(/\s+/).length / 220));
@@ -70,15 +70,6 @@ export default async function PostHero({ post, commentCount, reactionCount }: { 
 
           <div className="-mx-2 mt-5 flex items-center justify-between gap-2 text-sm text-neutral-500">
             <div className="flex items-center">
-              <a
-                href="#reactions"
-                className="inline-flex h-9 items-center gap-1.5 rounded-full px-2 transition hover:bg-black/[0.04] hover:text-neutral-950"
-                title={L("Reactions", "রিঅ্যাকশন")}
-              >
-                <ThumbsUp className="h-[18px] w-[18px]" aria-hidden />
-                <span className="sr-only">{L("Reactions", "রিঅ্যাকশন")}:</span>
-                {stat(reactionCount)}
-              </a>
               <span className="inline-flex h-9 items-center gap-1.5 px-2" title={L("Views", "পঠিত")}>
                 <Eye className="h-[18px] w-[18px]" aria-hidden />
                 <span className="sr-only">{L("Views", "পঠিত")}:</span>
