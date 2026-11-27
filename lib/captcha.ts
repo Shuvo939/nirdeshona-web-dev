@@ -94,7 +94,7 @@ function renderSvg(text: string) {
   }).join("");
   const dots = Array.from({ length: 14 }, () => `<circle cx="${rand(0, width)}" cy="${rand(0, 46)}" r="${rand(5, 12) / 10}" fill="#a3a3a3"/>`).join("");
   const glyphs = chars.map((c, i) => glyph(c, 8 + i * 21)).join("");
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="46" viewBox="0 0 ${width} 46"><rect width="100%" height="100%" fill="#fafafa"/>${noise}${dots}<g stroke="#171717" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" fill="none">${glyphs}</g></svg>`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="46" viewBox="0 0 ${width} 46">${noise}${dots}<g stroke="#171717" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" fill="none">${glyphs}</g></svg>`;
 }
 
 /* ---------------- challenge + verification ---------------- */

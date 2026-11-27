@@ -78,7 +78,7 @@ export default function Captcha({
       <div className="flex h-12 items-stretch overflow-hidden rounded-xl border border-neutral-200 bg-white focus-within:border-neutral-950 focus-within:ring-2 focus-within:ring-neutral-950/10">
         <div className="flex shrink-0 items-center border-r border-neutral-200 bg-neutral-50 px-2">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={challenge.image} alt={L("Security check: solve the sum shown", "নিরাপত্তা যাচাই: দেখানো যোগফলটি লিখুন")} className="h-[38px] w-auto select-none" draggable={false} />
+          <img src={challenge.image} alt={L("Security check: solve the sum shown", "নিরাপত্তা যাচাই: দেখানো যোগফলটি লিখুন")} className="h-[38px] w-auto select-none dark:invert" draggable={false} />
         </div>
         <input
           id={`${name}-answer`}

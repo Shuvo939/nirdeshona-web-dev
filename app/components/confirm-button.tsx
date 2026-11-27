@@ -4,6 +4,7 @@ import { useEffect, useState, useTransition } from "react";
 import { AlertTriangle, Loader2, LogOut } from "lucide-react";
 
 import { useI18n } from "@/lib/i18n/client";
+import Portal from "@/app/components/ui/portal";
 
 // A button that asks for confirmation in a custom dialog
 // (never window.confirm) before running a server action.
@@ -47,6 +48,7 @@ export default function ConfirmButton({
         {children}
       </button>
       {open && (
+        <Portal>
         <div
           className="fixed inset-0 z-[120] flex items-end justify-center bg-scrim/45 p-4 backdrop-blur-sm sm:items-center"
           onClick={() => !pending && setOpen(false)}
@@ -98,6 +100,7 @@ export default function ConfirmButton({
             </div>
           </div>
         </div>
+        </Portal>
       )}
     </>
   );

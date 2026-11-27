@@ -123,6 +123,17 @@ export default function GoogleSignIn({
   );
   const [retry, setRetry] = useState(0);
 
+  // Google draws a fixed-colour button, so redraw it when the site theme changes.
+  const [dark, setDark] = useState(() => typeof document !== "undefined" && document.documentElement.classList.contains("dark"));
+  useEffect(() => {
+    const html = document.documentElement;
+    const read = () => setDark(html.classList.contains("dark"));
+    read();
+    const mo = new MutationObserver(read);
+    mo.observe(html, { attributes: true, attributeFilter: ["class"] });
+    return () => mo.disconnect();
+  }, []);
+
   useEffect(() => {
     if (!clientId) return;
     if (!ALLOWED_HOSTS.includes(window.location.hostname)) {
@@ -132,7 +143,9 @@ export default function GoogleSignIn({
     let cancelled = false;
     (async () => {
       try {
-        const [gsi, nonce] = await Promise.all([loadGsi(), makeNonce()]);
+        // Slow or blocked network: don't leave a skeleton forever, use the redirect button.
+        const timeout = new Promise<never>((_, reject) => window.setTimeout(() => reject(new Error("gsi-timeout")), 8000));
+        const [gsi, nonce] = await Promise.race([Promise.all([loadGsi(), makeNonce()]), timeout]);
         if (cancelled || !box.current) return;
         nonceRef.current = nonce;
         gsi.initialize({
@@ -148,7 +161,7 @@ export default function GoogleSignIn({
         const width = Math.min(400, Math.max(220, Math.floor(box.current.getBoundingClientRect().width)));
         gsi.renderButton(box.current, {
           type: "standard",
-          theme: document.documentElement.classList.contains("dark") ? "filled_black" : "outline",
+          theme: dark ? "filled_black" : "outline",
           size: "large",
           shape: "pill",
           text: mode === "signup" ? "signup_with" : "continue_with",
@@ -164,7 +177,7 @@ export default function GoogleSignIn({
     return () => {
       cancelled = true;
     };
-  }, [clientId, mode, onCredential, locale, retry]);
+  }, [clientId, mode, onCredential, locale, retry, dark]);
 
   async function redirectFlow() {
     setState("working");
@@ -187,7 +200,7 @@ export default function GoogleSignIn({
         <button
           type="button"
           onClick={redirectFlow}
-          className="flex h-11 w-full items-center justify-center gap-3 rounded-full border border-neutral-300 bg-white text-sm font-medium text-neutral-800 transition hover:bg-neutral-50"
+          className="flex h-11 w-full items-center justify-center gap-3 rounded-full border border-neutral-300 bg-white text-sm font-medium text-neutral-800 transition hover:bg-neutral-100"
         >
           <GoogleIcon />
           {mode === "signup" ? L("Sign up with Google", "Google দিয়ে অ্যাকাউন্ট খুলুন") : L("Continue with Google", "Google দিয়ে চালিয়ে যান")}
@@ -195,7 +208,13 @@ export default function GoogleSignIn({
       ) : (
         <div className="relative flex min-h-11 justify-center">
           {/* Google draws its button here. */}
-          <div ref={box} className={state === "working" ? "pointer-events-none flex w-full justify-center opacity-30" : "flex w-full justify-center"} />
+          {/* color-scheme: light — Google's iframe is light-scheme; if its host is dark
+              the browser paints an opaque white box behind the button. */}
+          <div
+            ref={box}
+            style={{ colorScheme: "light" }}
+            className={state === "working" ? "pointer-events-none flex w-full justify-center opacity-30" : "flex w-full justify-center"}
+          />
           {state === "loading" && <div className="absolute inset-0 animate-pulse rounded-full border border-neutral-200 bg-neutral-100" aria-label={L("Loading", "লোড হচ্ছে")} />}
           {state === "working" && (
             <div className="absolute inset-0 flex items-center justify-center gap-2 text-sm font-semibold text-neutral-800">

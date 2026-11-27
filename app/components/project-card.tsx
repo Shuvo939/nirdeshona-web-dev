@@ -35,7 +35,7 @@ export default function ProjectCard({ project }: { project: ProjectCardData }) {
             className="h-full w-full object-cover object-top transition duration-700 group-hover:scale-105"
           />
         ) : (
-          <div className="flex h-full items-center justify-center bg-[radial-gradient(circle_at_30%_20%,#f5f5f5,rgb(var(--c-neutral-200)))]">
+          <div className="flex h-full items-center justify-center bg-[radial-gradient(circle_at_30%_20%,rgb(var(--c-neutral-50)),rgb(var(--c-neutral-200)))]">
             <Layers3 className="h-10 w-10 text-neutral-300" />
           </div>
         )}

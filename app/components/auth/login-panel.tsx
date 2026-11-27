@@ -1,7 +1,7 @@
 "use client";
 
-import { FormEvent, useState } from "react";
-import { Eye, EyeOff, Loader2 } from "lucide-react";
+import { FormEvent, useCallback, useEffect, useState } from "react";
+import { Eye, EyeOff, Loader2, RotateCw } from "lucide-react";
 
 import Link from "@/app/components/locale-link";
 import Captcha, { type CaptchaValue } from "@/app/components/captcha";
@@ -13,13 +13,33 @@ import { useI18n } from "@/lib/i18n/client";
  * Google + email/password sign-in. Shared by /login and the login popup so
  * both behave identically. `onSignedIn` decides what happens next.
  */
+type Challenge = { token: string; image: string };
+
+// Each try gives up after 6s; three tries before showing a retry button.
+async function fetchChallenge(): Promise<Challenge | null> {
+  for (let attempt = 0; attempt < 3; attempt++) {
+    const ctrl = new AbortController();
+    const timer = window.setTimeout(() => ctrl.abort(), 6000);
+    try {
+      const res = await fetch("/api/captcha", { cache: "no-store", signal: ctrl.signal });
+      if (res.ok) return (await res.json()) as Challenge;
+    } catch {
+      /* timed out or offline: try again */
+    } finally {
+      window.clearTimeout(timer);
+    }
+  }
+  return null;
+}
+
 export default function LoginPanel({
   initialCaptcha,
   next,
   onSignedIn,
   onNavigate,
 }: {
-  initialCaptcha: { token: string; image: string };
+  /** Server-rendered first challenge; null = fetch it here (the popup). */
+  initialCaptcha: Challenge | null;
   next: string;
   onSignedIn: () => void;
   /** Called when a link inside the panel is followed (the popup closes). */
@@ -34,7 +54,19 @@ export default function LoginPanel({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [remember, setRemember] = useState(true);
-  const [captcha, setCaptcha] = useState<CaptchaValue>({ token: initialCaptcha.token, answer: "" });
+  const [challenge, setChallenge] = useState<Challenge | null>(initialCaptcha);
+  const [challengeFailed, setChallengeFailed] = useState(false);
+  const [captcha, setCaptcha] = useState<CaptchaValue>({ token: initialCaptcha?.token ?? "", answer: "" });
+
+  const loadChallenge = useCallback(async () => {
+    setChallengeFailed(false);
+    const c = await fetchChallenge();
+    if (c) setChallenge(c);
+    else setChallengeFailed(true);
+  }, []);
+  useEffect(() => {
+    if (!initialCaptcha) void loadChallenge();
+  }, [initialCaptcha, loadChallenge]);
   const [captchaKey, setCaptchaKey] = useState(0);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -118,7 +150,24 @@ export default function LoginPanel({
           </div>
         </div>
 
-        <Captcha initial={initialCaptcha} refreshKey={captchaKey} onChange={setCaptcha} />
+        {challenge ? (
+          <Captcha initial={challenge} refreshKey={captchaKey} onChange={setCaptcha} />
+        ) : (
+          <div>
+            <p className="mb-1.5 text-xs font-medium text-neutral-600">{L("Security check", "নিরাপত্তা যাচাই")}</p>
+            {challengeFailed ? (
+              <button
+                type="button"
+                onClick={() => void loadChallenge()}
+                className="flex h-12 w-full items-center justify-center gap-2 rounded-xl border border-dashed border-neutral-300 text-sm font-medium text-neutral-700 hover:bg-neutral-50"
+              >
+                <RotateCw className="h-4 w-4" /> {L("Couldn't load — tap to retry", "লোড হয়নি — আবার চেষ্টা করুন")}
+              </button>
+            ) : (
+              <div className="h-12 animate-pulse rounded-xl border border-neutral-200 bg-neutral-100" />
+            )}
+          </div>
+        )}
 
         <label className="flex cursor-pointer select-none items-center gap-2.5 text-sm text-neutral-700">
           <input
@@ -138,7 +187,7 @@ export default function LoginPanel({
 
         <button
           type="submit"
-          disabled={loading}
+          disabled={loading || !challenge}
           className="flex h-11 w-full items-center justify-center gap-2 rounded-full bg-neutral-950 text-sm font-semibold text-white transition hover:bg-neutral-800 disabled:cursor-not-allowed disabled:opacity-60"
         >
           {loading && <Loader2 className="h-4 w-4 animate-spin" />}
