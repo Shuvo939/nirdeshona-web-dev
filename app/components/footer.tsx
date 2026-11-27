@@ -2,8 +2,8 @@
 
 import Link from "@/app/components/locale-link";
 
-import { LanguageSwitcherFull } from "@/app/components/language-switcher";
-import { ThemeSwitch } from "@/app/components/theme-toggle";
+import { LanguageMenu, LanguageSwitcherFull } from "@/app/components/language-switcher";
+import ThemeToggle, { ThemeSwitch } from "@/app/components/theme-toggle";
 import { getContent } from "@/lib/content";
 import { site } from "@/lib/site";
 import { useI18n } from "@/lib/i18n/client";
@@ -223,8 +223,15 @@ export default function Footer() {
           </div>
 
           <div className="flex flex-wrap items-center gap-5">
-            <LanguageSwitcherFull dark />
-            <ThemeSwitch dark />
+            {/* Phones: icon menus like the header; larger screens: full switches. */}
+            <div className="flex items-center gap-2 sm:hidden">
+              <LanguageMenu dark up />
+              <ThemeToggle dark up />
+            </div>
+            <div className="hidden items-center gap-3 sm:flex">
+              <LanguageSwitcherFull dark />
+              <ThemeSwitch dark />
+            </div>
             <Link
               href="/privacy"
               className="text-xs text-neutral-500 transition hover:text-white"

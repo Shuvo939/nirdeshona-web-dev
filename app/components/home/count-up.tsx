@@ -2,12 +2,10 @@
 
 import { useEffect, useRef, useState } from "react";
 
-import { useLocale } from "@/lib/i18n/client";
 
 /** Counts from 0 to `value` once the number scrolls into view. */
 export default function CountUp({ value, suffix = "", duration = 1200 }: { value: number; suffix?: string; duration?: number }) {
   const ref = useRef<HTMLSpanElement>(null);
-  const locale = useLocale();
   const [shown, setShown] = useState(value);
   const started = useRef(false);
 
@@ -37,7 +35,7 @@ export default function CountUp({ value, suffix = "", duration = 1200 }: { value
 
   return (
     <span ref={ref} className="tabular-nums">
-      {shown.toLocaleString(locale === "bn" ? "bn-BD" : "en-US")}
+      {shown.toLocaleString("en-US")}
       {suffix}
     </span>
   );

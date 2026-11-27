@@ -22,7 +22,7 @@ function initials(name: string | null) {
  * title, standfirst, then the byline and a compact stats/share row.
  */
 export default async function PostHero({ post, commentCount, reactionCount }: { post: Post; commentCount: number; reactionCount: number }) {
-  const { L, num, date } = await getI18n();
+  const { L, stat, date } = await getI18n();
   const published = post.published_at || post.created_at;
   const minutes = Math.max(1, Math.round(post.content.trim().split(/\s+/).length / 220));
   const author = post.author_name || L("Nirdeshona Web", "নির্দেশনা ওয়েব");
@@ -39,7 +39,7 @@ export default async function PostHero({ post, commentCount, reactionCount }: { 
       />
       <div aria-hidden className="pointer-events-none absolute -right-32 -top-32 h-80 w-80 rounded-full bg-neutral-200/70 blur-3xl" />
 
-      <div className="relative mx-auto grid w-full max-w-6xl grid-cols-1 gap-12 px-5 pb-8 pt-6 sm:px-8 sm:pb-10 sm:pt-10 lg:grid-cols-[minmax(0,1fr)_280px] lg:px-10 lg:pb-12 lg:pt-14">
+      <div className="relative mx-auto grid w-full max-w-6xl grid-cols-1 gap-12 px-5 pb-5 pt-6 sm:px-8 sm:pb-6 sm:pt-10 lg:grid-cols-[minmax(0,1fr)_280px] lg:px-10 lg:pb-7 lg:pt-12">
         <div className="min-w-0">
           <Breadcrumbs items={crumbs} />
 
@@ -63,7 +63,7 @@ export default async function PostHero({ post, commentCount, reactionCount }: { 
               <p className="mt-0.5 flex flex-wrap items-center gap-x-1.5 text-sm text-neutral-500">
                 <time dateTime={new Date(published).toISOString()}>{date(published, { day: "numeric", month: "short", year: "numeric" })}</time>
                 <span aria-hidden>·</span>
-                <span>{L(`${minutes} min read`, `${num(minutes)} মিনিটে পড়া`)}</span>
+                <span>{L(`${minutes} min read`, `${stat(minutes)} মিনিটে পড়া`)}</span>
               </p>
             </div>
           </div>
@@ -77,12 +77,12 @@ export default async function PostHero({ post, commentCount, reactionCount }: { 
               >
                 <ThumbsUp className="h-[18px] w-[18px]" aria-hidden />
                 <span className="sr-only">{L("Reactions", "রিঅ্যাকশন")}:</span>
-                {num(reactionCount)}
+                {stat(reactionCount)}
               </a>
               <span className="inline-flex h-9 items-center gap-1.5 px-2" title={L("Views", "পঠিত")}>
                 <Eye className="h-[18px] w-[18px]" aria-hidden />
                 <span className="sr-only">{L("Views", "পঠিত")}:</span>
-                {num(Number(post.views_count))}
+                {stat(Number(post.views_count))}
               </span>
             </div>
             <div className="flex items-center">
@@ -93,7 +93,7 @@ export default async function PostHero({ post, commentCount, reactionCount }: { 
               >
                 <MessageCircle className="h-[18px] w-[18px]" aria-hidden />
                 <span className="sr-only">{L("Comments", "মন্তব্য")}:</span>
-                {num(commentCount)}
+                {stat(commentCount)}
               </a>
               <PostShareButton title={post.title} />
             </div>

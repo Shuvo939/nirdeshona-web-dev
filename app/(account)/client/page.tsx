@@ -41,7 +41,7 @@ export default async function ClientDashboardPage({
 }: {
   searchParams: Promise<{ tickets?: string }>;
 }) {
-  const { L, locale, num } = await getI18n();
+  const { L, locale, stat } = await getI18n();
   const user = await requireUser("/client");
   const { tickets: rawFilter } = await searchParams;
   const filter = TICKET_FILTERS.some((f) => f.value === rawFilter) ? rawFilter! : "active";
@@ -144,17 +144,17 @@ export default async function ClientDashboardPage({
             <MessageSquareText className="h-4 w-4 shrink-0" />
             {L(
               `${counts.waiting} ticket${counts.waiting === 1 ? " is" : "s are"} waiting for your reply.`,
-              `${num(counts.waiting)}টি টিকেট আপনার উত্তরের অপেক্ষায় আছে।`,
+              `${stat(counts.waiting)}টি টিকেট আপনার উত্তরের অপেক্ষায় আছে।`,
             )}
           </div>
         )}
 
         {/* Stats */}
         <div className="mt-8 grid grid-cols-2 gap-3 lg:grid-cols-4">
-          <Stat label={L("Active projects", "চলমান প্রজেক্ট")} value={num(counts.active_projects)} />
-          <Stat label={L("Completed", "সম্পন্ন")} value={num(counts.completed_projects)} />
-          <Stat label={L("Open tickets", "খোলা টিকেট")} value={num(counts.open_tickets)} />
-          <Stat label={L("Unread updates", "না-পড়া আপডেট")} value={num(unread)} />
+          <Stat label={L("Active projects", "চলমান প্রজেক্ট")} value={stat(counts.active_projects)} />
+          <Stat label={L("Completed", "সম্পন্ন")} value={stat(counts.completed_projects)} />
+          <Stat label={L("Open tickets", "খোলা টিকেট")} value={stat(counts.open_tickets)} />
+          <Stat label={L("Unread updates", "না-পড়া আপডেট")} value={stat(unread)} />
         </div>
 
         <div className="mt-10 grid grid-cols-1 gap-8 xl:grid-cols-[1fr_300px]">
@@ -183,7 +183,7 @@ export default async function ClientDashboardPage({
                       <div className="mt-5">
                         <div className="mb-2 flex justify-between text-xs text-neutral-500">
                           <span>{L("Progress", "অগ্রগতি")}</span>
-                          <span className="font-medium text-neutral-900">{num(project.progress_percent)}%</span>
+                          <span className="font-medium text-neutral-900">{stat(project.progress_percent)}%</span>
                         </div>
                         <div className="h-2 overflow-hidden rounded-full bg-neutral-100">
                           <div className="h-full rounded-full bg-neutral-950 transition-all" style={{ width: `${project.progress_percent}%` }} />
@@ -203,7 +203,7 @@ export default async function ClientDashboardPage({
                         </Link>
                         {project.open_tickets > 0 && (
                           <span className="ml-auto text-neutral-500">
-                            {L(`${project.open_tickets} open ticket${project.open_tickets === 1 ? "" : "s"}`, `${num(project.open_tickets)}টি খোলা টিকেট`)}
+                            {L(`${project.open_tickets} open ticket${project.open_tickets === 1 ? "" : "s"}`, `${stat(project.open_tickets)}টি খোলা টিকেট`)}
                           </span>
                         )}
                       </div>
@@ -245,7 +245,7 @@ export default async function ClientDashboardPage({
                     >
                       <div className="min-w-0">
                         <p className="text-xs text-neutral-500">
-                          #{num(ticket.ticket_number)}
+                          #{stat(ticket.ticket_number)}
                           {ticket.project_title ? ` · ${ticket.project_title}` : ""}
                         </p>
                         <p className="mt-0.5 truncate font-medium text-neutral-950 group-hover:underline">{ticket.subject}</p>
@@ -254,7 +254,7 @@ export default async function ClientDashboardPage({
                           {" · "}
                           {L(
                             `${ticket.message_count} message${ticket.message_count === 1 ? "" : "s"} · updated ${formatDate(ticket.updated_at)}`,
-                            `${num(ticket.message_count)}টি বার্তা · আপডেট ${formatDate(ticket.updated_at, false, locale)}`,
+                            `${stat(ticket.message_count)}টি বার্তা · আপডেট ${formatDate(ticket.updated_at, false, locale)}`,
                           )}
                         </p>
                       </div>

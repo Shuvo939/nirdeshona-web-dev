@@ -165,7 +165,7 @@ function Composer({
 /* ------------------------------------------------------------------ */
 
 function ReactionSummary({ comment }: { comment: CommentNode }) {
-  const { L, num } = useI18n();
+  const { L, stat } = useI18n();
   const [open, setOpen] = useState(false);
   if (comment.reaction_count === 0) return null;
   const top = comment.top_reactions.length ? comment.top_reactions : (["like"] as ReactionType[]);
@@ -174,7 +174,7 @@ function ReactionSummary({ comment }: { comment: CommentNode }) {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        title={L(`${comment.reaction_count} reaction${comment.reaction_count === 1 ? "" : "s"}`, `${num(comment.reaction_count)}টি রিঅ্যাকশন`)}
+        title={L(`${comment.reaction_count} reaction${comment.reaction_count === 1 ? "" : "s"}`, `${stat(comment.reaction_count)}টি রিঅ্যাকশন`)}
         aria-label={L("See who reacted", "কে কে রিঅ্যাকশন দিয়েছেন দেখুন")}
         className="flex items-center rounded-full p-0.5 transition hover:bg-neutral-100"
       >
@@ -192,7 +192,7 @@ function ReactionSummary({ comment }: { comment: CommentNode }) {
 }
 
 function ReactButton({ comment, onReact }: { comment: CommentNode; onReact: (c: CommentNode, r: ReactionType | null) => void }) {
-  const { L, locale, num } = useI18n();
+  const { L, locale, stat } = useI18n();
   const [open, setOpen] = useState(false);
   const hover = useRef<number | null>(null);
   const press = useRef<number | null>(null);
@@ -266,7 +266,7 @@ function ReactButton({ comment, onReact }: { comment: CommentNode; onReact: (c: 
         className={`inline-flex h-8 select-none items-center gap-1.5 rounded-full px-2 text-[13px] font-semibold transition hover:bg-neutral-100 ${mine ? mine.color : "text-neutral-600"}`}
       >
         {mine ? <span className="text-[17px] leading-none">{mine.emoji}</span> : <ThumbsUp className="h-[18px] w-[18px]" strokeWidth={1.8} />}
-        {comment.reaction_count > 0 && <span>{num(comment.reaction_count)}</span>}
+        {comment.reaction_count > 0 && <span>{stat(comment.reaction_count)}</span>}
       </button>
     </span>
   );
@@ -299,7 +299,7 @@ function CommentItem({
   onHide: (c: CommentNode) => void;
   onReport: (c: CommentNode) => void;
 }) {
-  const { L, locale, num } = useI18n();
+  const { L, locale, stat } = useI18n();
   const ago = useShortAgo();
   const [menu, setMenu] = useState(false);
   const [editing, setEditing] = useState(false);
@@ -428,7 +428,7 @@ function CommentItem({
                 className="inline-flex h-8 items-center gap-1.5 rounded-full px-2 text-[13px] font-semibold text-neutral-600 hover:bg-neutral-100"
               >
                 <ThumbsUp className="h-[18px] w-[18px]" strokeWidth={1.8} />
-                {comment.reaction_count > 0 && <span>{num(comment.reaction_count)}</span>}
+                {comment.reaction_count > 0 && <span>{stat(comment.reaction_count)}</span>}
               </button>
             )}
             <button
@@ -438,7 +438,7 @@ function CommentItem({
               className="inline-flex h-8 items-center gap-1.5 rounded-full px-2 text-[13px] font-semibold text-neutral-600 transition hover:bg-neutral-100"
             >
               <MessageCircle className="h-[18px] w-[18px]" strokeWidth={1.8} />
-              {replyCount > 0 && <span>{num(replyCount)}</span>}
+              {replyCount > 0 && <span>{stat(replyCount)}</span>}
             </button>
             <span className="flex-1" />
             <ReactionSummary comment={comment} />
@@ -480,7 +480,7 @@ export default function CommentsSection({
   viewer: Viewer;
 }) {
   const pathname = usePathname();
-  const { L, num } = useI18n();
+  const { L, stat } = useI18n();
   const [comments, setComments] = useState(initialComments);
   const [sort, setSort] = useState<Sort>("relevant");
   const [replyTo, setReplyTo] = useState<{ rootId: string; targetId: string; mention: string | null; key: number } | null>(null);
@@ -638,7 +638,7 @@ export default function CommentsSection({
     <section id="comments" className="mt-12 scroll-mt-24">
       <div className="flex items-center justify-between gap-3">
         <h2 className="text-xl font-bold tracking-tight text-neutral-950">
-          {L("Comments", "মন্তব্য")} <span className="text-neutral-400">{num(total)}</span>
+          {L("Comments", "মন্তব্য")} <span className="text-neutral-400">{stat(total)}</span>
         </h2>
         {roots.length > 1 && (
           <label className="relative flex items-center text-sm font-semibold text-neutral-800">
@@ -708,7 +708,7 @@ export default function CommentsSection({
                         onClick={() => setExpanded((e) => ({ ...e, [root.id]: true }))}
                         className="w-fit text-left text-[13px] font-semibold text-neutral-600 hover:text-neutral-950 hover:underline"
                       >
-                        {L(`See ${thread.length} replies`, `${num(thread.length)}টি উত্তর দেখুন`)}
+                        {L(`See ${thread.length} replies`, `${stat(thread.length)}টি উত্তর দেখুন`)}
                       </button>
                     )}
                     {shown.map((reply) => (
@@ -757,7 +757,7 @@ export default function CommentsSection({
           onClick={() => setVisibleRoots((v) => v + 10)}
           className="mt-6 w-full rounded-2xl border border-neutral-200 py-3 text-sm font-semibold text-neutral-700 hover:bg-neutral-50"
         >
-          {L("View more comments", "আরও মন্তব্য দেখুন")} ({num(roots.length - visibleRoots)})
+          {L("View more comments", "আরও মন্তব্য দেখুন")} ({stat(roots.length - visibleRoots)})
         </button>
       )}
 

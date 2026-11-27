@@ -53,7 +53,7 @@ export default function ProjectExplorer({
   projects: ExplorerProject[];
   initial: { q: string; category: string; status: string; tech: string; sort: string; view: string };
 }) {
-  const { L, locale, num, lp } = useI18n();
+  const { L, locale, stat, lp } = useI18n();
   const [q, setQ] = useState(initial.q);
   const [category, setCategory] = useState(initial.category);
   const [status, setStatus] = useState<StatusKey>(STATUS_TABS.some((t) => t.key === initial.status) ? (initial.status as StatusKey) : "");
@@ -191,7 +191,7 @@ export default function ProjectExplorer({
                     status === t.key ? "bg-neutral-950 text-white" : "text-neutral-600 hover:text-neutral-950"
                   }`}
                 >
-                  {L(t.label[0], t.label[1])} <span className="opacity-60">{num(statusCounts[t.key])}</span>
+                  {L(t.label[0], t.label[1])} <span className="opacity-60">{stat(statusCounts[t.key])}</span>
                 </button>
               ))}
             </div>
@@ -205,7 +205,7 @@ export default function ProjectExplorer({
             </Pill>
             {allCategories.map((c) => (
               <Pill key={c} active={category === c} onClick={() => setCategory(category === c ? "" : c)} disabled={!categoryCounts.get(c) && category !== c}>
-                {categoryLabel(c, locale)} <span className="ml-1 text-[10px] opacity-60">{num(categoryCounts.get(c) ?? 0)}</span>
+                {categoryLabel(c, locale)} <span className="ml-1 text-[10px] opacity-60">{stat(categoryCounts.get(c) ?? 0)}</span>
               </Pill>
             ))}
           </div>
@@ -235,7 +235,7 @@ export default function ProjectExplorer({
                   tech === t ? "border-neutral-950 bg-neutral-950 text-white" : "border-neutral-200 bg-white text-neutral-600 hover:border-neutral-300"
                 }`}
               >
-                {t} <span className="opacity-60">{num(n)}</span>
+                {t} <span className="opacity-60">{stat(n)}</span>
               </button>
             ))}
           </div>
@@ -250,7 +250,7 @@ export default function ProjectExplorer({
               <span className="font-semibold text-neutral-950">{results.length}</span> of {projects.length} projects
             </>,
             <>
-              {num(projects.length)}টির মধ্যে <span className="font-semibold text-neutral-950">{num(results.length)}</span>টি প্রজেক্ট
+              {stat(projects.length)}টির মধ্যে <span className="font-semibold text-neutral-950">{stat(results.length)}</span>টি প্রজেক্ট
             </>,
           )}
           {activeFilters > 0 && (
@@ -342,7 +342,7 @@ function Pill({ active, disabled, onClick, children }: { active: boolean; disabl
 }
 
 function ListRow({ project: p }: { project: ExplorerProject }) {
-  const { L, locale, num, digits } = useI18n();
+  const { L, locale, stat, digits } = useI18n();
   return (
     <div className="group relative flex gap-4 rounded-3xl border border-neutral-200 bg-white p-3 transition hover:shadow-[0_12px_32px_rgb(var(--c-black)/0.06)] sm:p-4">
       <div className="relative aspect-[4/3] w-28 shrink-0 overflow-hidden rounded-2xl bg-neutral-100 sm:w-44">
@@ -381,7 +381,7 @@ function ListRow({ project: p }: { project: ExplorerProject }) {
               <span className="h-1.5 w-14 overflow-hidden rounded-full bg-neutral-100">
                 <span className="block h-full rounded-full bg-neutral-950" style={{ width: `${p.progress_percent}%` }} />
               </span>
-              {num(p.progress_percent)}%
+              {stat(p.progress_percent)}%
             </span>
           )}
         </div>

@@ -4,6 +4,9 @@ import { refreshPublicContent } from "@/lib/public-cache";
 import { logActivity } from "@/lib/audit";
 
 import { sql } from "@/lib/db";
+
+// Browsers send textarea text with \r\n; store plain \n.
+const lf = (v: string) => v.replace(/\r\n?/g, "\n");
 import { requireAdmin } from "@/lib/auth/require-admin";
 import { moveToTrash } from "@/lib/trash";
 import { revalidatePath } from "next/cache";
@@ -23,14 +26,14 @@ const PostSchema = z.object({
   title: z.string().trim().min(1, "Title is required."),
   slug: z.string().trim().min(1, "Slug is required."),
   excerpt: z.string().trim().optional(),
-  content: z.string().min(1, "Content is required."),
+  content: z.string().min(1, "Content is required.").transform(lf),
   category_id: z.guid().optional().or(z.literal("")),
   status: z.enum(["draft", "published", "archived"]),
   seo_title: z.string().trim().optional(),
   seo_description: z.string().trim().optional(),
   title_bn: z.string().trim().optional(),
   excerpt_bn: z.string().trim().optional(),
-  content_bn: z.string().optional(),
+  content_bn: z.string().optional().transform((v) => (v === undefined ? v : lf(v))),
   seo_title_bn: z.string().trim().optional(),
   seo_description_bn: z.string().trim().optional(),
   cover_image_url: z

@@ -92,7 +92,7 @@ export default async function PostListing({
 }) {
   const offset = (page - 1) * PAGE_SIZE;
   const pattern = q ? `%${q}%` : null;
-  const { L, locale, num } = await getI18n();
+  const { L, locale, stat } = await getI18n();
 
   const [posts, [{ total }], sidebar] = await Promise.all([
     sql`
@@ -164,7 +164,7 @@ export default async function PostListing({
           <div className="flex flex-col gap-4">
             <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:px-0 [scrollbar-width:none]">
               <Link href="/blog" className={`shrink-0 rounded-full border px-4 py-2 text-sm font-medium transition ${allActive ? "border-neutral-950 bg-neutral-950 text-white" : "border-neutral-200 bg-white text-neutral-600 hover:border-neutral-300"}`}>
-                {L("All", "সব")} <span className="ml-1 opacity-60">{num(sidebar.stats?.articles ?? 0)}</span>
+                {L("All", "সব")} <span className="ml-1 opacity-60">{stat(sidebar.stats?.articles ?? 0)}</span>
               </Link>
               {sidebar.categories.map((c) => (
                 <Link
@@ -172,7 +172,7 @@ export default async function PostListing({
                   href={`/blog/category/${c.slug}`}
                   className={`shrink-0 rounded-full border px-4 py-2 text-sm font-medium transition ${categorySlug === c.slug ? "border-neutral-950 bg-neutral-950 text-white" : "border-neutral-200 bg-white text-neutral-600 hover:border-neutral-300"}`}
                 >
-                  {c.name} <span className="ml-1 opacity-60">{num(c.total)}</span>
+                  {c.name} <span className="ml-1 opacity-60">{stat(c.total)}</span>
                 </Link>
               ))}
             </div>
@@ -180,12 +180,12 @@ export default async function PostListing({
               <p className="text-sm text-neutral-500">
                 {q ? (
                   <>
-                    {L(`${total} result${total === 1 ? "" : "s"} for`, `${num(total)}টি ফলাফল:`)} <span className="font-semibold text-neutral-950">“{q}”</span>{" "}
+                    {L(`${total} result${total === 1 ? "" : "s"} for`, `${stat(total)}টি ফলাফল:`)} <span className="font-semibold text-neutral-950">“{q}”</span>{" "}
                     <Link href={basePath} className="ml-1 underline">{L("clear", "মুছুন")}</Link>
                   </>
                 ) : (
                   <>
-                    {L(`${total} article${total === 1 ? "" : "s"}`, `${num(total)}টি লেখা`)}
+                    {L(`${total} article${total === 1 ? "" : "s"}`, `${stat(total)}টি লেখা`)}
                   </>
                 )}
               </p>
@@ -252,7 +252,7 @@ export default async function PostListing({
                       aria-current={n === page ? "page" : undefined}
                       className={`flex h-9 min-w-9 items-center justify-center rounded-full px-2 text-sm font-medium transition ${n === page ? "bg-neutral-950 text-white" : "text-neutral-600 hover:bg-neutral-100"}`}
                     >
-                      {num(n)}
+                      {stat(n)}
                     </Link>
                   ),
                 )}
@@ -294,11 +294,11 @@ export default async function PostListing({
                 {sidebar.popular.map((p, i) => (
                   <li key={p.slug}>
                     <Link href={`/blog/${p.slug}`} className="group flex gap-3 rounded-xl px-2 py-2 transition hover:bg-neutral-50">
-                      <span className="text-lg font-bold leading-none text-neutral-300 group-hover:text-neutral-950">{num(i + 1).padStart(2, L("0", "০"))}</span>
+                      <span className="text-lg font-bold leading-none text-neutral-300 group-hover:text-neutral-950">{stat(i + 1).padStart(2, L("0", "০"))}</span>
                       <span className="min-w-0">
                         <span className="line-clamp-2 text-sm font-medium leading-snug text-neutral-800">{p.title}</span>
                         <span className="mt-1 flex items-center gap-1 text-xs text-neutral-400">
-                          <Eye className="h-3 w-3" /> {L(`${p.views_count.toLocaleString("en-US")} views`, `${num(p.views_count)} বার পঠিত`)}
+                          <Eye className="h-3 w-3" /> {L(`${p.views_count.toLocaleString("en-US")} views`, `${stat(p.views_count)} বার পঠিত`)}
                         </span>
                       </span>
                     </Link>

@@ -23,7 +23,9 @@ function safeUrl(value: string) {
 }
 
 export function renderMarkdown(markdown: string) {
-  let html = escapeHtml(markdown);
+  // Content saved from a browser form uses Windows line endings (\r\n); without
+  // this every block would merge into one paragraph full of <br>s.
+  let html = escapeHtml(markdown.replace(/\r\n?/g, "\n"));
 
   // Finished HTML fragments (code, links, images) are parked behind
   // placeholders so later rules (bold/italic) can't break them — e.g. an
@@ -34,7 +36,7 @@ export function renderMarkdown(markdown: string) {
   html = html.replace(
     /```(?:([a-zA-Z0-9_-]+)\n)?([\s\S]*?)```/g,
     (_, language, code) =>
-      park(`<pre class="my-7 overflow-x-auto rounded-2xl bg-neutral-950 p-5 text-sm leading-7 text-neutral-100"><code>${
+      park(`<pre class="my-6 overflow-x-auto rounded-2xl bg-neutral-950 p-5 text-sm leading-7 text-neutral-100"><code>${
         language
           ? `<span class="mb-3 block text-[10px] font-semibold uppercase tracking-widest text-neutral-500">${language}</span>`
           : ""
@@ -49,46 +51,46 @@ export function renderMarkdown(markdown: string) {
 
   html = html.replace(
     /^### (.+)$/gm,
-    '<h3 class="mt-9 mb-3 text-xl font-bold tracking-tight text-neutral-950">$1</h3>'
+    '<h3 class="mb-2 mt-7 text-lg font-bold leading-snug tracking-tight text-neutral-950 sm:text-xl">$1</h3>'
   );
 
   html = html.replace(
     /^## (.+)$/gm,
-    '<h2 class="mt-11 mb-4 text-2xl font-bold tracking-tight text-neutral-950 sm:text-3xl">$1</h2>'
+    '<h2 class="mb-3 mt-9 text-[1.4rem] font-bold leading-snug tracking-tight text-neutral-950 sm:mt-10 sm:text-[1.65rem]">$1</h2>'
   );
 
   html = html.replace(
     /^# (.+)$/gm,
-    '<h1 class="mt-11 mb-5 text-3xl font-bold tracking-tight text-neutral-950 sm:text-4xl">$1</h1>'
+    '<h1 class="mb-4 mt-10 text-2xl font-bold leading-snug tracking-tight text-neutral-950 sm:text-3xl">$1</h1>'
   );
 
   html = html.replace(
     // The source is HTML-escaped above, so ">" arrives as "&gt;".
     /^&gt; (.+)$/gm,
-    '<blockquote class="my-7 border-l-4 border-neutral-300 pl-5 text-[15px] italic leading-8 text-neutral-600">$1</blockquote>'
+    '<blockquote class="my-6 border-l-4 border-neutral-300 pl-5 italic leading-7 text-neutral-600">$1</blockquote>'
   );
 
   html = html.replace(
     /^---$/gm,
-    '<hr class="my-10 border-neutral-200" />'
+    '<hr class="my-8 border-neutral-200" />'
   );
 
   // Task lists: "- [ ] item" / "- [x] item" become checklist rows.
   html = html.replace(/^[-*] \[( |x|X)\] (.+)$/gm, (_, mark: string, text: string) => {
     const done = mark.trim() !== "";
-    return `<li class="flex list-none items-start gap-3 leading-8 text-neutral-700"><span aria-hidden="true" class="mt-[7px] inline-flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-[5px] border ${
+    return `<li class="flex list-none items-start gap-3 leading-7 text-neutral-700"><span aria-hidden="true" class="mt-[5px] inline-flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-[5px] border ${
       done ? "border-neutral-950 bg-neutral-950 text-[11px] text-white" : "border-neutral-300 bg-white"
     }">${done ? "✓" : ""}</span><span>${text}</span></li>`;
   });
 
   html = html.replace(
     /^[-*] (.+)$/gm,
-    '<li class="ml-6 list-disc leading-8 text-neutral-700">$1</li>'
+    '<li class="ml-6 list-disc leading-7 text-neutral-700">$1</li>'
   );
 
   html = html.replace(
     /^[\d০-৯]+\. (.+)$/gm,
-    '<li class="ml-6 list-decimal leading-8 text-neutral-700">$1</li>'
+    '<li class="ml-6 list-decimal leading-7 text-neutral-700">$1</li>'
   );
 
   html = html.replace(
@@ -174,14 +176,14 @@ export function renderMarkdown(markdown: string) {
                 .join("")}</tr>`,
           )
           .join("");
-        return `<div class="my-8 overflow-x-auto rounded-2xl border border-neutral-200"><table class="w-full min-w-[480px] border-collapse text-sm"><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table></div>`;
+        return `<div class="my-6 overflow-x-auto rounded-2xl border border-neutral-200"><table class="w-full min-w-[480px] border-collapse text-sm"><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table></div>`;
       }
 
       // A block of list items becomes its own list, so numbering restarts per list.
       if (trimmed.startsWith("<li")) {
         const ordered = trimmed.startsWith('<li class="ml-6 list-decimal');
         const tag = ordered ? "ol" : "ul";
-        return `<${tag} class="mb-5">${trimmed.replace(/<\/li>\n/g, "</li>")}</${tag}>`;
+        return `<${tag} class="mb-4 space-y-1.5">${trimmed.replace(/<\/li>\n/g, "</li>")}</${tag}>`;
       }
 
       if (
@@ -196,7 +198,7 @@ export function renderMarkdown(markdown: string) {
         return trimmed;
       }
 
-      return `<p class="mb-5 leading-8 text-neutral-700">${trimmed.replace(
+      return `<p class="mb-4 leading-7 text-neutral-700 sm:leading-[1.85]">${trimmed.replace(
         /\n/g,
         "<br />"
       )}</p>`;

@@ -15,7 +15,7 @@ export type PostCardStats = {
 
 /** SQL fragment helpers live with the callers; this renders the card footer. */
 export default async function PostCardFooter({ post }: { post: PostCardStats }) {
-  const { L, num, date } = await getI18n();
+  const { L, stat, date } = await getI18n();
   const name = post.author_name || L("Nirdeshona Web", "নির্দেশনা ওয়েব");
   const initials = name
     .split(/\s+/)
@@ -39,7 +39,7 @@ export default async function PostCardFooter({ post }: { post: PostCardStats }) 
           <span className="block truncate text-xs font-semibold text-neutral-800">{name}</span>
           <span className="block truncate text-[11px] text-neutral-500">
             {post.published_at ? date(post.published_at) : ""}
-            {post.reading_minutes ? ` · ${L(`${post.reading_minutes} min read`, `${num(post.reading_minutes)} মিনিট`)}` : ""}
+            {post.reading_minutes ? ` · ${L(`${post.reading_minutes} min read`, `${stat(post.reading_minutes)} মিনিট`)}` : ""}
           </span>
         </span>
       </div>
@@ -47,16 +47,16 @@ export default async function PostCardFooter({ post }: { post: PostCardStats }) 
       <div className="flex shrink-0 items-center gap-3 text-xs text-neutral-500">
         <span
           className="inline-flex items-center gap-1"
-          title={L(`${post.reaction_count} reactions`, `${num(post.reaction_count)}টি রিঅ্যাকশন`)}
+          title={L(`${post.reaction_count} reactions`, `${stat(post.reaction_count)}টি রিঅ্যাকশন`)}
         >
           <ThumbsUp className="h-3.5 w-3.5" aria-hidden />
           <span className="sr-only">{L("Reactions", "রিঅ্যাকশন")}:</span>
-          {num(post.reaction_count)}
+          {stat(post.reaction_count)}
         </span>
-        <span className="inline-flex items-center gap-1" title={L(`${post.comment_count} comments`, `${num(post.comment_count)}টি মন্তব্য`)}>
+        <span className="inline-flex items-center gap-1" title={L(`${post.comment_count} comments`, `${stat(post.comment_count)}টি মন্তব্য`)}>
           <MessageCircle className="h-3.5 w-3.5" aria-hidden />
           <span className="sr-only">{L("Comments", "মন্তব্য")}:</span>
-          {num(post.comment_count)}
+          {stat(post.comment_count)}
         </span>
       </div>
     </div>

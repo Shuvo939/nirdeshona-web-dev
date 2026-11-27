@@ -29,7 +29,7 @@ export default async function PostSidebar({
   tags: Tag[];
   commentCount: number;
 }) {
-  const { L, num, date } = await getI18n();
+  const { L, stat, date } = await getI18n();
   const formatDate = (value: string | null) => date(value, { day: "numeric", month: "long", year: "numeric" });
   return (
     <aside className="hidden lg:block">
@@ -59,7 +59,7 @@ export default async function PostSidebar({
               </span>
 
               <span className="text-xs font-medium text-neutral-800">
-                {num(Number(post.views_count))}
+                {stat(Number(post.views_count))}
               </span>
             </div>
 
@@ -69,7 +69,7 @@ export default async function PostSidebar({
               </span>
 
               <span className="text-xs font-medium text-neutral-800">
-                {num(commentCount)}
+                {stat(commentCount)}
               </span>
             </div>
           </div>
@@ -141,7 +141,7 @@ export default async function PostSidebar({
             </p>
 
             <p className="mt-1 text-xs text-neutral-400">
-              {L(`${commentCount} comments`, `${num(commentCount)}টি মন্তব্য`)}
+              {L(`${commentCount} comments`, `${stat(commentCount)}টি মন্তব্য`)}
             </p>
           </div>
 

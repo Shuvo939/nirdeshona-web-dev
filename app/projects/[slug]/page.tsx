@@ -98,14 +98,14 @@ function makeFmt(locale: Locale) {
 
 function duration(start: string | null, end: string | null, locale: Locale) {
   if (!start) return null;
-  const { L, num } = makeI18n(locale);
+  const { L, stat } = makeI18n(locale);
   const from = new Date(start);
   const to = end ? new Date(end) : new Date();
   const days = Math.max(1, Math.round((to.getTime() - from.getTime()) / 86_400_000));
-  if (days < 14) return L(`${days} day${days > 1 ? "s" : ""}`, `${num(days)} দিন`);
-  if (days < 60) return L(`${Math.round(days / 7)} weeks`, `${num(Math.round(days / 7))} সপ্তাহ`);
+  if (days < 14) return L(`${days} day${days > 1 ? "s" : ""}`, `${stat(days)} দিন`);
+  if (days < 60) return L(`${Math.round(days / 7)} weeks`, `${stat(Math.round(days / 7))} সপ্তাহ`);
   const months = Math.round(days / 30.4);
-  return L(`${months} month${months > 1 ? "s" : ""}`, `${num(months)} মাস`);
+  return L(`${months} month${months > 1 ? "s" : ""}`, `${stat(months)} মাস`);
 }
 
 function hostOf(url: string | null) {
@@ -120,7 +120,7 @@ function hostOf(url: string | null) {
 export default async function ProjectDetailsPage({ params }: Props) {
   const { slug } = await params;
   const locale = await getLocale();
-  const { L, num } = makeI18n(locale);
+  const { L, stat } = makeI18n(locale);
   const fmt = makeFmt(locale);
   const project = await getProject(slug, locale);
   if (!project) notFound();
@@ -246,7 +246,7 @@ export default async function ProjectDetailsPage({ params }: Props) {
                 <div className="mt-6 max-w-sm">
                   <div className="flex items-center justify-between text-xs font-medium text-neutral-600">
                     <span>{L("Progress", "অগ্রগতি")}</span>
-                    <span>{num(project.progress_percent)}%</span>
+                    <span>{stat(project.progress_percent)}%</span>
                   </div>
                   <div className="mt-2 h-2 overflow-hidden rounded-full bg-neutral-200">
                     <div className="h-full rounded-full bg-gradient-to-r from-neutral-800 to-emerald-500" style={{ width: `${project.progress_percent}%` }} />
@@ -329,7 +329,7 @@ export default async function ProjectDetailsPage({ params }: Props) {
               <div className="flex items-end justify-between gap-3">
                 <h2 className="text-xs font-semibold uppercase tracking-[0.16em] text-neutral-400">{L("Gallery", "গ্যালারি")}</h2>
                 <span className="text-xs text-neutral-400">
-                  {L(`${media.length} image${media.length > 1 ? "s" : ""} · click to enlarge`, `${num(media.length)}টি ছবি · বড় করে দেখতে ক্লিক করুন`)}
+                  {L(`${media.length} image${media.length > 1 ? "s" : ""} · click to enlarge`, `${stat(media.length)}টি ছবি · বড় করে দেখতে ক্লিক করুন`)}
                 </span>
               </div>
               <div className="mt-4">
@@ -367,7 +367,7 @@ export default async function ProjectDetailsPage({ params }: Props) {
               {project.started_at && <Row label={L("Started", "শুরু")}>{fmt(project.started_at)}</Row>}
               {project.completed_at && <Row label={L("Completed", "সম্পন্ন")}>{fmt(project.completed_at)}</Row>}
               {timeTaken && <Row label={L("Duration", "সময়কাল")}>{timeTaken}</Row>}
-              {tech.length > 0 && <Row label={L("Technologies", "প্রযুক্তি")}>{num(tech.length)}</Row>}
+              {tech.length > 0 && <Row label={L("Technologies", "প্রযুক্তি")}>{stat(tech.length)}</Row>}
               <Row label={L("Last updated", "সর্বশেষ আপডেট")}>{fmt(project.updated_at)}</Row>
             </dl>
             {(liveUrl || repoUrl) && (

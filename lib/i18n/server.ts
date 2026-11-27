@@ -30,12 +30,15 @@ export async function getI18n() {
 export function makeI18n(locale: Locale) {
   const bn = locale === "bn";
   const numberFmt = new Intl.NumberFormat(bn ? "bn-BD" : "en-US");
+    const statFmt = new Intl.NumberFormat("en-US");
   return {
     locale,
     bn,
     L: <T,>(en: T, bnValue: T): T => (bn ? bnValue : en),
     lp: (href: string) => localizePath(locale, href),
     num: (n: number) => numberFmt.format(n),
+    /** Counts and statistics (views, reactions, totals): always English digits. */
+    stat: (n: number) => statFmt.format(n),
     /** Digits only, no thousands separator — for years and IDs. */
     digits: (n: number | string) => (bn ? String(n).replace(/[0-9]/g, (d) => "০১২৩৪৫৬৭৮৯"[Number(d)]) : String(n)),
     date: (value: string | Date | null | undefined, options: Intl.DateTimeFormatOptions = { day: "numeric", month: "short", year: "numeric" }) =>

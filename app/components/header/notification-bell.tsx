@@ -13,7 +13,7 @@ const POLL_MS = 60_000;
 
 export default function NotificationBell({ initialUnread }: { initialUnread: number }) {
   const router = useRouter();
-  const { L, lp, num } = useI18n();
+  const { L, lp, stat } = useI18n();
   const [open, setOpen] = useState(false);
   const [unread, setUnread] = useState(initialUnread);
   const [items, setItems] = useState<NotificationRow[] | null>(null);
@@ -85,7 +85,7 @@ export default function NotificationBell({ initialUnread }: { initialUnread: num
     <div ref={ref} className="relative">
       <button
         type="button"
-        aria-label={unread ? L(`Notifications (${unread} unread)`, `নোটিফিকেশন (${num(unread)}টি অপঠিত)`) : L("Notifications", "নোটিফিকেশন")}
+        aria-label={unread ? L(`Notifications (${unread} unread)`, `নোটিফিকেশন (${stat(unread)}টি অপঠিত)`) : L("Notifications", "নোটিফিকেশন")}
         aria-expanded={open}
         onClick={() => {
           setOpen((v) => !v);
@@ -96,7 +96,7 @@ export default function NotificationBell({ initialUnread }: { initialUnread: num
         <Bell className="h-[18px] w-[18px]" />
         {unread > 0 && (
           <span className="absolute right-1 top-1 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold leading-none text-white ring-2 ring-white">
-            {unread > 9 ? `${num(9)}+` : num(unread)}
+            {unread > 9 ? `${stat(9)}+` : stat(unread)}
           </span>
         )}
       </button>
@@ -115,7 +115,7 @@ export default function NotificationBell({ initialUnread }: { initialUnread: num
             {(
               [
                 ["all", L("All", "সব")],
-                ["unread", unread ? L(`Unread (${unread})`, `অপঠিত (${num(unread)})`) : L("Unread", "অপঠিত")],
+                ["unread", unread ? L(`Unread (${unread})`, `অপঠিত (${stat(unread)})`) : L("Unread", "অপঠিত")],
               ] as const
             ).map(([id, label]) => (
               <button
