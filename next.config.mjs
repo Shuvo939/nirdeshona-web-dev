@@ -8,7 +8,8 @@ const securityHeaders = [
   { key: "X-Frame-Options", value: "DENY" },
   { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=(), payment=(), usb=()" },
   { key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains" },
-  { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
+  // Google's sign-in popup needs to talk back to this window.
+  { key: "Cross-Origin-Opener-Policy", value: "same-origin-allow-popups" },
   { key: "X-Permitted-Cross-Domain-Policies", value: "none" },
   {
     key: "Content-Security-Policy",

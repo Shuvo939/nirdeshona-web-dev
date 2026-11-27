@@ -1,10 +1,12 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import Link from "@/app/components/locale-link";
 import { useRouter } from "next/navigation";
 import Captcha, { type CaptchaValue } from "@/app/components/captcha";
-import { createClient } from "@/lib/supabase/client";
+import GoogleSignIn from "@/app/components/auth/google-sign-in";
+import { useAuthConfig } from "@/app/components/auth/auth-context";
+import { safeNextPath } from "@/lib/safe-url";
 import { useI18n } from "@/lib/i18n/client";
 import {
   Check,
@@ -14,9 +16,11 @@ import {
 } from "lucide-react";
 
 export default function RegisterForm({ initialCaptcha }: { initialCaptcha: { token: string; image: string } }) {
-  const { L, tm } = useI18n();
+  const { L, tm, lp } = useI18n();
+  const { googleClientId } = useAuthConfig();
+  const [next, setNext] = useState("/account");
+  useEffect(() => setNext(safeNextPath(new URLSearchParams(window.location.search).get("next"), "/account")), []);
   const router = useRouter();
-  const supabase = createClient();
 
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
@@ -28,7 +32,6 @@ export default function RegisterForm({ initialCaptcha }: { initialCaptcha: { tok
     useState(false);
 
   const [loading, setLoading] = useState(false);
-  const [googleLoading, setGoogleLoading] = useState(false);
 
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
@@ -103,7 +106,7 @@ export default function RegisterForm({ initialCaptcha }: { initialCaptcha: { tok
     /*
      * Email confirmation disabled.
      */
-    router.push("/account");
+    router.push(lp(next));
     router.refresh();
   }
 
@@ -113,22 +116,7 @@ export default function RegisterForm({ initialCaptcha }: { initialCaptcha: { tok
    * =========================================================
    */
 
-  async function handleGoogleSignup() {
-    setError(null);
-    setGoogleLoading(true);
 
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
-      },
-    });
-
-    if (error) {
-      setError(getAuthErrorMessage(error.message, L));
-      setGoogleLoading(false);
-    }
-  }
 
   /*
    * =========================================================
@@ -237,22 +225,12 @@ export default function RegisterForm({ initialCaptcha }: { initialCaptcha: { tok
               GOOGLE
           ================================================== */}
 
-          <button
-            type="button"
-            onClick={handleGoogleSignup}
-            disabled={loading || googleLoading}
-            className="flex h-11 w-full items-center justify-center gap-3 rounded-xl border border-neutral-300 bg-white px-4 text-sm font-medium text-neutral-800 transition hover:bg-neutral-50 disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            {googleLoading ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <GoogleIcon />
-            )}
-
-            {googleLoading
-              ? L("Connecting...", "সংযোগ হচ্ছে...")
-              : L("Continue with Google", "Google দিয়ে চালিয়ে যান")}
-          </button>
+          <GoogleSignIn
+            clientId={googleClientId}
+            mode="signup"
+            next={next}
+            onSignedIn={() => window.location.replace(lp(next))}
+          />
 
           {/* =================================================
               DIVIDER
@@ -262,7 +240,7 @@ export default function RegisterForm({ initialCaptcha }: { initialCaptcha: { tok
             <div className="h-px flex-1 bg-neutral-200" />
 
             <span className="text-xs text-neutral-400">
-              {L("OR", "অথবা")}
+              {L("or with email", "অথবা ইমেইল দিয়ে")}
             </span>
 
             <div className="h-px flex-1 bg-neutral-200" />
@@ -285,7 +263,7 @@ export default function RegisterForm({ initialCaptcha }: { initialCaptcha: { tok
               value={fullName}
               onChange={setFullName}
               autoComplete="name"
-              disabled={loading || googleLoading}
+              disabled={loading}
             />
 
             {/* Email */}
@@ -297,7 +275,7 @@ export default function RegisterForm({ initialCaptcha }: { initialCaptcha: { tok
               value={email}
               onChange={setEmail}
               autoComplete="email"
-              disabled={loading || googleLoading}
+              disabled={loading}
             />
 
             {/* Password */}
@@ -310,7 +288,7 @@ export default function RegisterForm({ initialCaptcha }: { initialCaptcha: { tok
               showPassword={showPassword}
               setShowPassword={setShowPassword}
               autoComplete="new-password"
-              disabled={loading || googleLoading}
+              disabled={loading}
             />
 
             {/* Confirm password */}
@@ -323,7 +301,7 @@ export default function RegisterForm({ initialCaptcha }: { initialCaptcha: { tok
               showPassword={showConfirmPassword}
               setShowPassword={setShowConfirmPassword}
               autoComplete="new-password"
-              disabled={loading || googleLoading}
+              disabled={loading}
             />
 
             <p className="text-xs text-neutral-400">
@@ -342,7 +320,7 @@ export default function RegisterForm({ initialCaptcha }: { initialCaptcha: { tok
 
             <button
               type="submit"
-              disabled={loading || googleLoading}
+              disabled={loading}
               className="flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-neutral-950 text-sm font-medium text-white transition hover:bg-neutral-800 disabled:cursor-not-allowed disabled:opacity-60"
             >
               {loading && (
@@ -512,64 +490,4 @@ function ErrorMessage({
       {message}
     </div>
   );
-}
-
-/*
- * =========================================================
- * GOOGLE ICON
- * =========================================================
- */
-
-function GoogleIcon() {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      aria-hidden="true"
-      className="h-4 w-4"
-    >
-      <path
-        fill="#4285F4"
-        d="M21.35 12.27c0-.78-.07-1.53-.2-2.27H12v4.3h5.24a4.48 4.48 0 0 1-1.94 2.94v2.45h3.14c1.84-1.7 2.91-4.2 2.91-7.42Z"
-      />
-
-      <path
-        fill="#34A853"
-        d="M12 21.6c2.63 0 4.84-.87 6.45-2.36l-3.14-2.45c-.87.58-1.98.92-3.31.92-2.54 0-4.7-1.72-5.47-4.03H3.29v2.53A9.75 9.75 0 0 0 12 21.6Z"
-      />
-
-      <path
-        fill="#FBBC05"
-        d="M6.53 13.68A5.86 5.86 0 0 1 6.22 12c0-.58.11-1.14.31-1.68V7.79H3.29A9.76 9.76 0 0 0 2.25 12c0 1.57.38 3.05 1.04 4.21l3.24-2.53Z"
-      />
-
-      <path
-        fill="#EA4335"
-        d="M12 6.29c1.43 0 2.72.49 3.73 1.45l2.8-2.8C16.84 3.39 14.63 2.4 12 2.4a9.75 9.75 0 0 0-8.71 5.39l3.24 2.53C7.3 8.01 9.46 6.29 12 6.29Z"
-      />
-    </svg>
-  );
-}
-
-/*
- * =========================================================
- * SUPABASE AUTH ERROR MESSAGES
- * =========================================================
- */
-
-function getAuthErrorMessage(message: string, L: <T>(en: T, bn: T) => T) {
-  const normalized = message.toLowerCase();
-
-  if (normalized.includes("user already registered")) {
-    return L("An account with this email already exists. Try logging in instead.", "এই ইমেইলে আগেই একটি অ্যাকাউন্ট আছে। লগ ইন করে দেখুন।");
-  }
-
-  if (normalized.includes("password")) {
-    return message;
-  }
-
-  if (normalized.includes("email")) {
-    return message;
-  }
-
-  return message;
 }

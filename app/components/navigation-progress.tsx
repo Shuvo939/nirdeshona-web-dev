@@ -14,7 +14,7 @@ function isNavigatingLink(anchor: HTMLAnchorElement, event: MouseEvent) {
   if (event.defaultPrevented || event.button !== 0) return false;
   if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return false;
   if (anchor.target && anchor.target !== "_self") return false;
-  if (anchor.hasAttribute("download")) return false;
+  if (anchor.hasAttribute("download") || anchor.hasAttribute("data-no-progress")) return false;
   const href = anchor.getAttribute("href");
   if (!href || href.startsWith("#") || href.startsWith("mailto:") || href.startsWith("tel:")) return false;
   const url = new URL(anchor.href, window.location.href);

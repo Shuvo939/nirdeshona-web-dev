@@ -6,6 +6,7 @@ import { ThemeSwitch } from "@/app/components/theme-toggle";
 import { getContent } from "@/lib/content";
 import { useI18n } from "@/lib/i18n/client";
 import Link from "@/app/components/locale-link";
+import LoginLink from "@/app/components/auth/login-link";
 import { useEffect, useState } from "react";
 import {
   ArrowUpRight,
@@ -398,8 +399,7 @@ export default function MobileNav({
                     </div>
 
                     <div className="mt-4 grid grid-cols-2 gap-2">
-                      <Link
-                        href="/login"
+                      <LoginLink
                         onClick={close}
                         className="
                           rounded-xl
@@ -411,7 +411,7 @@ export default function MobileNav({
                         "
                       >
                         {L("Log in", "লগইন")}
-                      </Link>
+                      </LoginLink>
 
                       <Link
                         href="/register"

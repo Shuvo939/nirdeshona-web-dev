@@ -14,6 +14,7 @@ import { socialMeta } from "@/lib/seo";
 import { THEME_COOKIE, themeInitScript } from "@/lib/theme";
 import { cookies } from "next/headers";
 import { LocaleProvider } from "@/lib/i18n/client";
+import { AuthDialogProvider } from "@/app/components/auth/login-dialog";
 import { getI18n } from "@/lib/i18n/server";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -115,6 +116,7 @@ export default async function RootLayout({
       </head>
       <body className={`min-h-screen bg-white text-neutral-950 antialiased ${locale === "bn" ? "font-bangla" : ""}`}>
         <LocaleProvider locale={locale}>
+        <AuthDialogProvider googleClientId={process.env.GOOGLE_CLIENT_ID?.trim() || null}>
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: jsonLd(organizationJsonLd) }}
@@ -133,6 +135,7 @@ export default async function RootLayout({
           <Footer />
 
         </div>
+        </AuthDialogProvider>
         </LocaleProvider>
       </body>
     </html>
