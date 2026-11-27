@@ -5,6 +5,7 @@ import Link from "@/app/components/locale-link";
 import { useI18n } from "@/lib/i18n/client";
 import { BUDGET_RANGES } from "@/lib/pricing";
 import { services as siteServices } from "@/lib/site";
+import { servicesBn } from "@/lib/site-bn";
 import { useSmoothProgress } from "@/lib/use-smooth-progress";
 import { compressImage, isCompressibleImage } from "@/lib/image-compress";
 import {
@@ -46,17 +47,10 @@ const ALLOWED_FILE_TYPES = [
 
 // Values stay in English (they're stored and emailed); labels are localized.
 // Services and prices come from lib/site so they always match the pricing page.
-const SERVICE_BN: Record<string, string> = {
-  "Web Development": "ওয়েব ডেভেলপমেন্ট",
-  "WordPress Solutions": "ওয়ার্ডপ্রেস সমাধান",
-  "UI / UX Design": "ইউআই / ইউএক্স ডিজাইন",
-  "Custom Development": "কাস্টম ডেভেলপমেন্ট",
-  "E-commerce": "ই-কমার্স",
-  "Care & Maintenance": "কেয়ার ও রক্ষণাবেক্ষণ",
-};
+
 
 const services: { value: string; bn: string; from?: string; timeline?: string }[] = [
-  ...siteServices.map((s) => ({ value: s.title, bn: SERVICE_BN[s.title] ?? s.title, from: s.startingFrom, timeline: s.timeline })),
+  ...siteServices.map((s) => ({ value: s.title, bn: servicesBn[s.slug]?.title ?? s.title, from: s.startingFrom, timeline: s.timeline })),
   { value: "Website Redesign", bn: "ওয়েবসাইট রিডিজাইন" },
   { value: "Not sure yet", bn: "এখনো নিশ্চিত নই" },
 ];

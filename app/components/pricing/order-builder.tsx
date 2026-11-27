@@ -8,11 +8,11 @@ import Link from "@/app/components/locale-link";
 import Captcha, { type CaptchaValue } from "@/app/components/captcha";
 import { submitQuoteRequest } from "@/app/pricing/actions";
 import { useI18n } from "@/lib/i18n/client";
-import { MAX_PAGES, PLANS, computeQuote, normaliseSelection, type PlanId, type QuoteSelection } from "@/lib/pricing";
+import { MAX_PAGES, PLANS, computeQuote, isStandalonePlan, normaliseSelection, type PlanId, type QuoteSelection } from "@/lib/pricing";
 
 export type BuilderPlan = { id: PlanId; name: string; description: string; price: string; period?: string; highlights: string[] };
 export type BuilderService = { slug: string; title: string; short: string; from: number; timeline: string };
-export type BuilderAddOn = { id: string; name: string; description: string; price: number; unit?: string };
+export type BuilderAddOn = { id: string; name: string; description: string; price: number; unit?: string; group?: "social"; monthly?: boolean };
 export type BuilderCare = { name: string; price: number; features: string[] };
 export type BuilderUser = { name: string; email: string; phone: string; organisation: string } | null;
 
@@ -97,12 +97,20 @@ export default function OrderBuilder({
   const planInfo = plans.find((p) => p.id === selection.plan);
   const quote = useMemo(() => computeQuote(selection), [selection]);
   const careOnly = selection.plan === "care";
+  const socialOnly = selection.plan === "social";
+  const standalone = isStandalonePlan(selection.plan);
   const service = services.find((s) => s.slug === selection.service);
+  const isApp = selection.service === "android-app";
+  const websiteAddOns = addOns.filter((a) => a.id !== "page" && a.group !== "social");
+  const socialAddOns = addOns.filter((a) => a.group === "social");
   const addOnName = (id: string) => addOns.find((a) => a.id === id)?.name ?? id;
 
   function lineLabel(key: string, qty?: number) {
     if (key === "base") return `${planInfo?.name ?? ""}${service ? ` · ${service.title}` : ""}`;
-    if (key === "page") return L(`${qty} extra page${qty === 1 ? "" : "s"}`, `${num(qty ?? 0)}টি অতিরিক্ত পেজ`);
+    if (key === "page")
+      return isApp
+        ? L(`${qty} extra screen${qty === 1 ? "" : "s"}`, `${num(qty ?? 0)}টি অতিরিক্ত স্ক্রিন`)
+        : L(`${qty} extra page${qty === 1 ? "" : "s"}`, `${num(qty ?? 0)}টি অতিরিক্ত পেজ`);
     if (key === "copy") return L(`${addOnName(key)} (${qty} pages)`, `${addOnName(key)} (${num(qty ?? 0)} পেজ)`);
     return addOnName(key);
   }
@@ -117,8 +125,9 @@ export default function OrderBuilder({
       normaliseSelection({
         ...s,
         plan: id,
-        pages: id === "care" ? 0 : Math.max(s.pages || 1, Math.min(p.includedPages, 8)),
+        pages: isStandalonePlan(id) ? 0 : Math.max(s.pages || 1, Math.min(p.includedPages, 8)),
         care: id === "care" && s.care < 0 ? 0 : s.care,
+        addOns: id === "social" && !s.addOns.some((a) => addOns.find((x) => x.id === a)?.group === "social") ? ["fb-page"] : s.addOns,
       }),
     );
   }
@@ -126,6 +135,37 @@ export default function OrderBuilder({
   function toggleAddOn(id: string) {
     setSelection((s) =>
       normaliseSelection({ ...s, addOns: s.addOns.includes(id) ? s.addOns.filter((x) => x !== id) : [...s.addOns, id] }),
+    );
+  }
+
+  function renderAddOn(a: BuilderAddOn) {
+    const included = plan.includedAddOns.includes(a.id);
+    const on = included || selection.addOns.includes(a.id);
+    return (
+      <label
+        key={a.id}
+        className={`flex gap-3 rounded-2xl border p-3.5 transition ${
+          included ? "cursor-default border-emerald-200 bg-emerald-50/50" : on ? "cursor-pointer border-neutral-950 bg-neutral-50" : "cursor-pointer border-neutral-200 hover:border-neutral-300"
+        }`}
+      >
+        <input type="checkbox" className="sr-only" checked={on} disabled={included} onChange={() => toggleAddOn(a.id)} />
+        <span
+          className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-md border ${
+            included ? "border-emerald-600 bg-emerald-600 text-white" : on ? "border-neutral-950 bg-neutral-950 text-white" : "border-neutral-300"
+          }`}
+        >
+          {on && <Check className="h-3.5 w-3.5" />}
+        </span>
+        <span className="min-w-0">
+          <span className="flex flex-wrap items-baseline justify-between gap-x-2">
+            <span className="text-sm font-medium text-neutral-950">{a.name}</span>
+            <span className={`text-xs ${included ? "font-semibold text-emerald-700" : "text-neutral-500"}`}>
+              {included ? L("Included", "অন্তর্ভুক্ত") : `+${taka(a.price)}${a.unit ? ` ${a.unit}` : ""}`}
+            </span>
+          </span>
+          <span className="mt-0.5 block text-xs leading-5 text-neutral-500">{a.description}</span>
+        </span>
+      </label>
     );
   }
 
@@ -237,8 +277,8 @@ export default function OrderBuilder({
           <h3 className="mt-5 text-2xl font-bold text-neutral-950">{L("Request confirmed", "অনুরোধ নিশ্চিত হয়েছে")}</h3>
           <p className="mt-3 text-sm leading-7 text-neutral-600">
             {L(
-              "Thank you! We'll review your selection and reply within one business day with a written scope and a fixed quote. Nothing is charged until you approve it.",
-              "ধন্যবাদ! আপনার বাছাই দেখে এক কর্মদিবসের মধ্যে লিখিত পরিসর ও নির্দিষ্ট কোটেশনসহ উত্তর দেব। আপনি অনুমোদন না দেওয়া পর্যন্ত কোনো টাকা নেওয়া হবে না।",
+              "Thank you! We'll review your selection and reply within 24 hours with a written scope and a fixed quote. Nothing is charged until you approve it.",
+              "ধন্যবাদ! আপনার বাছাই দেখে ২৪ ঘণ্টার মধ্যে লিখিত পরিসর ও নির্দিষ্ট কোটেশনসহ উত্তর দেব। আপনি অনুমোদন না দেওয়া পর্যন্ত কোনো টাকা নেওয়া হবে না।",
             )}
           </p>
           <p className="mt-5 inline-flex items-center gap-2 rounded-full bg-neutral-100 px-4 py-2 text-sm">
@@ -296,7 +336,20 @@ export default function OrderBuilder({
                   </div>
                 </fieldset>
 
-                {!careOnly && (
+                {socialOnly && (
+                  <fieldset>
+                    <legend className="text-sm font-semibold text-neutral-950">{L("2. Choose services", "২. সেবা বেছে নিন")}</legend>
+                    <p className="mt-1 text-xs leading-5 text-neutral-500">
+                      {L(
+                        "Pick one or more. Ad spend is paid to Meta from your own account and is not part of our fee.",
+                        "এক বা একাধিক বেছে নিন। বিজ্ঞাপনের খরচ আপনার নিজের অ্যাকাউন্ট থেকে মেটাকে দিতে হয়, তা আমাদের ফি-র অংশ নয়।",
+                      )}
+                    </p>
+                    <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">{socialAddOns.map(renderAddOn)}</div>
+                  </fieldset>
+                )}
+
+                {!standalone && (
                   <>
                     <fieldset>
                       <legend className="text-sm font-semibold text-neutral-950">{L("2. What are we building?", "২. কী বানাতে চান?")}</legend>
@@ -334,7 +387,9 @@ export default function OrderBuilder({
                     </fieldset>
 
                     <div>
-                      <p className="text-sm font-semibold text-neutral-950">{L("3. How many pages?", "৩. কয়টি পেজ?")}</p>
+                      <p className="text-sm font-semibold text-neutral-950">
+                        {isApp ? L("3. How many screens?", "৩. কয়টি স্ক্রিন?") : L("3. How many pages?", "৩. কয়টি পেজ?")}
+                      </p>
                       <div className="mt-3 flex items-center gap-4">
                         <button
                           type="button"
@@ -364,56 +419,36 @@ export default function OrderBuilder({
                         <span className="w-10 shrink-0 text-right text-lg font-bold text-neutral-950">{num(selection.pages)}</span>
                       </div>
                       <p className="mt-2 text-xs text-neutral-500">
-                        {L(
-                          `${plan.includedPages} pages included in ${planInfo?.name} · extra pages ${taka(addOns.find((a) => a.id === "page")?.price ?? 0)} each`,
-                          `${planInfo?.name}-এ ${num(plan.includedPages)}টি পেজ অন্তর্ভুক্ত · অতিরিক্ত প্রতি পেজ ${taka(addOns.find((a) => a.id === "page")?.price ?? 0)}`,
-                        )}
+                        {isApp
+                          ? L(
+                              `${plan.includedPages} screens included in ${planInfo?.name} · extra screens ${taka(addOns.find((a) => a.id === "page")?.price ?? 0)} each`,
+                              `${planInfo?.name}-এ ${num(plan.includedPages)}টি স্ক্রিন অন্তর্ভুক্ত · অতিরিক্ত প্রতি স্ক্রিন ${taka(addOns.find((a) => a.id === "page")?.price ?? 0)}`,
+                            )
+                          : L(
+                              `${plan.includedPages} pages included in ${planInfo?.name} · extra pages ${taka(addOns.find((a) => a.id === "page")?.price ?? 0)} each`,
+                              `${planInfo?.name}-এ ${num(plan.includedPages)}টি পেজ অন্তর্ভুক্ত · অতিরিক্ত প্রতি পেজ ${taka(addOns.find((a) => a.id === "page")?.price ?? 0)}`,
+                            )}
                       </p>
                     </div>
 
                     <fieldset>
                       <legend className="text-sm font-semibold text-neutral-950">{L("4. Add-ons", "৪. অ্যাড-অন")}</legend>
-                      <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
-                        {addOns
-                          .filter((a) => a.id !== "page")
-                          .map((a) => {
-                            const included = plan.includedAddOns.includes(a.id);
-                            const on = included || selection.addOns.includes(a.id);
-                            return (
-                              <label
-                                key={a.id}
-                                className={`flex gap-3 rounded-2xl border p-3.5 transition ${
-                                  included ? "cursor-default border-emerald-200 bg-emerald-50/50" : on ? "cursor-pointer border-neutral-950 bg-neutral-50" : "cursor-pointer border-neutral-200 hover:border-neutral-300"
-                                }`}
-                              >
-                                <input type="checkbox" className="sr-only" checked={on} disabled={included} onChange={() => toggleAddOn(a.id)} />
-                                <span
-                                  className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-md border ${
-                                    included ? "border-emerald-600 bg-emerald-600 text-white" : on ? "border-neutral-950 bg-neutral-950 text-white" : "border-neutral-300"
-                                  }`}
-                                >
-                                  {on && <Check className="h-3.5 w-3.5" />}
-                                </span>
-                                <span className="min-w-0">
-                                  <span className="flex flex-wrap items-baseline justify-between gap-x-2">
-                                    <span className="text-sm font-medium text-neutral-950">{a.name}</span>
-                                    <span className={`text-xs ${included ? "font-semibold text-emerald-700" : "text-neutral-500"}`}>
-                                      {included ? L("Included", "অন্তর্ভুক্ত") : `+${taka(a.price)}${a.unit ? ` ${a.unit}` : ""}`}
-                                    </span>
-                                  </span>
-                                  <span className="mt-0.5 block text-xs leading-5 text-neutral-500">{a.description}</span>
-                                </span>
-                              </label>
-                            );
-                          })}
-                      </div>
+                      <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">{websiteAddOns.map(renderAddOn)}</div>
+                    </fieldset>
+
+                    <fieldset>
+                      <legend className="text-sm font-semibold text-neutral-950">
+                        {L("5. Facebook & social media (optional)", "৫. ফেসবুক ও সোশ্যাল মিডিয়া (ঐচ্ছিক)")}
+                      </legend>
+                      <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">{socialAddOns.map(renderAddOn)}</div>
                     </fieldset>
                   </>
                 )}
 
+                {!socialOnly && (
                 <fieldset>
                   <legend className="text-sm font-semibold text-neutral-950">
-                    {careOnly ? L("2. Choose a care plan", "২. কেয়ার প্ল্যান বেছে নিন") : L("5. Care after launch (optional)", "৫. লঞ্চের পর দেখভাল (ঐচ্ছিক)")}
+                    {careOnly ? L("2. Choose a care plan", "২. কেয়ার প্ল্যান বেছে নিন") : L("6. Care after launch (optional)", "৬. লঞ্চের পর দেখভাল (ঐচ্ছিক)")}
                   </legend>
                   <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-3">
                     {[...(careOnly ? [] : [{ name: L("No care plan", "কেয়ার প্ল্যান ছাড়া"), price: 0, features: [] as string[] }]), ...carePlans].map((c, i) => {
@@ -439,12 +474,13 @@ export default function OrderBuilder({
                     })}
                   </div>
                 </fieldset>
+                )}
 
                 <div className="flex justify-end border-t border-neutral-100 pt-6">
                   <button
                     type="button"
                     onClick={() => go("details")}
-                    disabled={!careOnly && !selection.service}
+                    disabled={socialOnly ? selection.addOns.length === 0 : !careOnly && !selection.service}
                     className="inline-flex h-12 items-center gap-2 rounded-full bg-neutral-950 px-6 text-sm font-semibold text-white transition hover:bg-neutral-800 disabled:opacity-40"
                   >
                     {L("Continue", "এগিয়ে যান")} <ArrowRight className="h-4 w-4" />
@@ -533,15 +569,17 @@ export default function OrderBuilder({
                 </div>
                 <dl className="grid grid-cols-1 gap-x-6 gap-y-4 rounded-2xl bg-neutral-50 p-5 text-sm sm:grid-cols-2">
                   <Review label={L("Plan", "প্ল্যান")} value={planInfo?.name} onEdit={() => go("configure")} editLabel={L("Edit", "বদলান")} />
-                  {!careOnly && <Review label={L("Project type", "প্রজেক্টের ধরন")} value={service?.title} />}
-                  {!careOnly && <Review label={L("Pages", "পেজ")} value={num(selection.pages)} />}
+                  {!standalone && <Review label={L("Project type", "প্রজেক্টের ধরন")} value={service?.title} />}
+                  {!standalone && <Review label={isApp ? L("Screens", "স্ক্রিন") : L("Pages", "পেজ")} value={num(selection.pages)} />}
                   {!careOnly && (
                     <Review
-                      label={L("Add-ons", "অ্যাড-অন")}
+                      label={socialOnly ? L("Services", "সেবা") : L("Add-ons", "অ্যাড-অন")}
                       value={[...plan.includedAddOns, ...selection.addOns.filter((a) => !plan.includedAddOns.includes(a))].map(addOnName).join(", ") || L("None", "নেই")}
                     />
                   )}
-                  <Review label={L("Care plan", "কেয়ার প্ল্যান")} value={selection.care >= 0 ? carePlans[selection.care]?.name : L("None", "নেই")} />
+                  {!socialOnly && (
+                    <Review label={L("Care plan", "কেয়ার প্ল্যান")} value={selection.care >= 0 ? carePlans[selection.care]?.name : L("None", "নেই")} />
+                  )}
                   <Review label={L("Name", "নাম")} value={details.name} onEdit={() => go("details")} editLabel={L("Edit", "বদলান")} />
                   <Review label={L("Email", "ইমেইল")} value={details.email} />
                   {details.phone && <Review label={L("Phone", "ফোন")} value={details.phone} />}
@@ -607,26 +645,52 @@ export default function OrderBuilder({
                 </p>
               ) : (
                 <>
-                  <p className="mt-4 text-3xl font-bold sm:text-4xl" aria-live="polite">
-                    {quote.quoteOnly && <span className="mr-1 text-base font-medium text-neutral-400">{L("from", "শুরু")}</span>}
-                    {taka(quote.low)} <span className="text-neutral-500">–</span> {taka(quote.high)}
-                  </p>
-                  <p className="mt-1 text-xs text-neutral-400">
-                    {L("One-time project fee", "এককালীন প্রজেক্ট ফি")}
-                    {service ? ` · ${service.timeline}` : ""}
-                  </p>
-                  {quote.monthly > 0 && (
-                    <p className="mt-3 inline-flex rounded-full bg-white/10 px-3 py-1 text-xs">
-                      {L(`+ ${taka(quote.monthly)}/month care plan`, `+ মাসে ${taka(quote.monthly)} কেয়ার প্ল্যান`)}
+                  {socialOnly && quote.low === 0 ? (
+                    <p className="mt-4 text-3xl font-bold sm:text-4xl" aria-live="polite">
+                      {taka(quote.monthly)}
+                      <span className="text-base font-medium text-neutral-400">{L("/month", "/মাস")}</span>
                     </p>
+                  ) : (
+                    <>
+                      <p className="mt-4 text-3xl font-bold sm:text-4xl" aria-live="polite">
+                        {quote.quoteOnly && <span className="mr-1 text-base font-medium text-neutral-400">{L("from", "শুরু")}</span>}
+                        {taka(quote.low)}
+                        {quote.high > quote.low && (
+                          <>
+                            {" "}
+                            <span className="text-neutral-500">–</span> {taka(quote.high)}
+                          </>
+                        )}
+                      </p>
+                      <p className="mt-1 text-xs text-neutral-400">
+                        {socialOnly ? L("One-time setup fee", "এককালীন সেটআপ ফি") : L("One-time project fee", "এককালীন প্রজেক্ট ফি")}
+                        {service && !socialOnly ? ` · ${service.timeline}` : ""}
+                      </p>
+                      {quote.monthly > 0 && (
+                        <p className="mt-3 inline-flex rounded-full bg-white/10 px-3 py-1 text-xs">
+                          {L(`+ ${taka(quote.monthly)}/month`, `+ মাসে ${taka(quote.monthly)}`)}
+                        </p>
+                      )}
+                    </>
                   )}
                   <ul className="mt-6 flex flex-col gap-2 border-t border-white/10 pt-5 text-sm">
                     {quote.lines.map((l) => (
                       <li key={l.key} className="flex justify-between gap-4">
                         <span className="text-neutral-300">{lineLabel(l.key, l.qty)}</span>
-                        <span className="shrink-0 font-medium">{l.included ? L("Included", "অন্তর্ভুক্ত") : taka(l.amount)}</span>
+                        <span className="shrink-0 font-medium">
+                          {l.included ? L("Included", "অন্তর্ভুক্ত") : l.monthly ? `${taka(l.monthly)}${L("/mo", "/মাস")}` : taka(l.amount)}
+                        </span>
                       </li>
                     ))}
+                    {quote.care > 0 && (
+                      <li className="flex justify-between gap-4">
+                        <span className="text-neutral-300">{carePlans[selection.care]?.name}</span>
+                        <span className="shrink-0 font-medium">
+                          {taka(quote.care)}
+                          {L("/mo", "/মাস")}
+                        </span>
+                      </li>
+                    )}
                   </ul>
                 </>
               )}

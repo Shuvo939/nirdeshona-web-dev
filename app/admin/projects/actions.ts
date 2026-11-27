@@ -1,5 +1,6 @@
 "use server";
 
+import { refreshPublicContent } from "@/lib/public-cache";
 import { logActivity } from "@/lib/audit";
 
 import { sql } from "@/lib/db";
@@ -232,8 +233,10 @@ async function saveProject(id: string | null, formData: FormData): Promise<Proje
     summary: `${id ? "Updated" : "Created"} project “${data.title}”`,
   });
   revalidatePath("/admin/projects");
+  refreshPublicContent();
   revalidatePath("/projects");
   revalidatePath(`/projects/${data.slug}`);
+  refreshPublicContent();
   revalidatePath("/");
   redirect("/admin/projects");
 }
@@ -257,5 +260,6 @@ export async function deleteProject(id: string) {
 
   await logActivity(actorId, { action: "project.delete", entity: "project", summary: `Moved a project to the bin` });
   revalidatePath("/admin/projects");
+  refreshPublicContent();
   revalidatePath("/projects");
 }

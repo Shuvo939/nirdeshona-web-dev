@@ -1,4 +1,5 @@
 import { sql } from "@/lib/db";
+import { notifyUsers } from "@/lib/notifications";
 import type { SessionUser } from "@/lib/auth/session";
 import { sendEmail } from "@/lib/email";
 import { site } from "@/lib/site";
@@ -89,12 +90,7 @@ async function clientRecipients(clientId: string, excludeUserId: string) {
 }
 
 async function notify(userIds: string[], title: string, message: string, link: string) {
-  if (userIds.length === 0) return;
-  await sql`
-    insert into notifications (user_id, type, title, message, link)
-    select id, 'ticket', ${title}, ${message}, ${link}
-    from unnest(${userIds}::uuid[]) as id
-  `;
+  await notifyUsers(userIds, { type: "ticket", title, message, link });
 }
 
 // Notify the "other side" of a ticket about new activity.

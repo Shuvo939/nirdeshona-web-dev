@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { CheckCircle2, ExternalLink, Eye, EyeOff, Flag, Trash2 } from "lucide-react";
+import { CheckCircle2, ExternalLink, Eye, EyeOff, Flag, MessageCircle, ThumbsUp, Trash2 } from "lucide-react";
 
 import ConfirmButton from "@/app/components/confirm-button";
 import { sql } from "@/lib/db";
@@ -100,7 +100,7 @@ export default async function AdminCommentsPage({ searchParams }: { searchParams
                       {c.title}
                     </Link>{" "}
                     · {timeAgo(c.created_at)}
-                    {c.edited_at ? " · edited" : ""} · 👍 {c.likes} · 💬 {c.replies}
+                    {c.edited_at ? " · edited" : ""} · <ThumbsUp className="inline h-3 w-3" /> {c.likes} · <MessageCircle className="inline h-3 w-3" /> {c.replies}
                   </p>
                   <p className="mt-2 whitespace-pre-wrap break-words rounded-xl bg-neutral-50 px-3 py-2 text-sm leading-6 text-neutral-800">{c.content}</p>
 

@@ -255,7 +255,7 @@ export default async function AboutPage() {
               {L("All services →", "সব সার্ভিস →")}
             </Link>
           </div>
-          <div className="mt-8 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="mt-8 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
             {services.map((s) => (
               <Link key={s.slug} href={`/services/${s.slug}`} className="group flex items-center gap-4 rounded-2xl border border-neutral-200 bg-white p-4 transition hover:shadow-sm">
                 <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-neutral-950 text-white">

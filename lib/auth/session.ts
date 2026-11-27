@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { redirect } from "next/navigation";
 
 import { sql } from "@/lib/db";
@@ -15,7 +16,8 @@ export type SessionUser = {
   createdAt: string;
 };
 
-export async function getSessionUser(): Promise<SessionUser | null> {
+/** One auth check per request: the header, layout and page share the result. */
+export const getSessionUser = cache(async function getSessionUser(): Promise<SessionUser | null> {
   const supabase = await createClient();
   const {
     data: { user },
@@ -41,7 +43,7 @@ export async function getSessionUser(): Promise<SessionUser | null> {
     isBanned: Boolean(profile?.is_banned),
     createdAt: String(profile?.created_at ?? user.created_at),
   };
-}
+});
 
 export async function requireUser(next = "/client") {
   const user = await getSessionUser();

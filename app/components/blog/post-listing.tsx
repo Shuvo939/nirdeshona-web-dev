@@ -1,5 +1,7 @@
 import Link from "@/app/components/locale-link";
-import { ChevronLeft, ChevronRight, Clock, Eye, Flame, Heart, MessageCircle, Newspaper, Rss, Sparkles, TrendingUp } from "lucide-react";
+import { ChevronLeft, ChevronRight, Eye, Flame, MessageCircle, Newspaper, Sparkles, TrendingUp } from "lucide-react";
+
+import PostCardFooter, { postCardStats } from "@/app/components/blog/post-card-footer";
 
 import type { Locale } from "@/lib/i18n/config";
 import { getI18n, getLocale } from "@/lib/i18n/server";
@@ -29,6 +31,7 @@ type ListedPost = {
   category_slug: string | null;
   comment_count: number;
   reaction_count: number;
+  top_reactions: string[] | null;
 };
 
 function readingTime(content: string) {
@@ -96,9 +99,8 @@ export default async function PostListing({
       select p.id, p.slug, ${tcol(locale, "p.title")} as title, ${tcol(locale, "p.excerpt")} as excerpt,
              ${tcol(locale, "p.content")} as content, p.cover_image_url, p.published_at,
              p.views_count::int as views_count,
-             pr.full_name as author_name, pr.avatar_url as author_avatar, ${tcol(locale, "pc.name")} as category_name, pc.slug as category_slug,
-             (select count(*)::int from comments c where c.post_id = p.id and c.status = 'visible') as comment_count,
-             (select count(*)::int from post_reactions r where r.post_id = p.id) as reaction_count
+             ${tcol(locale, "pc.name")} as category_name, pc.slug as category_slug,
+             ${postCardStats()}
       from posts p
       left join profiles pr on pr.id = p.author_id
       left join post_categories pc on pc.id = p.category_id
@@ -344,60 +346,13 @@ export default async function PostListing({
             </Link>
           </div>
 
-          <a href="/blog/rss.xml" className="inline-flex items-center justify-center gap-2 rounded-full border border-neutral-200 bg-white px-4 py-2.5 text-sm font-medium text-neutral-700 transition hover:border-neutral-300">
-            <Rss className="h-4 w-4 text-orange-500" /> {L("Subscribe via RSS", "RSS-এ সাবস্ক্রাইব করুন")}
-          </a>
         </aside>
       </div>
     </section>
   );
 }
 
-async function Meta({ post }: { post: ListedPost }) {
-  const { L, num, date } = await getI18n();
-  return (
-    <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-neutral-500">
-      {post.published_at && <span>{date(post.published_at)}</span>}
-      <span className="inline-flex items-center gap-1">
-        <Clock className="h-3 w-3" /> {L(`${readingTime(post.content)} min read`, `${num(readingTime(post.content))} মিনিটে পড়া`)}
-      </span>
-      <span className="inline-flex items-center gap-1">
-        <Eye className="h-3 w-3" /> {num(post.views_count)}
-      </span>
-      <span className="inline-flex items-center gap-1">
-        <MessageCircle className="h-3 w-3" /> {num(post.comment_count)}
-      </span>
-      {post.reaction_count > 0 && (
-        <span className="inline-flex items-center gap-1">
-          <Heart className="h-3 w-3" /> {num(post.reaction_count)}
-        </span>
-      )}
-    </div>
-  );
-}
 
-async function Author({ post }: { post: ListedPost }) {
-  const { L } = await getI18n();
-  const name = post.author_name || L("Nirdeshona Web", "নির্দেশনা ওয়েব");
-  return (
-    <div className="flex items-center gap-2">
-      <span className="flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-full bg-neutral-950 text-[10px] font-bold text-white">
-        {post.author_avatar ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={post.author_avatar} alt="" className="h-full w-full object-cover" />
-        ) : (
-          name
-            .split(" ")
-            .map((p) => p[0])
-            .slice(0, 2)
-            .join("")
-            .toUpperCase()
-        )}
-      </span>
-      <span className="text-xs font-medium text-neutral-700">{name}</span>
-    </div>
-  );
-}
 
 function compact(n: number, locale: Locale) {
   return new Intl.NumberFormat(locale === "bn" ? "bn-BD" : "en", { notation: "compact", maximumFractionDigits: 1 }).format(n);
@@ -444,10 +399,7 @@ async function FeaturedPost({ post }: { post: ListedPost }) {
         </div>
         <h2 className="mt-4 text-2xl font-bold tracking-[-0.03em] text-neutral-950 group-hover:underline sm:text-3xl">{post.title}</h2>
         {post.excerpt && <p className="mt-3 line-clamp-3 text-sm leading-6 text-neutral-600">{post.excerpt}</p>}
-        <div className="mt-5 flex flex-col gap-3">
-          <Author post={post} />
-          <Meta post={post} />
-        </div>
+        <PostCardFooter post={{ ...post, reading_minutes: readingTime(post.content) }} />
       </div>
     </Link>
   );
@@ -463,10 +415,7 @@ function PostCard({ post }: { post: ListedPost }) {
         {post.category_name && <span className="text-xs font-medium text-neutral-500">{post.category_name}</span>}
         <h3 className="mt-2 text-base font-semibold leading-snug text-neutral-950 group-hover:underline">{post.title}</h3>
         {post.excerpt && <p className="mt-2 line-clamp-2 flex-1 text-sm leading-6 text-neutral-600">{post.excerpt}</p>}
-        <div className="mt-4 flex flex-col gap-3 border-t border-neutral-100 pt-4">
-          <Author post={post} />
-          <Meta post={post} />
-        </div>
+        <PostCardFooter post={{ ...post, reading_minutes: readingTime(post.content) }} />
       </div>
     </Link>
   );

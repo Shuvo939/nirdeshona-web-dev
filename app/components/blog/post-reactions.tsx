@@ -5,12 +5,13 @@ import { useI18n } from "@/lib/i18n/client";
 import { startNavigationProgress } from "@/app/components/navigation-progress";
 import { useRef, useState, useTransition } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { Link2, ThumbsUp } from "lucide-react";
+import { Link2, MessageCircle, ThumbsUp } from "lucide-react";
 
 import type { ReactionType } from "@/lib/comments";
 
 import { setPostReaction } from "./community-actions";
 import { REACTION_META, REACTION_ORDER, reactionLabel } from "./reaction-meta";
+import ReactorsDialog from "./reactors-dialog";
 
 export default function PostReactions({
   postId,
@@ -32,6 +33,7 @@ export default function PostReactions({
   const [mine, setMine] = useState(initialMine);
   const [picker, setPicker] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [showReactors, setShowReactors] = useState(false);
   const [, start] = useTransition();
   const hoverTimer = useRef<number | null>(null);
   const pressTimer = useRef<number | null>(null);
@@ -94,7 +96,12 @@ export default function PostReactions({
       <div className="flex items-center justify-between gap-3 px-5 py-3 text-sm text-neutral-500">
         <div className="flex min-w-0 items-center gap-2">
           {top.length > 0 ? (
-            <>
+            <button
+              type="button"
+              onClick={() => setShowReactors(true)}
+              className="flex min-w-0 items-center gap-2 rounded-full py-0.5 pr-1 hover:underline"
+              aria-label={L("See who reacted", "কে কে রিঅ্যাকশন দিয়েছেন দেখুন")}
+            >
               <span className="flex -space-x-1">
                 {top.map((r) => (
                   <span key={r} title={`${reactionLabel(r, locale)}: ${num(counts[r] ?? 0)}`} className="flex h-6 w-6 items-center justify-center rounded-full bg-white text-sm ring-2 ring-white">
@@ -109,7 +116,7 @@ export default function PostReactions({
                     : L("You", "আপনি")
                   : num(total)}
               </span>
-            </>
+            </button>
           ) : (
             <span>{L("Be the first to react", "প্রথম রিঅ্যাকশন দিন")}</span>
           )}
@@ -168,13 +175,15 @@ export default function PostReactions({
           </button>
         </div>
         <a href="#comment-composer" className="flex h-11 items-center justify-center gap-2 rounded-2xl text-sm font-semibold text-neutral-600 transition hover:bg-neutral-50">
-          💬 <span>{L("Comment", "মন্তব্য")}</span>
+          <MessageCircle className="h-[18px] w-[18px]" />
+          <span>{L("Comment", "মন্তব্য")}</span>
         </a>
         <button type="button" onClick={share} className="flex h-11 items-center justify-center gap-2 rounded-2xl text-sm font-semibold text-neutral-600 transition hover:bg-neutral-50">
           <Link2 className="h-[18px] w-[18px]" />
           {copied ? L("Copied!", "কপি হয়েছে!") : L("Share", "শেয়ার")}
         </button>
       </div>
+      {showReactors && <ReactorsDialog target="post" id={postId} onClose={() => setShowReactors(false)} />}
     </section>
   );
 }

@@ -8,7 +8,13 @@ export const QUOTE_STATUSES = [
   { value: "declined", label: "Declined", className: "bg-neutral-100 text-neutral-600" },
 ] as const;
 
-export const PLAN_NAMES: Record<string, string> = { starter: "Starter", business: "Business", custom: "Custom", care: "Care plan only" };
+export const PLAN_NAMES: Record<string, string> = {
+  starter: "Starter",
+  business: "Business",
+  custom: "Custom",
+  care: "Care plan only",
+  social: "Facebook & social media",
+};
 export const TIMELINES: Record<string, string> = {
   asap: "As soon as possible",
   "1-month": "Within a month",

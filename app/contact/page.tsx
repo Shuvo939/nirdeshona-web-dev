@@ -7,7 +7,9 @@ import {
   Clock3,
   Mail,
   MapPin,
+  MessageCircle,
   MessageSquare,
+  Phone,
   Send,
   Sparkles,
 } from "lucide-react";
@@ -15,12 +17,13 @@ import {
 import ContactForm from "@/app/components/contact/contact-form";
 import { getContent } from "@/lib/content";
 import { getI18n, localeAlternates } from "@/lib/i18n/server";
+import { site } from "@/lib/site";
 
 export async function generateMetadata(): Promise<Metadata> {
   const { L, locale } = await getI18n();
   return {
     title: L("Contact — Nirdeshona Web", "যোগাযোগ — নির্দেশনা ওয়েব"),
-    description: L("Tell us about your project. We reply within one business day.", "আপনার প্রজেক্ট সম্পর্কে জানান। আমরা এক কর্মদিবসের মধ্যে উত্তর দিই।"),
+    description: L("Tell us about your project. We reply within 24 hours.", "আপনার প্রজেক্ট সম্পর্কে জানান। আমরা ২৪ ঘণ্টার মধ্যে উত্তর দিই।"),
     alternates: localeAlternates(locale, "/contact"),
   };
 }
@@ -31,7 +34,7 @@ export default async function ContactPage({
   searchParams: Promise<{ service?: string; message?: string }>;
 }) {
   const { service, message } = await searchParams;
-  const { L, locale } = await getI18n();
+  const { L, digits, locale } = await getI18n();
   const { packages, carePlans } = getContent(locale);
 
   return (
@@ -87,7 +90,7 @@ export default async function ContactPage({
             <div className="mt-8 flex flex-wrap gap-3">
               <div className="inline-flex items-center gap-2 rounded-xl border border-neutral-200 bg-white px-4 py-2.5 text-sm text-neutral-600 shadow-sm">
                 <Clock3 className="h-4 w-4 text-neutral-400" />
-                {L("Usually replies within 1 business day", "সাধারণত ১ কর্মদিবসের মধ্যে উত্তর")}
+                {L("Usually replies within 24 hours", "সাধারণত ২৪ ঘণ্টার মধ্যে উত্তর")}
               </div>
 
               <div className="inline-flex items-center gap-2 rounded-xl border border-neutral-200 bg-white px-4 py-2.5 text-sm text-neutral-600 shadow-sm">
@@ -184,6 +187,26 @@ export default async function ContactPage({
 
                 <div className="flex items-start gap-4">
                   <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-neutral-100 text-neutral-600">
+                    <Phone className="h-4 w-4" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-xs font-medium text-neutral-400">{L("Phone & WhatsApp", "ফোন ও হোয়াটসঅ্যাপ")}</p>
+                    <a href={`tel:${site.phone}`} className="mt-1 block text-sm font-medium text-neutral-800 hover:text-black">
+                      {L(site.phoneDisplay, digits(site.phoneDisplay))}
+                    </a>
+                    <a
+                      href={site.whatsapp}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700 hover:bg-emerald-100"
+                    >
+                      <MessageCircle className="h-3.5 w-3.5" /> {L("Chat on WhatsApp", "হোয়াটসঅ্যাপে কথা বলুন")}
+                    </a>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-4">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-neutral-100 text-neutral-600">
                     <Clock3 className="h-4 w-4" />
                   </div>
                   <div>
@@ -191,7 +214,7 @@ export default async function ContactPage({
                       {L("Response time", "উত্তরের সময়")}
                     </p>
                     <p className="mt-1 text-sm font-medium text-neutral-800">
-                      {L("Within 1 business day (Sun–Thu)", "১ কর্মদিবসের মধ্যে (রবি–বৃহস্পতি)")}
+                      {L("Every day of the week · usually within a few hours", "সপ্তাহের সাত দিনই · সাধারণত কয়েক ঘণ্টার মধ্যে")}
                     </p>
                   </div>
                 </div>

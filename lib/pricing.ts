@@ -6,7 +6,7 @@ import { addOns, carePlans, services } from "./site";
 
 export const toTaka = (price: string) => Number(price.replace(/[^0-9]/g, "")) || 0;
 
-export type PlanId = "starter" | "business" | "custom" | "care";
+export type PlanId = "starter" | "business" | "custom" | "care" | "social";
 
 export type Plan = {
   id: PlanId;
@@ -25,10 +25,17 @@ export const PLANS: Plan[] = [
   { id: "business", packageIndex: 1, base: 35000, includedPages: 15, includedAddOns: ["bilingual", "blog", "seo"] },
   { id: "custom", packageIndex: 2, base: 40000, includedPages: 15, includedAddOns: ["bilingual", "blog", "seo", "auth"], quoteOnly: true },
   { id: "care", base: 0, includedPages: 0, includedAddOns: [] },
+  /** Facebook & social media only — no website. */
+  { id: "social", base: 0, includedPages: 0, includedAddOns: [] },
 ];
 
-/** Project types offered in the builder (maintenance is covered by the care plan). */
-export const ORDER_SERVICES = services.filter((s) => s.slug !== "maintenance").map((s) => ({ slug: s.slug, from: toTaka(s.startingFrom) }));
+/** Plans that are not a website build (no project type, no pages). */
+export const isStandalonePlan = (plan: PlanId) => plan === "care" || plan === "social";
+
+export const SOCIAL_ADD_ONS = addOns.filter((a) => a.group === "social").map((a) => a.id);
+
+/** Project types offered in the builder (care and social media have their own plans). */
+export const ORDER_SERVICES = services.filter((s) => s.slug !== "maintenance" && s.slug !== "social-media").map((s) => ({ slug: s.slug, from: toTaka(s.startingFrom) }));
 
 export const CARE_PRICES = carePlans.map((c, index) => ({ index, price: toTaka(c.price) }));
 
@@ -43,12 +50,15 @@ export type QuoteSelection = {
   care: number;
 };
 
-export type QuoteLine = { key: string; amount: number; qty?: number; included?: boolean };
+export type QuoteLine = { key: string; amount: number; qty?: number; included?: boolean; monthly?: number };
 
 export type Quote = {
   lines: QuoteLine[];
   low: number;
   high: number;
+  /** Care plan part of the monthly total. */
+  care: number;
+  /** Care plan plus monthly social media services. */
   monthly: number;
   quoteOnly: boolean;
 };
@@ -64,6 +74,9 @@ export function normaliseSelection(input: Partial<QuoteSelection>): QuoteSelecti
   const chosen = Array.from(new Set((input.addOns ?? []).filter((id) => validAddOns.has(id))));
   const care = Number.isInteger(input.care) && (input.care as number) >= 0 && (input.care as number) < carePlans.length ? (input.care as number) : -1;
   if (plan === "care") return { plan, pages: 0, addOns: [], care: care === -1 ? 0 : care };
+  if (plan === "social") {
+    return { plan, pages: 0, addOns: chosen.filter((id) => SOCIAL_ADD_ONS.includes(id)), care: -1 };
+  }
   return { plan, service, pages, addOns: chosen, care };
 }
 
@@ -72,7 +85,28 @@ export function computeQuote(raw: Partial<QuoteSelection>): Quote {
   const plan = PLANS.find((p) => p.id === sel.plan)!;
   const lines: QuoteLine[] = [];
 
-  if (plan.id !== "care") {
+  let monthlyExtras = 0;
+  const addOnLines = () => {
+    for (const id of sel.addOns) {
+      const addOn = addOns.find((a) => a.id === id);
+      if (!addOn) continue;
+      if (plan.includedAddOns.includes(id)) {
+        lines.push({ key: id, amount: 0, included: true });
+      } else if (addOn.monthly) {
+        // Monthly services are shown in the list but billed with the monthly total.
+        lines.push({ key: id, amount: 0, monthly: addOn.price });
+        monthlyExtras += addOn.price;
+      } else if (id === "copy") {
+        lines.push({ key: id, amount: addOn.price * sel.pages, qty: sel.pages });
+      } else {
+        lines.push({ key: id, amount: addOn.price });
+      }
+    }
+  };
+
+  if (plan.id === "social") {
+    addOnLines();
+  } else if (plan.id !== "care") {
     // The project type can raise the starting point (e.g. e-commerce), never lower it.
     const serviceFrom = ORDER_SERVICES.find((s) => s.slug === sel.service)?.from ?? 0;
     lines.push({ key: "base", amount: Math.max(plan.base, serviceFrom) });
@@ -80,26 +114,18 @@ export function computeQuote(raw: Partial<QuoteSelection>): Quote {
     const extraPages = Math.max(0, sel.pages - plan.includedPages);
     const pagePrice = addOns.find((a) => a.id === "page")?.price ?? 0;
     if (extraPages > 0) lines.push({ key: "page", amount: extraPages * pagePrice, qty: extraPages });
-
-    for (const id of sel.addOns) {
-      const addOn = addOns.find((a) => a.id === id);
-      if (!addOn) continue;
-      if (plan.includedAddOns.includes(id)) {
-        lines.push({ key: id, amount: 0, included: true });
-      } else if (id === "copy") {
-        lines.push({ key: id, amount: addOn.price * sel.pages, qty: sel.pages });
-      } else {
-        lines.push({ key: id, amount: addOn.price });
-      }
-    }
+    addOnLines();
   }
 
   const total = lines.reduce((sum, l) => sum + l.amount, 0);
-  const monthly = sel.care >= 0 ? (CARE_PRICES[sel.care]?.price ?? 0) : 0;
+  const care = sel.care >= 0 ? (CARE_PRICES[sel.care]?.price ?? 0) : 0;
+  const monthly = care + monthlyExtras;
   return {
     lines,
     low: total,
-    high: plan.id === "care" ? 0 : roundTo(total * (plan.quoteOnly ? 1.5 : 1.2)),
+    // Social media services have fixed prices; website builds get a range.
+    high: plan.id === "care" ? 0 : plan.id === "social" ? total : roundTo(total * (plan.quoteOnly ? 1.5 : 1.2)),
+    care,
     monthly,
     quoteOnly: Boolean(plan.quoteOnly),
   };

@@ -7,6 +7,7 @@ import {
   CheckCircle2,
   Clock,
   Compass,
+  FileText,
   FolderKanban,
   HeartHandshake,
   Layers3,
@@ -19,11 +20,14 @@ import {
   Users,
 } from "lucide-react";
 
+import PostCardFooter, { postCardStats, type PostCardStats } from "@/app/components/blog/post-card-footer";
 import CountUp from "@/app/components/home/count-up";
 import HeroSearch from "@/app/components/home/hero-search";
 import { FaqList, ServiceCard } from "@/app/components/marketing";
 import ProjectCard, { type ProjectCardData } from "@/app/components/project-card";
 import { sql } from "@/lib/db";
+import type { Locale } from "@/lib/i18n/config";
+import { publicCache } from "@/lib/public-cache";
 import { getContent } from "@/lib/content";
 import { getI18n } from "@/lib/i18n/server";
 import { tcol } from "@/lib/i18n/sql";
@@ -34,9 +38,8 @@ export const revalidate = 300;
 const STACK = allTech;
 const VALUE_ICONS = [Compass, Smartphone, Layers3, HeartHandshake];
 
-export default async function HomePage() {
-  const { L, locale, date, num } = await getI18n();
-  const { faqGroups, packages, processSteps, services, values } = getContent(locale);
+// Public, viewer-independent data: cached briefly and refreshed when admins edit.
+const getHomeData = publicCache(async (locale: Locale) => {
   const [projects, [stats], posts, clients] = await Promise.all([
     sql`
       select p.id, p.slug, ${tcol(locale, "p.title")} as title, ${tcol(locale, "p.short_description")} as short_description,
@@ -56,8 +59,10 @@ export default async function HomePage() {
     sql`
       select p.slug, ${tcol(locale, "p.title")} as title, ${tcol(locale, "p.excerpt")} as excerpt, p.cover_image_url, p.published_at,
              ${tcol(locale, "pc.name")} as category,
-             (select count(*)::int from comments c where c.post_id = p.id and c.status = 'visible') as comments
-      from posts p left join post_categories pc on pc.id = p.category_id
+             ${postCardStats()}
+      from posts p
+      left join post_categories pc on pc.id = p.category_id
+      left join profiles pr on pr.id = p.author_id
       where p.status = 'published'
       order by p.published_at desc nulls last
       limit 3
@@ -67,7 +72,14 @@ export default async function HomePage() {
       where exists (select 1 from projects p where p.client_id = c.id)
       order by c.created_at asc limit 12
     `,
-  ]);
+    ]);
+  return { projects: [...projects], stats: { ...stats }, posts: [...posts], clients: [...clients] };
+}, "home-data");
+
+export default async function HomePage() {
+  const { L, locale, date, num } = await getI18n();
+  const { faqGroups, packages, processSteps, services, values } = getContent(locale);
+  const { projects, stats, posts, clients } = await getHomeData(locale);
 
   const years = Math.max(1, new Date().getFullYear() - 2022);
   const faqs = faqGroups.flatMap((g) => g.items).slice(0, 5);
@@ -96,11 +108,11 @@ export default async function HomePage() {
               </h1>
 
               <p className="mt-7 max-w-2xl text-base leading-7 text-neutral-600 sm:text-lg sm:leading-8">
-                {L("Websites, web apps and WordPress solutions for organisations, businesses and individuals — designed mobile-first, built to last, and supported long after launch.", "প্রতিষ্ঠান, ব্যবসা ও ব্যক্তির জন্য ওয়েবসাইট, ওয়েব অ্যাপ ও ওয়ার্ডপ্রেস সমাধান — মোবাইল-ফার্স্ট ডিজাইন, টেকসই নির্মাণ, আর লঞ্চের পরও দীর্ঘদিনের সাপোর্ট।")}
+                {L("Websites, web apps, WordPress and Android apps — plus Facebook and social media — for organisations, businesses and individuals. Designed mobile-first, built to last, and supported long after launch.", "প্রতিষ্ঠান, ব্যবসা ও ব্যক্তির জন্য ওয়েবসাইট, ওয়েব অ্যাপ, ওয়ার্ডপ্রেস ও অ্যান্ড্রয়েড অ্যাপ — সঙ্গে ফেসবুক ও সোশ্যাল মিডিয়া। মোবাইল-ফার্স্ট ডিজাইন, টেকসই নির্মাণ, আর লঞ্চের পরও দীর্ঘদিনের সাপোর্ট।")}
               </p>
 
               <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-                <Link href="/contact" className="group inline-flex h-12 items-center justify-center gap-2 rounded-full bg-neutral-950 px-6 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-neutral-800 hover:shadow-lg">
+                <Link href="/pricing#order" className="group inline-flex h-12 items-center justify-center gap-2 rounded-full bg-neutral-950 px-6 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-neutral-800 hover:shadow-lg">
                   {L("Start a project", "প্রজেক্ট শুরু করুন")} <ArrowUpRight className="h-4 w-4 transition group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
                 </Link>
                 <Link href="/projects" className="inline-flex h-12 items-center justify-center gap-2 rounded-full border border-neutral-200 bg-white px-6 text-sm font-semibold text-neutral-800 transition hover:border-neutral-300 hover:bg-neutral-50">
@@ -141,27 +153,67 @@ export default async function HomePage() {
                   </div>
 
                   <div className="mt-3 rounded-2xl border border-neutral-200 bg-white p-4">
-                    {[
-                      [L("Discovery", "আলোচনা"), 100],
-                      [L("Design", "ডিজাইন"), 86],
-                      [L("Development", "ডেভেলপমেন্ট"), 64],
-                      [L("Launch", "লঞ্চ"), 20],
-                    ].map(([label, value]) => (
-                      <div key={label as string} className="mb-3 last:mb-0">
-                        <div className="mb-1.5 flex justify-between text-[11px]">
-                          <span className="text-neutral-500">{label}</span>
-                          <span className="font-semibold">{num(value as number)}%</span>
-                        </div>
-                        <div className="h-1.5 overflow-hidden rounded-full bg-neutral-100">
-                          <div className="h-full rounded-full bg-neutral-950" style={{ width: `${value}%` }} />
-                        </div>
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="min-w-0">
+                        <p className="text-[11px] font-medium uppercase tracking-wide text-neutral-400">{L("Sample project", "নমুনা প্রজেক্ট")}</p>
+                        <p className="truncate text-sm font-semibold">{L("Company website redesign", "ওয়েবসাইট রিডিজাইন")}</p>
                       </div>
-                    ))}
+                      <span className="shrink-0 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700">{L(`${num(70)}% done`, `${num(70)}% সম্পন্ন`)}</span>
+                    </div>
+                    <ol className="mt-4 flex flex-col gap-3">
+                      {(
+                        [
+                          [L("Discovery", "আলোচনা"), 100, "done"],
+                          [L("Design", "ডিজাইন"), 100, "done"],
+                          [L("Development", "ডেভেলপমেন্ট"), 64, "active"],
+                          [L("Launch", "লঞ্চ"), 0, "next"],
+                        ] as const
+                      ).map(([label, value, state]) => (
+                        <li key={label} className="flex items-center gap-3">
+                          <span
+                            className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[11px] font-bold ${
+                              state === "done" ? "bg-emerald-600 text-white" : state === "active" ? "bg-neutral-950 text-white" : "border border-neutral-300 text-neutral-400"
+                            }`}
+                          >
+                            {state === "done" ? <Check className="h-3.5 w-3.5" strokeWidth={3} /> : state === "active" ? <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-white" /> : null}
+                          </span>
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-baseline justify-between gap-2 text-xs">
+                              <span className={state === "next" ? "text-neutral-400" : "font-medium text-neutral-800"}>{label}</span>
+                              <span className={`shrink-0 ${state === "done" ? "text-emerald-700" : state === "active" ? "font-semibold text-neutral-900" : "text-neutral-400"}`}>
+                                {state === "done" ? L("Done", "সম্পন্ন") : state === "active" ? `${num(value)}%` : L("Next", "পরবর্তী")}
+                              </span>
+                            </div>
+                            <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-neutral-100">
+                              <div className={`h-full rounded-full ${state === "done" ? "bg-emerald-500" : "bg-neutral-950"}`} style={{ width: `${value}%` }} />
+                            </div>
+                          </div>
+                        </li>
+                      ))}
+                    </ol>
                   </div>
 
                   <div className="mt-3 flex flex-col gap-2">
-                    <Toast icon={<Bell className="h-3.5 w-3.5" />} title={L("New reply on #12", "#১২-এ নতুন উত্তর")} text={L("“Homepage draft is ready for review”", "“হোমপেজের খসড়া দেখার জন্য প্রস্তুত”")} />
-                    <Toast icon={<Paperclip className="h-3.5 w-3.5" />} title={L("2 files attached", "২টি ফাইল সংযুক্ত")} text="logo-final.svg · sitemap.pdf" />
+                    <Toast
+                      icon={<Bell className="h-4 w-4" />}
+                      title={L("New reply on ticket #12", "টিকেট #১২-এ নতুন উত্তর")}
+                      meta={L("2 min ago", "২ মিনিট আগে")}
+                      text={L("“The homepage draft is ready for your review.”", "“হোমপেজের খসড়া আপনার দেখার জন্য প্রস্তুত।”")}
+                      unread
+                    />
+                    <Toast
+                      icon={<Paperclip className="h-4 w-4" />}
+                      title={L("2 files shared", "২টি ফাইল শেয়ার করা হয়েছে")}
+                      meta={L("Today", "আজ")}
+                    >
+                      <span className="mt-1.5 flex flex-wrap gap-1.5">
+                        {["logo-final.svg", "sitemap.pdf"].map((f) => (
+                          <span key={f} className="inline-flex items-center gap-1 rounded-md border border-neutral-200 bg-neutral-50 px-1.5 py-0.5 font-mono text-[10.5px] text-neutral-600">
+                            <FileText className="h-3 w-3" /> {f}
+                          </span>
+                        ))}
+                      </span>
+                    </Toast>
                   </div>
                 </div>
               </div>
@@ -224,7 +276,7 @@ export default async function HomePage() {
           text={L("From a simple website to a full platform — one small team handles design, development and care.", "সাধারণ ওয়েবসাইট থেকে পূর্ণাঙ্গ প্ল্যাটফর্ম — ডিজাইন, ডেভেলপমেন্ট ও দেখভাল, সবই একটি ছোট টিমের হাতে।")}
           link={{ href: "/services", label: L("All services", "সব সার্ভিস") }}
         />
-        <div className="mt-10 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-10 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {services.map((s) => (
             <ServiceCard key={s.slug} service={s} />
           ))}
@@ -389,15 +441,7 @@ export default async function HomePage() {
                   {p.category && <span className="text-xs font-medium text-neutral-500">{p.category}</span>}
                   <h3 className="mt-1.5 font-semibold leading-snug group-hover:underline">{p.title}</h3>
                   {p.excerpt && <p className="mt-2 line-clamp-2 flex-1 text-sm leading-6 text-neutral-600">{p.excerpt}</p>}
-                  <p className="mt-4 flex items-center gap-3 text-xs text-neutral-400">
-                    {p.published_at && (
-                      <span className="flex items-center gap-1">
-                        <Clock className="h-3 w-3" />
-                        {date(p.published_at)}
-                      </span>
-                    )}
-                    <span>💬 {num(p.comments)}</span>
-                  </p>
+                  <PostCardFooter post={p as unknown as PostCardStats} />
                 </div>
               </Link>
             ))}
@@ -504,13 +548,34 @@ function Mini({ label, value }: { label: string; value: string }) {
   );
 }
 
-function Toast({ icon, title, text }: { icon: React.ReactNode; title: string; text: string }) {
+function Toast({
+  icon,
+  title,
+  text,
+  meta,
+  unread,
+  children,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  text?: string;
+  meta?: string;
+  unread?: boolean;
+  children?: React.ReactNode;
+}) {
   return (
-    <div className="flex items-center gap-3 rounded-2xl border border-neutral-200 bg-white p-3">
-      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-neutral-100 text-neutral-700">{icon}</span>
-      <span className="min-w-0">
-        <span className="block text-xs font-semibold">{title}</span>
-        <span className="block truncate text-[11px] text-neutral-500">{text}</span>
+    <div className="flex items-start gap-3 rounded-2xl border border-neutral-200 bg-white p-3">
+      <span className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-neutral-100 text-neutral-700">
+        {icon}
+        {unread && <span className="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full border-2 border-white bg-red-500" />}
+      </span>
+      <span className="min-w-0 flex-1">
+        <span className="flex items-baseline justify-between gap-2">
+          <span className="truncate text-xs font-semibold text-neutral-900">{title}</span>
+          {meta && <span className="shrink-0 text-[11px] text-neutral-400">{meta}</span>}
+        </span>
+        {text && <span className="mt-0.5 block text-xs leading-5 text-neutral-500">{text}</span>}
+        {children}
       </span>
     </div>
   );

@@ -1,5 +1,6 @@
 "use server";
 
+import { refreshPublicContent } from "@/lib/public-cache";
 import { revalidatePath } from "next/cache";
 
 import { logActivity } from "@/lib/audit";
@@ -14,4 +15,5 @@ export async function deleteMedia(fileId: string) {
   await moveToTrash("file", fileId, userId);
   await logActivity(userId, { action: "media.delete", entity: "media", entityId: fileId, summary: `Moved ${file.file_name} to the bin` });
   revalidatePath("/admin/media");
+  refreshPublicContent();
 }

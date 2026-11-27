@@ -52,6 +52,20 @@ export default async function PricingPage() {
       period: carePlans[0]?.period,
       highlights: carePlans[0]?.features ?? [],
     },
+    {
+      id: "social" as const,
+      name: L("Facebook & social media", "ফেসবুক ও সোশ্যাল মিডিয়া"),
+      description: L(
+        "Professional page setup, ads and boosts, or monthly page management — no website needed.",
+        "পেশাদার পেজ সেটআপ, বিজ্ঞাপন ও বুস্ট, অথবা মাসিক পেজ ব্যবস্থাপনা — ওয়েবসাইট ছাড়াই।",
+      ),
+      price: L("from ৳4,000", "৳৪,০০০ থেকে"),
+      highlights: [
+        L("Your page and ad account stay in your name", "পেজ ও অ্যাড অ্যাকাউন্ট আপনার নামেই থাকে"),
+        L("Ad spend paid directly to Meta", "বিজ্ঞাপনের খরচ সরাসরি মেটাকে"),
+        L("Plain monthly report", "সহজ মাসিক রিপোর্ট"),
+      ],
+    },
   ];
 
   return (
@@ -181,8 +195,8 @@ export default async function PricingPage() {
           eyebrow={L("Build your quote", "কোটেশন সাজান")}
           title={L("Choose, review and confirm — in three steps", "তিন ধাপে বাছাই, পর্যালোচনা ও নিশ্চিত করুন")}
           description={L(
-            "Pick a plan and what you need, add your details, and confirm. We'll reply within one business day with a written scope and a fixed quote.",
-            "প্ল্যান ও প্রয়োজনীয় সবকিছু বেছে নিন, আপনার তথ্য দিন, তারপর নিশ্চিত করুন। এক কর্মদিবসের মধ্যে লিখিত পরিসর ও নির্দিষ্ট কোটেশনসহ উত্তর দেব।",
+            "Pick a plan and what you need, add your details, and confirm. We'll reply within 24 hours with a written scope and a fixed quote.",
+            "প্ল্যান ও প্রয়োজনীয় সবকিছু বেছে নিন, আপনার তথ্য দিন, তারপর নিশ্চিত করুন। ২৪ ঘণ্টার মধ্যে লিখিত পরিসর ও নির্দিষ্ট কোটেশনসহ উত্তর দেব।",
           )}
         />
         <div className="mt-10">
@@ -208,20 +222,39 @@ export default async function PricingPage() {
       <section className="border-y border-neutral-200 bg-neutral-50">
         <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
           <SectionHeading eyebrow={L("Extras", "অতিরিক্ত")} title={L("Add-ons", "অ্যাড-অন")} description={L("Add exactly what you need to any package.", "যেকোনো প্যাকেজে ঠিক যা দরকার, তা-ই যোগ করুন।")} />
-          <div className="mt-8 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {addOns.map((a) => (
-              <div key={a.id} className="flex items-start justify-between gap-4 rounded-2xl border border-neutral-200 bg-white p-4">
-                <div className="min-w-0">
-                  <p className="text-sm font-semibold text-neutral-950">{a.name}</p>
-                  <p className="mt-1 text-xs leading-5 text-neutral-500">{a.description}</p>
-                </div>
-                <p className="shrink-0 text-right text-sm font-bold text-neutral-950">
-                  ৳{num(a.price)}
-                  {a.unit && <span className="block text-[11px] font-normal text-neutral-500">{a.unit}</span>}
-                </p>
+          {[
+            { title: L("Website & app extras", "ওয়েবসাইট ও অ্যাপের অতিরিক্ত"), items: addOns.filter((a) => a.group !== "social") },
+            {
+              title: L("Facebook & social media", "ফেসবুক ও সোশ্যাল মিডিয়া"),
+              items: addOns.filter((a) => a.group === "social"),
+              href: "/pricing?plan=social#order",
+            },
+          ].map((g) => (
+            <div key={g.title} className="mt-8">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <h3 className="text-sm font-semibold uppercase tracking-[0.14em] text-neutral-500">{g.title}</h3>
+                {g.href && (
+                  <Link href={g.href} className="text-sm font-semibold text-neutral-900 underline underline-offset-4">
+                    {L("Order social media only", "শুধু সোশ্যাল মিডিয়া অর্ডার করুন")}
+                  </Link>
+                )}
               </div>
-            ))}
-          </div>
+              <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                {g.items.map((a) => (
+                  <div key={a.id} className="flex items-start justify-between gap-4 rounded-2xl border border-neutral-200 bg-white p-4">
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold text-neutral-950">{a.name}</p>
+                      <p className="mt-1 text-xs leading-5 text-neutral-500">{a.description}</p>
+                    </div>
+                    <p className="shrink-0 text-right text-sm font-bold text-neutral-950">
+                      ৳{num(a.price)}
+                      {a.unit && <span className="block text-[11px] font-normal text-neutral-500">{a.unit}</span>}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
 
           <div className="mt-14">
             <SectionHeading eyebrow={L("Payments", "পেমেন্ট")} title={L("Simple payment terms", "সহজ পেমেন্টের শর্ত")} />

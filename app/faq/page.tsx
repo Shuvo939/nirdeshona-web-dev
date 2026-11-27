@@ -61,7 +61,7 @@ export default async function FaqPage() {
             <div className="mt-6 hidden rounded-3xl border border-neutral-200 bg-white p-5 lg:block">
               <MessageCircle className="h-5 w-5 text-neutral-500" />
               <p className="mt-3 text-sm font-semibold text-neutral-950">{L("Still have a question?", "এখনো প্রশ্ন আছে?")}</p>
-              <p className="mt-1 text-sm text-neutral-600">{L("We usually reply within one business day.", "আমরা সাধারণত এক কর্মদিবসের মধ্যে উত্তর দিই।")}</p>
+              <p className="mt-1 text-sm text-neutral-600">{L("We usually reply within 24 hours.", "আমরা সাধারণত ২৪ ঘণ্টার মধ্যে উত্তর দিই।")}</p>
               <Link href="/contact" className="mt-4 inline-flex text-sm font-semibold underline">
                 {L("Contact us", "যোগাযোগ করুন")}
               </Link>

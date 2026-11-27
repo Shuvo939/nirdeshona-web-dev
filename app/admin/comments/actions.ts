@@ -1,5 +1,6 @@
 "use server";
 
+import { refreshPublicContent } from "@/lib/public-cache";
 import { revalidatePath } from "next/cache";
 
 import { logActivity } from "@/lib/audit";
@@ -23,6 +24,7 @@ export async function setCommentStatus(commentId: string, status: "visible" | "h
     summary: `${status === "hidden" ? "Hid" : "Restored"} a comment on “${await postTitle(commentId)}”`,
   });
   revalidatePath("/admin/comments");
+  refreshPublicContent();
 }
 
 export async function deleteCommentAdmin(commentId: string) {
@@ -31,6 +33,7 @@ export async function deleteCommentAdmin(commentId: string) {
   await moveToTrash("comment", commentId, userId);
   await logActivity(userId, { action: "comment.delete", entity: "comment", entityId: commentId, summary: `Moved a comment on “${title}” to the bin` });
   revalidatePath("/admin/comments");
+  refreshPublicContent();
 }
 
 export async function dismissReports(commentId: string) {
@@ -38,4 +41,5 @@ export async function dismissReports(commentId: string) {
   await sql`update comment_reports set resolved_at = now() where comment_id = ${commentId} and resolved_at is null`;
   await logActivity(userId, { action: "comment.dismiss_reports", entity: "comment", entityId: commentId, summary: `Dismissed reports on a comment on “${await postTitle(commentId)}”` });
   revalidatePath("/admin/comments");
+  refreshPublicContent();
 }

@@ -2,7 +2,7 @@
 
 import { useI18n } from "@/lib/i18n/client";
 
-import SubmitButton from "@/app/components/submit-button";
+import ConfirmButton from "@/app/components/confirm-button";
 import Link from "@/app/components/locale-link";
 import { useEffect, useRef, useState } from "react";
 import {
@@ -255,16 +255,19 @@ export default function UserMenu({
 
           {/* Logout */}
           <div className="border-t border-neutral-100 pt-2">
-            <form action={signOut}>
-              <SubmitButton
-                icon={<LogOut className="h-4 w-4" />}
-                pendingText={<span className="flex-1">{L("Logging out…", "লগ আউট হচ্ছে…")}</span>}
-                className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-medium text-red-600 transition hover:bg-red-50 disabled:opacity-70"
-              >
-                <span className="flex-1">{L("Log out", "লগআউট")}</span>
-                <span className="text-[10px] text-red-300">{L("Sign out", "সাইন আউট")}</span>
-              </SubmitButton>
-            </form>
+            <ConfirmButton
+              action={signOut}
+              icon="logout"
+              tone="neutral"
+              title={L("Log out?", "লগ আউট করবেন?")}
+              description={L("You'll need to sign in again to see your account and projects.", "অ্যাকাউন্ট ও প্রজেক্ট দেখতে আবার লগইন করতে হবে।")}
+              confirmLabel={L("Log out", "লগ আউট")}
+              pendingLabel={L("Logging out…", "লগ আউট হচ্ছে…")}
+              className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-medium text-red-600 transition hover:bg-red-50"
+            >
+              <LogOut className="h-4 w-4" />
+              <span className="flex-1">{L("Log out", "লগ আউট")}</span>
+            </ConfirmButton>
           </div>
         </div>
       )}
