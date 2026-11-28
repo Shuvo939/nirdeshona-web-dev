@@ -22,7 +22,7 @@
     { "binding": "PRIVATE_BUCKET", "bucket_name": "nirdeshona-webdev-private" }
   ],
   "d1_databases": [
-    { "binding": "NEXT_TAG_CACHE_D1", "database_name": "nirdeshona-web-tag-cache", "database_id": "REPLACE_WITH_D1_ID" }
+    { "binding": "NEXT_TAG_CACHE_D1", "database_name": "nirdeshona-web-tag-cache", "database_id": "078753dd-f097-4100-8431-af610faf6ffb" }
   ],
   // Pooled Postgres connection to Supabase. Create it in the dashboard
   // (Workers & Pages → Hyperdrive) with the Supabase connection string.
