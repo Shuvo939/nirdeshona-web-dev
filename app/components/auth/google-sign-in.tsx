@@ -62,8 +62,9 @@ async function makeNonce() {
   return { raw, hashed };
 }
 
-// Google only accepts origins registered for the client ID (so not Vercel previews).
-const ALLOWED_HOSTS = ["web.nirdeshona.com", "localhost"];
+// Google only accepts origins registered for the client ID (so not Vercel
+// previews). Keep in sync with "Authorised JavaScript origins" in Google Cloud.
+const ALLOWED_HOSTS = ["web.nirdeshona.com", "localhost", "nirdeshona-web-dev.haque-du939.workers.dev"];
 
 function GoogleIcon() {
   return (
