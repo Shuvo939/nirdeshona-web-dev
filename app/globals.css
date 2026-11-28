@@ -58,13 +58,20 @@
   font-family: "Tiro Bangla", ui-sans-serif, system-ui, sans-serif;
 }
 
-/* ---------- Hero backdrop (app/components/blueprint-backdrop.tsx) ---------- */
+/* ---------- Page-header backdrop (app/components/blueprint-backdrop.tsx) ---------- */
 .blueprint {
   pointer-events: none;
   position: absolute;
   inset: 0;
   overflow: hidden;
-  background: linear-gradient(180deg, rgb(var(--c-neutral-50)) 0%, rgb(var(--c-white)) 100%);
+  background: rgb(var(--c-neutral-50));
+}
+/* Sky-blue light from the top edge, fading out on the way down. */
+.blueprint__wash {
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 75%;
+  background: linear-gradient(to bottom, rgb(var(--c-sky-200) / 0.55) 0%, rgb(var(--c-sky-100) / 0.25) 40%, transparent 100%);
 }
 .blueprint__grid {
   position: absolute;
@@ -76,44 +83,42 @@
     linear-gradient(to bottom, rgb(var(--c-black) / 0.035) 1px, transparent 1px);
   background-size: 120px 120px, 120px 120px, 24px 24px, 24px 24px;
   background-position: -1px -1px;
-  -webkit-mask-image: radial-gradient(ellipse 80% 70% at 70% 30%, #000 30%, transparent 75%);
-  mask-image: radial-gradient(ellipse 80% 70% at 70% 30%, #000 30%, transparent 75%);
+  -webkit-mask-image: radial-gradient(ellipse 80% 75% at 70% 20%, #000 30%, transparent 78%);
+  mask-image: radial-gradient(ellipse 80% 75% at 70% 20%, #000 30%, transparent 78%);
 }
-.blueprint--center .blueprint__grid {
-  -webkit-mask-image: radial-gradient(ellipse 75% 80% at 50% 20%, #000 25%, transparent 75%);
-  mask-image: radial-gradient(ellipse 75% 80% at 50% 20%, #000 25%, transparent 75%);
+.blueprint--header .blueprint__grid {
+  -webkit-mask-image: radial-gradient(ellipse 85% 90% at 60% 0%, #000 25%, transparent 80%);
+  mask-image: radial-gradient(ellipse 85% 90% at 60% 0%, #000 25%, transparent 80%);
 }
 .blueprint__glow {
   position: absolute;
-  border-radius: 9999px;
-  filter: blur(60px);
-}
-.blueprint__glow--a {
   right: 24%;
   top: -12%;
   height: 640px;
   width: 640px;
-  background: radial-gradient(closest-side, rgb(var(--c-emerald-300) / 0.6), transparent);
+  border-radius: 9999px;
+  filter: blur(60px);
+  background: radial-gradient(closest-side, rgb(var(--c-emerald-300) / 0.5), transparent);
 }
-.blueprint__glow--b {
-  right: -6%;
-  top: 38%;
-  height: 560px;
-  width: 560px;
-  background: radial-gradient(closest-side, rgb(var(--c-sky-300) / 0.55), transparent);
+.blueprint--header .blueprint__glow {
+  right: -8%;
+  top: -45%;
+  height: 520px;
+  width: 520px;
+  background: radial-gradient(closest-side, rgb(var(--c-emerald-300) / 0.4), transparent);
 }
-.blueprint--center .blueprint__glow--a { right: auto; left: 55%; top: -10%; }
-.blueprint--center .blueprint__glow--b { right: auto; left: -8%; top: 10%; }
-/* Soft hand-off into the next section. */
+/* Soft hand-off into the page below. */
 .blueprint__fade {
   position: absolute;
   inset: auto 0 0 0;
-  height: 120px;
-  background: linear-gradient(to bottom, transparent, rgb(var(--c-white)));
+  height: 96px;
+  background: linear-gradient(to bottom, transparent, rgb(var(--c-white) / 0.9));
 }
-html.dark .blueprint__glow--a { background: radial-gradient(closest-side, rgb(16 185 129 / 0.32), transparent); }
-html.dark .blueprint__glow--b { background: radial-gradient(closest-side, rgb(56 189 248 / 0.24), transparent); }
+html.dark .blueprint__wash {
+  background: linear-gradient(to bottom, rgb(56 189 248 / 0.16) 0%, rgb(56 189 248 / 0.06) 40%, transparent 100%);
+}
+html.dark .blueprint__glow { background: radial-gradient(closest-side, rgb(16 185 129 / 0.28), transparent); }
 @media (max-width: 640px) {
-  .blueprint__glow--a { height: 380px; width: 380px; right: 10%; top: 44%; }
-  .blueprint__glow--b { height: 320px; width: 320px; right: -30%; top: 62%; }
+  .blueprint__glow { height: 380px; width: 380px; right: -20%; top: 40%; }
+  .blueprint--header .blueprint__glow { height: 320px; width: 320px; right: -35%; top: -30%; }
 }

@@ -1,4 +1,5 @@
 import Link from "@/app/components/locale-link";
+import BlueprintBackdrop from "@/app/components/blueprint-backdrop";
 import type { ReactNode } from "react";
 
 import Breadcrumbs from "@/app/components/breadcrumbs";
@@ -37,12 +38,8 @@ export function PageHero({
   children?: ReactNode;
 }) {
   return (
-    <section className="relative overflow-hidden border-b border-neutral-200 bg-neutral-50">
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_right,rgb(var(--c-black)/0.04)_1px,transparent_1px),linear-gradient(to_bottom,rgb(var(--c-black)/0.04)_1px,transparent_1px)] bg-[size:44px_44px] [mask-image:radial-gradient(ellipse_at_top,black_30%,transparent_75%)]"
-      />
-      <div aria-hidden className="pointer-events-none absolute -right-32 -top-32 h-80 w-80 rounded-full bg-neutral-200/70 blur-3xl" />
+    <section className="relative overflow-hidden border-b border-neutral-200">
+      <BlueprintBackdrop focus="header" />
 
       <div className="relative mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8 lg:py-20">
         <Breadcrumbs items={breadcrumbs} />

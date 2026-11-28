@@ -1,4 +1,5 @@
 import { Eye, MessageCircle } from "lucide-react";
+import BlueprintBackdrop from "@/app/components/blueprint-backdrop";
 
 import Breadcrumbs from "@/app/components/breadcrumbs";
 import { getI18n } from "@/lib/i18n/server";
@@ -32,12 +33,8 @@ export default async function PostHero({ post, commentCount }: { post: Post; com
   ];
 
   return (
-    <section className="relative overflow-hidden border-b border-neutral-200 bg-neutral-50">
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_right,rgb(var(--c-black)/0.04)_1px,transparent_1px),linear-gradient(to_bottom,rgb(var(--c-black)/0.04)_1px,transparent_1px)] bg-[size:44px_44px] [mask-image:radial-gradient(ellipse_at_top,black_30%,transparent_75%)]"
-      />
-      <div aria-hidden className="pointer-events-none absolute -right-32 -top-32 h-80 w-80 rounded-full bg-neutral-200/70 blur-3xl" />
+    <section className="relative overflow-hidden border-b border-neutral-200">
+      <BlueprintBackdrop focus="header" />
 
       <div className="relative mx-auto grid w-full max-w-6xl grid-cols-1 gap-12 px-5 pb-5 pt-6 sm:px-8 sm:pb-6 sm:pt-10 lg:grid-cols-[minmax(0,1fr)_280px] lg:px-10 lg:pb-7 lg:pt-12">
         <div className="min-w-0">

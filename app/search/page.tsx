@@ -1,4 +1,5 @@
 import Link from "@/app/components/locale-link";
+import BlueprintBackdrop from "@/app/components/blueprint-backdrop";
 import {
   ArrowRight,
   BookOpen,
@@ -107,23 +108,7 @@ export default async function SearchPage({
 
   return (
     <main className="relative min-h-[calc(100vh-72px)] overflow-hidden bg-white">
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-0 overflow-hidden"
-      >
-        <div className="absolute left-1/2 top-0 h-[520px] w-[520px] -translate-x-1/2 rounded-full bg-neutral-100/70 blur-3xl" />
-        <div
-          className="absolute inset-0 opacity-[0.3]"
-          style={{
-            backgroundImage:
-              "linear-gradient(to right, rgb(var(--c-neutral-200)) 1px, transparent 1px), linear-gradient(to bottom, rgb(var(--c-neutral-200)) 1px, transparent 1px)",
-            backgroundSize: "64px 64px",
-            maskImage: "linear-gradient(to bottom, black, transparent 75%)",
-            WebkitMaskImage:
-              "linear-gradient(to bottom, black, transparent 75%)",
-          }}
-        />
-      </div>
+      <BlueprintBackdrop focus="header" className="!bottom-auto h-[560px]" />
 
       <div className="relative z-10 mx-auto w-full max-w-6xl px-6 py-16 sm:px-8 lg:px-10 lg:py-20">
         <div className="mx-auto max-w-3xl text-center">

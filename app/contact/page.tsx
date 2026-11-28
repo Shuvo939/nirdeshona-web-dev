@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import BlueprintBackdrop from "@/app/components/blueprint-backdrop";
 
 import { createCaptcha } from "@/lib/captcha";
 import Link from "@/app/components/locale-link";
@@ -46,26 +47,8 @@ export default async function ContactPage({
           HERO
       ====================================================== */}
 
-      <section className="relative overflow-hidden border-b border-neutral-200 bg-white">
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-0 overflow-hidden"
-        >
-          <div className="absolute left-1/2 top-[-260px] h-[520px] w-[760px] -translate-x-1/2 rounded-full bg-neutral-100 blur-3xl" />
-
-          <div className="absolute right-[-120px] top-20 h-72 w-72 rounded-full border border-neutral-200/80" />
-
-          <div className="absolute bottom-[-160px] left-[-160px] h-80 w-80 rounded-full border border-neutral-200/80" />
-
-          <div
-            className="absolute inset-0 opacity-[0.035]"
-            style={{
-              backgroundImage:
-                "linear-gradient(to right, rgb(var(--c-black)) 1px, transparent 1px), linear-gradient(to bottom, rgb(var(--c-black)) 1px, transparent 1px)",
-              backgroundSize: "48px 48px",
-            }}
-          />
-        </div>
+      <section className="relative overflow-hidden border-b border-neutral-200">
+        <BlueprintBackdrop focus="header" />
 
         <div className="relative mx-auto max-w-7xl px-6 py-20 sm:px-8 sm:py-24 lg:px-8 lg:py-28">
           <div className="max-w-3xl">
