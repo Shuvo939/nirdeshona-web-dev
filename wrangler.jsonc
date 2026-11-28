@@ -5,6 +5,9 @@
   "name": "nirdeshona-web-dev",
   "main": ".open-next/worker-entry.js",
   "compatibility_date": "2026-11-28",
+  // Keep variables set in the dashboard; without this every deploy from
+  // GitHub removes the plain-text ones (secrets are always kept).
+  "keep_vars": true,
   "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
   "assets": { "directory": ".open-next/assets", "binding": "ASSETS" },
   // Run next to the database (Supabase, Mumbai) rather than next to each visitor:
