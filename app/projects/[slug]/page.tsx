@@ -209,10 +209,10 @@ export default async function ProjectDetailsPage({ params }: Props) {
       {/* Hero */}
       <section className="relative overflow-hidden border-b border-neutral-200 bg-neutral-50">
         <div aria-hidden className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_0%,rgba(16,185,129,0.08),transparent_45%),radial-gradient(circle_at_90%_10%,rgb(var(--c-black)/0.05),transparent_40%)]" />
-        <div className="relative mx-auto max-w-7xl px-4 pb-12 pt-8 sm:px-6 sm:pt-10 lg:px-8">
+        <div className="relative mx-auto max-w-7xl px-4 pb-10 pt-6 sm:px-6 sm:pb-12 sm:pt-10 lg:px-8">
           <Breadcrumbs items={[{ label: L("Our work", "আমাদের কাজ"), href: "/projects" }, { label: project.title }]} />
 
-          <div className="mt-8 grid grid-cols-1 gap-10 lg:grid-cols-[1.05fr_1fr] lg:items-center">
+          <div className="mt-6 grid grid-cols-1 gap-8 sm:mt-8 sm:gap-10 lg:grid-cols-[1.05fr_1fr] lg:items-center">
             <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-2">
                 <StatusBadge map={PROJECT_STATUS} value={project.status} />
@@ -228,21 +228,21 @@ export default async function ProjectDetailsPage({ params }: Props) {
                 )}
               </div>
 
-              <h1 className="mt-5 text-4xl font-bold tracking-[-0.04em] text-neutral-950 sm:text-5xl">{project.title}</h1>
+              <h1 className={`mt-4 text-balance text-[2rem] font-bold leading-[1.12] text-neutral-950 sm:mt-5 sm:text-5xl sm:leading-[1.05] ${locale === "bn" ? "" : "tracking-[-0.035em]"}`}>{project.title}</h1>
               {project.client_name && (
-                <p className="mt-3 flex items-center gap-2 text-sm text-neutral-500">
+                <p className="mt-3 flex min-w-0 items-center gap-2 text-sm text-neutral-500">
                   <ClientMark name={project.client_name} logo={project.client_logo} />
                   {L(
-                    <>
+                    <span className="min-w-0 truncate">
                       for <span className="font-medium text-neutral-800">{project.client_name}</span>
-                    </>,
-                    <>
+                    </span>,
+                    <span className="min-w-0 truncate">
                       <span className="font-medium text-neutral-800">{project.client_name}</span>-এর জন্য
-                    </>,
+                    </span>,
                   )}
                 </p>
               )}
-              {project.short_description && <p className="mt-5 max-w-xl text-lg leading-8 text-neutral-600">{project.short_description}</p>}
+              {project.short_description && <p className="mt-4 max-w-xl text-[15px] leading-7 text-neutral-600 sm:mt-5 sm:text-lg sm:leading-8">{project.short_description}</p>}
 
               {!completed && (
                 <div className="mt-6 max-w-sm">
@@ -256,28 +256,36 @@ export default async function ProjectDetailsPage({ params }: Props) {
                 </div>
               )}
 
-              <div className="mt-8 flex flex-wrap gap-3">
+              {/* Phones: one row — main action stretches, Source and Share become icon buttons. */}
+              <div className="mt-6 flex items-center gap-2.5 sm:mt-8 sm:gap-3">
                 {liveUrl && (
-                  <a href={liveUrl} target="_blank" rel="noopener noreferrer" className="inline-flex h-11 items-center gap-2 rounded-full bg-neutral-950 px-5 text-sm font-semibold text-white transition hover:bg-neutral-800">
-                    <Globe className="h-4 w-4" /> {L("Visit website", "ওয়েবসাইট দেখুন")} <ArrowUpRight className="h-4 w-4" />
+                  <a href={liveUrl} target="_blank" rel="noopener noreferrer" className="inline-flex h-11 min-w-0 flex-1 items-center justify-center gap-2 rounded-full bg-neutral-950 px-5 text-sm font-semibold text-white transition hover:bg-neutral-800 sm:flex-none">
+                    <Globe className="h-4 w-4 shrink-0" /> <span className="truncate">{L("Visit website", "ওয়েবসাইট দেখুন")}</span> <ArrowUpRight className="h-4 w-4 shrink-0" />
                   </a>
                 )}
                 {repoUrl && (
-                  <a href={repoUrl} target="_blank" rel="noopener noreferrer" className="inline-flex h-11 items-center gap-2 rounded-full border border-neutral-200 bg-white px-5 text-sm font-semibold text-neutral-800 hover:border-neutral-300">
-                    <Code2 className="h-4 w-4" /> {L("Source", "সোর্স কোড")}
+                  <a
+                    href={repoUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={L("Source code", "সোর্স কোড")}
+                    className="inline-flex h-11 w-11 shrink-0 items-center justify-center gap-2 rounded-full border border-neutral-200 bg-white text-sm font-semibold text-neutral-800 hover:border-neutral-300 sm:w-auto sm:px-5"
+                  >
+                    <Code2 className="h-4 w-4" /> <span className="hidden sm:inline">{L("Source", "সোর্স কোড")}</span>
                   </a>
                 )}
                 <ShareButton
                   title={project.title}
-                  className="inline-flex h-11 items-center gap-2 rounded-full border border-neutral-200 bg-white px-5 text-sm font-semibold text-neutral-800 hover:border-neutral-300"
+                  labelClassName={liveUrl ? "hidden sm:inline" : ""}
+                  className={`inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-full border border-neutral-200 bg-white text-sm font-semibold text-neutral-800 hover:border-neutral-300 ${liveUrl ? "w-11 sm:w-auto sm:px-5" : "px-5"}`}
                 />
               </div>
             </div>
 
             {/* Browser frame */}
             <div className="min-w-0">
-              <div className="overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-[0_30px_80px_rgba(0,0,0,0.12)]">
-                <div className="flex items-center gap-3 border-b border-neutral-200 bg-neutral-50 px-4 py-2.5">
+              <div className="overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-[0_20px_60px_rgba(0,0,0,0.10)] sm:shadow-[0_30px_80px_rgba(0,0,0,0.12)]">
+                <div className="flex items-center gap-3 border-b border-neutral-200 bg-neutral-50 px-3 py-2 sm:px-4 sm:py-2.5">
                   <span className="flex gap-1.5">
                     <span className="h-2.5 w-2.5 rounded-full bg-red-400" />
                     <span className="h-2.5 w-2.5 rounded-full bg-amber-400" />
@@ -285,22 +293,21 @@ export default async function ProjectDetailsPage({ params }: Props) {
                   </span>
                   <span className="min-w-0 flex-1 truncate rounded-md bg-white px-3 py-1 text-center text-[11px] text-neutral-500">{host ?? project.slug}</span>
                 </div>
-                <div className="aspect-[16/10] bg-neutral-100">
-                  {project.cover_image_url ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={project.cover_image_url} alt={project.title} className="h-full w-full object-cover object-top" />
-                  ) : (
-                    <div className="flex h-full items-center justify-center">
-                      <Layers3 className="h-12 w-12 text-neutral-300" />
-                    </div>
-                  )}
-                </div>
+                {project.cover_image_url ? (
+                  // Whole screenshot, never cropped; tall ones are capped and show their top.
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={project.cover_image_url} alt={project.title} className="block max-h-[70vh] w-full bg-neutral-100 object-cover object-top" />
+                ) : (
+                  <div className="flex aspect-[16/10] items-center justify-center bg-neutral-100">
+                    <Layers3 className="h-12 w-12 text-neutral-300" />
+                  </div>
+                )}
               </div>
             </div>
           </div>
 
           {facts.length > 0 && (
-            <dl className="mt-12 grid grid-cols-2 gap-3 lg:grid-cols-4">
+            <dl className="mt-8 grid grid-cols-2 gap-2.5 sm:mt-12 sm:gap-3 lg:grid-cols-4">
               {facts.map((f) => (
                 <div key={f.label} className="rounded-2xl border border-neutral-200 bg-white p-4">
                   <dt className="flex items-center gap-1.5 text-xs text-neutral-500">
