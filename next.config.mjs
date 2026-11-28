@@ -24,6 +24,9 @@ const nextConfig = {
   experimental: {
     serverActions: { bodySizeLimit: "4mb" },
   },
+  // Share-image fonts are read from disk on Node (lib/og.tsx); make sure the
+  // serverless functions carry them.
+  outputFileTracingIncludes: { "/**": ["./public/og-fonts/**"] },
   images: {
     remotePatterns: [
       {

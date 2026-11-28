@@ -1,0 +1,33 @@
+{
+  // Cloudflare Workers deployment (trial — Vercel stays live until we switch DNS).
+  // Build: npm run cf:build   Local run in workerd: npm run cf:preview   Deploy: npm run cf:deploy
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "nirdeshona-web",
+  "main": ".open-next/worker-entry.js",
+  "compatibility_date": "2026-11-28",
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+  "assets": { "directory": ".open-next/assets", "binding": "ASSETS" },
+  // Run next to the database (Supabase, Mumbai) rather than next to each visitor:
+  // pages make several queries each, so the database round trip matters most.
+  "placement": { "mode": "smart" },
+  "observability": { "enabled": true },
+  "upload_source_maps": true,
+  "services": [{ "binding": "WORKER_SELF_REFERENCE", "service": "nirdeshona-web" }],
+  // Next.js page/data cache and its revalidation tags.
+  // Plus the site's own media buckets (same buckets as R2_BUCKET_NAME and
+  // R2_PRIVATE_BUCKET_NAME), used directly instead of the S3 API.
+  "r2_buckets": [
+    { "binding": "NEXT_INC_CACHE_R2_BUCKET", "bucket_name": "nirdeshona-web-next-cache" },
+    { "binding": "MEDIA_BUCKET", "bucket_name": "nirdeshona-webdev" },
+    { "binding": "PRIVATE_BUCKET", "bucket_name": "nirdeshona-webdev-private" }
+  ],
+  "d1_databases": [
+    { "binding": "NEXT_TAG_CACHE_D1", "database_name": "nirdeshona-web-tag-cache", "database_id": "REPLACE_WITH_D1_ID" }
+  ],
+  // Pooled Postgres connection to Supabase. Create it in the dashboard
+  // (Workers & Pages → Hyperdrive) with the Supabase connection string.
+  "hyperdrive": [{ "binding": "HYPERDRIVE", "id": "REPLACE_WITH_HYPERDRIVE_ID" }],
+  "images": { "binding": "IMAGES" },
+  // Nightly Bin purge (was a Vercel cron): 21:17 UTC = 03:17 Dhaka.
+  "triggers": { "crons": ["17 21 * * *"] }
+}

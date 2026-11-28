@@ -1,6 +1,6 @@
 import crypto from "node:crypto";
 import { NextResponse } from "next/server";
-import sharp from "sharp";
+import { toAvatar } from "@/lib/image-process";
 
 import { getSessionUser } from "@/lib/auth/session";
 import { sql } from "@/lib/db";
@@ -31,17 +31,19 @@ export async function POST(request: Request) {
   let body: Buffer;
   try {
     // Square-crop, resize and re-encode: strips metadata and keeps avatars small.
-    body = await sharp(Buffer.from(await file.arrayBuffer()))
-      .rotate()
-      .resize(400, 400, { fit: "cover", position: "attention" })
-      .webp({ quality: 82 })
-      .toBuffer();
+    body = await toAvatar(Buffer.from(await file.arrayBuffer()));
   } catch {
     return NextResponse.json({ error: "That image couldn't be processed." }, { status: 400 });
   }
 
   const key = `avatars/${user.id}/${crypto.randomUUID()}.webp`;
-  const { url } = await uploadToR2({ key, body, contentType: "image/webp" });
+  let url: string;
+  try {
+    ({ url } = await uploadToR2({ key, body, contentType: "image/webp" }));
+  } catch (error) {
+    console.error("avatar upload failed", error);
+    return NextResponse.json({ error: "Couldn't save the photo. Please try again." }, { status: 502 });
+  }
 
   const oldKey = keyFromUrl(user.avatarUrl);
   await sql`update profiles set avatar_url = ${url} where id = ${user.id}`;
