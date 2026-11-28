@@ -4,11 +4,9 @@ import { NextResponse, type NextRequest } from "next/server";
 import { DEFAULT_LOCALE, LOCALE_COOKIE, LOCALE_HEADER, isLocale, isUnlocalizedPath, type Locale } from "@/lib/i18n/config";
 import { REMEMBER_COOKIE, isPersistent, withRemember } from "@/lib/supabase/remember";
 
-const VISITOR_COOKIE = "nirdeshona_visitor_id";
-
-function generateVisitorId() {
-  return crypto.randomUUID();
-}
+// Retired: views are now counted without cookies (lib/posts/views.ts).
+// Remove it from browsers that still carry it.
+const OLD_VISITOR_COOKIE = "nirdeshona_visitor_id";
 
 export async function proxy(request: NextRequest) {
   const { pathname, search } = request.nextUrl;
@@ -67,18 +65,8 @@ export async function proxy(request: NextRequest) {
   // Refresh/validate Supabase auth session.
   await supabase.auth.getUser();
 
-  // Create visitor ID if it doesn't exist.
-  const existingVisitorId =
-    request.cookies.get(VISITOR_COOKIE)?.value;
-
-  if (!existingVisitorId) {
-    response.cookies.set(VISITOR_COOKIE, generateVisitorId(), {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      path: "/",
-      maxAge: 60 * 60 * 24 * 365 * 2, // 2 years
-    });
+  if (request.cookies.has(OLD_VISITOR_COOKIE)) {
+    response.cookies.set(OLD_VISITOR_COOKIE, "", { path: "/", maxAge: 0 });
   }
 
   if (isLocale(first) && preferred !== first) {
