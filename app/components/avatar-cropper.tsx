@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import Cropper, { type Area } from "react-easy-crop";
 import { FlipHorizontal2, Loader2, RotateCcw, RotateCw, Undo2, X, ZoomIn, ZoomOut } from "lucide-react";
+import { useScrollLock, useVisibleHeight } from "@/app/components/ui/portal";
 import { useI18n } from "@/lib/i18n/client";
 
 const OUTPUT_SIZE = 640;
@@ -84,13 +85,11 @@ export default function AvatarCropper({
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && !saving && onCancel();
     document.addEventListener("keydown", onKey);
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.removeEventListener("keydown", onKey);
-      document.body.style.overflow = prev;
-    };
+    return () => document.removeEventListener("keydown", onKey);
   }, [onCancel, saving]);
+
+  useScrollLock();
+  const visibleHeight = useVisibleHeight();
 
   const turn = (deg: number) => setRotation((r) => {
     const next = (((r + deg) % 360) + 540) % 360 - 180; // keep in -180..180
@@ -122,8 +121,8 @@ export default function AvatarCropper({
     "flex h-10 w-10 items-center justify-center rounded-full border border-neutral-200 text-neutral-700 transition hover:bg-neutral-50 disabled:opacity-50";
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-end justify-center bg-scrim/60 sm:items-center sm:p-4" role="dialog" aria-modal="true" aria-labelledby="crop-title">
-      <div className="flex max-h-[100dvh] w-full max-w-lg flex-col overflow-hidden rounded-t-3xl bg-white shadow-2xl sm:rounded-3xl">
+    <div className="fixed inset-x-0 top-0 z-[100] flex h-[100dvh] items-end justify-center bg-scrim/60 sm:items-center sm:p-4" style={visibleHeight ? { height: visibleHeight } : undefined} role="dialog" aria-modal="true" aria-labelledby="crop-title">
+      <div className="flex max-h-full w-full max-w-lg flex-col overflow-hidden rounded-t-3xl bg-white shadow-2xl sm:rounded-3xl">
         <div className="flex items-center justify-between border-b border-neutral-100 px-5 py-4">
           <h2 id="crop-title" className="text-base font-semibold text-neutral-950">
             {L("Edit profile photo", "প্রোফাইল ছবি এডিট করুন")}

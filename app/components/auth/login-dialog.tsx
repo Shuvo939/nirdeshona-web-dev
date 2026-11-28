@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { X } from "lucide-react";
 
 import LoginPanel from "@/app/components/auth/login-panel";
-import Portal, { useScrollLock } from "@/app/components/ui/portal";
+import Portal, { useScrollLock, useVisibleHeight } from "@/app/components/ui/portal";
 import { useI18n } from "@/lib/i18n/client";
 import { AuthContext, type LoginOptions } from "@/app/components/auth/auth-context";
 
@@ -29,6 +29,7 @@ function LoginDialog({ options, onClose }: { options: LoginOptions; onClose: () 
   const next = options.next ?? (typeof window !== "undefined" ? window.location.pathname + window.location.search : pathname);
 
   useScrollLock();
+  const visibleHeight = useVisibleHeight();
 
   // Escape closes.
   useEffect(() => {
@@ -48,7 +49,8 @@ function LoginDialog({ options, onClose }: { options: LoginOptions; onClose: () 
   return (
     <Portal>
     <div
-      className="fixed inset-0 z-[130] flex items-end justify-center bg-scrim/50 backdrop-blur-sm sm:items-center sm:p-4"
+      className="fixed inset-x-0 top-0 z-[130] flex h-[100dvh] items-end justify-center bg-scrim/50 backdrop-blur-sm sm:items-center sm:p-4"
+      style={visibleHeight ? { height: visibleHeight } : undefined}
       onClick={onClose}
     >
       <div

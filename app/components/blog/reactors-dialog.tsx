@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { BadgeCheck, X } from "lucide-react";
 
 import type { ReactionType } from "@/lib/comments";
+import Portal, { useScrollLock, useVisibleHeight } from "@/app/components/ui/portal";
 import { useI18n } from "@/lib/i18n/client";
 
 import { getReactors, type Reactor } from "./community-actions";
@@ -44,13 +45,13 @@ export default function ReactorsDialog({
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
     document.addEventListener("keydown", onKey);
-    const overflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.removeEventListener("keydown", onKey);
-      document.body.style.overflow = overflow;
-    };
+    return () => document.removeEventListener("keydown", onKey);
   }, [onClose]);
+
+  // Lock <html> too: with only <body> locked the page still scrolled behind the
+  // sheet on phones, which moved the address bar and lifted the sheet.
+  useScrollLock();
+  const visibleHeight = useVisibleHeight();
 
   const counts: Partial<Record<ReactionType, number>> = {};
   for (const r of reactors ?? []) counts[r.reaction_type] = (counts[r.reaction_type] ?? 0) + 1;
@@ -58,8 +59,10 @@ export default function ReactorsDialog({
   const shown = (reactors ?? []).filter((r) => tab === "all" || r.reaction_type === tab);
 
   return (
+    <Portal>
     <div
-      className="fixed inset-0 z-[130] flex items-end justify-center bg-scrim/45 backdrop-blur-sm sm:items-center sm:p-4"
+      className="fixed inset-x-0 top-0 z-[130] flex h-[100dvh] items-end justify-center bg-scrim/45 backdrop-blur-sm sm:items-center sm:p-4"
+      style={visibleHeight ? { height: visibleHeight } : undefined}
       onClick={onClose}
     >
       <div
@@ -132,6 +135,7 @@ export default function ReactorsDialog({
         </ul>
       </div>
     </div>
+    </Portal>
   );
 }
 
