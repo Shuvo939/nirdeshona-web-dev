@@ -59,6 +59,7 @@
 }
 
 /* ---------- Page-header backdrop (app/components/blueprint-backdrop.tsx) ---------- */
+/* Same on every device: colour and grid start at the top edge and fade out downward. */
 .blueprint {
   pointer-events: none;
   position: absolute;
@@ -66,7 +67,6 @@
   overflow: hidden;
   background: rgb(var(--c-neutral-50));
 }
-/* Sky-blue light from the top edge, fading out on the way down. */
 .blueprint__wash {
   position: absolute;
   inset: 0 0 auto 0;
@@ -83,29 +83,8 @@
     linear-gradient(to bottom, rgb(var(--c-black) / 0.035) 1px, transparent 1px);
   background-size: 120px 120px, 120px 120px, 24px 24px, 24px 24px;
   background-position: -1px -1px;
-  -webkit-mask-image: radial-gradient(ellipse 80% 75% at 70% 20%, #000 30%, transparent 78%);
-  mask-image: radial-gradient(ellipse 80% 75% at 70% 20%, #000 30%, transparent 78%);
-}
-.blueprint--header .blueprint__grid {
-  -webkit-mask-image: radial-gradient(ellipse 85% 90% at 60% 0%, #000 25%, transparent 80%);
-  mask-image: radial-gradient(ellipse 85% 90% at 60% 0%, #000 25%, transparent 80%);
-}
-.blueprint__glow {
-  position: absolute;
-  right: 24%;
-  top: -12%;
-  height: 640px;
-  width: 640px;
-  border-radius: 9999px;
-  filter: blur(60px);
-  background: radial-gradient(closest-side, rgb(var(--c-emerald-300) / 0.34), transparent);
-}
-.blueprint--header .blueprint__glow {
-  right: -8%;
-  top: -45%;
-  height: 520px;
-  width: 520px;
-  background: radial-gradient(closest-side, rgb(var(--c-emerald-300) / 0.26), transparent);
+  -webkit-mask-image: linear-gradient(to bottom, #000 0%, rgb(0 0 0 / 0.55) 45%, transparent 90%);
+  mask-image: linear-gradient(to bottom, #000 0%, rgb(0 0 0 / 0.55) 45%, transparent 90%);
 }
 /* Soft hand-off into the page below. */
 .blueprint__fade {
@@ -116,9 +95,4 @@
 }
 html.dark .blueprint__wash {
   background: linear-gradient(to bottom, rgb(56 189 248 / 0.10) 0%, rgb(56 189 248 / 0.04) 40%, transparent 100%);
-}
-html.dark .blueprint__glow { background: radial-gradient(closest-side, rgb(16 185 129 / 0.2), transparent); }
-@media (max-width: 640px) {
-  .blueprint__glow { height: 380px; width: 380px; right: -20%; top: 40%; }
-  .blueprint--header .blueprint__glow { height: 320px; width: 320px; right: -35%; top: -30%; }
 }
