@@ -1,20 +1,35 @@
-import { readFile } from "node:fs/promises";
-import { join } from "node:path";
-
 import { ImageResponse } from "next/og";
+import { getCloudflareContext } from "@opennextjs/cloudflare";
 
 // Social share image (1200×630) in the site's style. Hind Siliguri covers
 // Latin and Bangla, so titles in either language render correctly.
 export const OG_SIZE = { width: 1200, height: 630 };
 
-const fontFiles = Promise.all(
-  ["latin-700", "bengali-700", "latin-500", "bengali-500"].map((f) =>
-    readFile(join(process.cwd(), `assets/fonts/hind-siliguri-${f}-normal.woff`)),
-  ),
-);
+// Fonts live in public/og-fonts (Hind Siliguri, OFL). Node reads them from disk;
+// on Cloudflare Workers there is no file system, so they come from the static assets.
+const onWorkers = typeof navigator !== "undefined" && navigator.userAgent === "Cloudflare-Workers";
+
+async function loadFont(name: string): Promise<ArrayBuffer> {
+  const file = `og-fonts/hind-siliguri-${name}-normal.woff`;
+  if (onWorkers) {
+    const assets = (getCloudflareContext().env as { ASSETS?: { fetch(r: string): Promise<Response> } }).ASSETS;
+    const res = await assets!.fetch(`https://assets.local/${file}`);
+    return res.arrayBuffer();
+  }
+  const [{ readFile }, { join }] = await Promise.all([import("node:fs/promises"), import("node:path")]);
+  const buf = await readFile(join(process.cwd(), "public", file));
+  return buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength) as ArrayBuffer;
+}
+
+let fontFiles: Promise<ArrayBuffer[]> | null = null;
+const fonts = () =>
+  (fontFiles ??= Promise.all(["latin-700", "bengali-700", "latin-500", "bengali-500"].map(loadFont)).catch((error) => {
+    fontFiles = null; // try again on the next request
+    throw error;
+  }));
 
 export async function renderOgImage({ title, eyebrow, footer }: { title: string; eyebrow?: string; footer?: string }) {
-  const [l700, b700, l500, b500] = await fontFiles;
+  const [l700, b700, l500, b500] = await fonts();
   const size = title.length > 70 ? 54 : title.length > 40 ? 64 : 76;
 
   return new ImageResponse(

@@ -22,3 +22,7 @@ out/
 # OS files
 .DS_Store
 Thumbs.db
+# Cloudflare / OpenNext
+.open-next
+.wrangler
+.dev.vars

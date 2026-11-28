@@ -1,10 +1,10 @@
 import "server-only";
 
 import { randomUUID } from "node:crypto";
-import sharp from "sharp";
 
 import { logActivity } from "@/lib/audit";
 import { sql } from "@/lib/db";
+import { imageSize, toWebImage } from "@/lib/image-process";
 import { deleteFromR2, hasR2, uploadToR2 } from "@/lib/r2";
 
 /** Largest image a form may send (the browser compresses to ~400 KB first). */
@@ -46,12 +46,11 @@ export async function storeFormImage(file: File, ownerId: string, label: string)
     const text = body.toString("utf8");
     if (!/<svg[\s>]/i.test(text) || /<script|on[a-z]+\s*=|javascript:/i.test(text)) throw new Error("That SVG file isn't allowed.");
   } else {
-    const image = sharp(body, { animated: contentType === "image/gif" });
-    const meta = await image.metadata().catch(() => null);
-    if (!meta?.width || !meta.height) throw new Error("That file isn't a valid image.");
+    const meta = await imageSize(body, contentType === "image/gif");
+    if (!meta) throw new Error("That file isn't a valid image.");
     const heavy = body.length > 600 * 1024 || Math.max(meta.width, meta.height) > 2000;
     if (heavy && contentType !== "image/gif") {
-      body = await sharp(body).rotate().resize(1600, 1600, { fit: "inside", withoutEnlargement: true }).webp({ quality: 78 }).toBuffer();
+      body = await toWebImage(body);
       contentType = "image/webp";
     }
     ext = { "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp", "image/avif": "avif", "image/gif": "gif" }[contentType] ?? "webp";

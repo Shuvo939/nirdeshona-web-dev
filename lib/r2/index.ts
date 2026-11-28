@@ -1,3 +1,4 @@
+import { FetchHttpHandler } from "@smithy/fetch-http-handler";
 import {
   DeleteObjectCommand,
   PutObjectCommand,
@@ -5,6 +6,32 @@ import {
 } from "@aws-sdk/client-s3";
 
 let client: S3Client | null = null;
+
+const onWorkers = typeof navigator !== "undefined" && navigator.userAgent === "Cloudflare-Workers";
+
+/* On Cloudflare Workers the buckets are reached through native R2 bindings
+   (MEDIA_BUCKET, PRIVATE_BUCKET in wrangler.jsonc): faster, and the AWS SDK's
+   response parser needs DOMParser, which workerd lacks. Presigned URLs are
+   still made with the SDK (signing only, no response to parse). */
+type R2Head = { size: number; httpMetadata?: { contentType?: string } } | null;
+type R2BucketLike = {
+  put(key: string, body: Uint8Array, opts?: { httpMetadata?: { contentType?: string } }): Promise<unknown>;
+  delete(key: string): Promise<void>;
+  head(key: string): Promise<R2Head>;
+};
+
+async function binding(kind: "public" | "private"): Promise<R2BucketLike | null> {
+  if (!onWorkers) return null;
+  const { getCloudflareContext } = await import("@opennextjs/cloudflare");
+  const env = getCloudflareContext().env as unknown as Record<string, R2BucketLike | undefined>;
+  const bucket = kind === "private" ? env.PRIVATE_BUCKET ?? env.MEDIA_BUCKET : env.MEDIA_BUCKET;
+  return bucket ?? null;
+}
+
+async function headVia(bucket: R2BucketLike, key: string) {
+  const obj = await bucket.head(key);
+  return obj ? { size: obj.size, contentType: obj.httpMetadata?.contentType ?? "application/octet-stream" } : null;
+}
 
 function getConfig() {
   const {
@@ -62,6 +89,8 @@ export function getR2() {
       },
       requestChecksumCalculation: "WHEN_REQUIRED",
       responseChecksumValidation: "WHEN_REQUIRED",
+      // Cloudflare Workers: send requests with fetch() instead of Node's https.
+      ...(onWorkers ? { requestHandler: new FetchHttpHandler() } : {}),
     });
   }
 
@@ -78,6 +107,12 @@ export async function uploadToR2({
   contentType: string;
 }) {
   const { client: r2, bucketName, publicUrl } = getR2();
+
+  const bucket = await binding("public");
+  if (bucket) {
+    await bucket.put(key, body, { httpMetadata: { contentType } });
+    return { key, url: `${publicUrl}/${key}` };
+  }
 
   await r2.send(
     new PutObjectCommand({
@@ -96,6 +131,8 @@ export async function uploadToR2({
 
 export async function deleteFromR2(key: string) {
   const { client: r2, bucketName } = getR2();
+  const bucket = await binding("public");
+  if (bucket) return bucket.delete(key);
 
   await r2.send(
     new DeleteObjectCommand({
@@ -127,6 +164,8 @@ export async function presignPrivatePut(key: string, contentType: string, conten
 }
 
 export async function headPrivateObject(key: string) {
+  const bucket = await binding("private");
+  if (bucket) return headVia(bucket, key).catch(() => null);
   const { HeadObjectCommand } = await import("@aws-sdk/client-s3");
   const { client } = getR2();
   try {
@@ -154,6 +193,8 @@ export async function presignPrivateGet(key: string, fileName: string, inline: b
 }
 
 export async function deletePrivateObject(key: string) {
+  const bucket = await binding("private");
+  if (bucket) return bucket.delete(key);
   const { client } = getR2();
   await client.send(new DeleteObjectCommand({ Bucket: privateBucket(), Key: key }));
 }
@@ -173,6 +214,8 @@ export async function presignPublicPut(key: string, contentType: string, content
 }
 
 export async function headPublicObject(key: string) {
+  const bucket = await binding("public");
+  if (bucket) return headVia(bucket, key).catch(() => null);
   const { HeadObjectCommand } = await import("@aws-sdk/client-s3");
   const { client, bucketName } = getR2();
   try {

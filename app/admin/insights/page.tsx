@@ -22,7 +22,7 @@ const n = (v: unknown) => Number(v ?? 0);
 const fmt = (v: unknown) => n(v).toLocaleString("en-US");
 
 // Today in Dhaka, as a SQL date expression.
-const today = sql`(now() at time zone 'Asia/Dhaka')::date`;
+const today = () => sql`(now() at time zone 'Asia/Dhaka')::date`;
 
 /**
  * Runs queries a few at a time instead of all at once, so this page never
@@ -86,8 +86,8 @@ export default async function InsightsPage({ searchParams }: { searchParams: Pro
   ] = await inBatches([
     () => sql`
       select
-        coalesce(sum(views) filter (where day > ${today} - ${days}::int), 0)::int as cur,
-        coalesce(sum(views) filter (where day <= ${today} - ${days}::int and day > ${today} - ${days * 2}::int), 0)::int as prev
+        coalesce(sum(views) filter (where day > ${today()} - ${days}::int), 0)::int as cur,
+        coalesce(sum(views) filter (where day <= ${today()} - ${days}::int and day > ${today()} - ${days * 2}::int), 0)::int as prev
       from post_views_daily
     `,
     () => periodCount("post_view_tracking", "last_viewed_at", days),
@@ -105,7 +105,7 @@ export default async function InsightsPage({ searchParams }: { searchParams: Pro
         ((select count(*) from comments c where (c.created_at at time zone 'Asia/Dhaka')::date = d::date)
           + (select count(*) from post_reactions r where (r.created_at at time zone 'Asia/Dhaka')::date = d::date)
           + (select count(*) from comment_likes l where (l.created_at at time zone 'Asia/Dhaka')::date = d::date))::int as engagement
-      from generate_series(${today} - ${days - 1}::int, ${today}, interval '1 day') d
+      from generate_series(${today()} - ${days - 1}::int, ${today()}, interval '1 day') d
       order by d
     `,
     () => sql`
@@ -114,7 +114,7 @@ export default async function InsightsPage({ searchParams }: { searchParams: Pro
         (select count(*) from post_reactions r where r.post_id = p.id)::int as reactions,
         (select count(*) from comments c where c.post_id = p.id and c.status = 'visible')::int as comments
       from posts p
-      left join (select post_id, sum(views)::int as views from post_views_daily where day > ${today} - ${days}::int group by 1) v on v.post_id = p.id
+      left join (select post_id, sum(views)::int as views from post_views_daily where day > ${today()} - ${days}::int group by 1) v on v.post_id = p.id
       where p.status = 'published'
       order by coalesce(v.views, 0) desc, p.views_count desc
       limit 8
