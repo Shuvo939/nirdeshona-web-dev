@@ -26,7 +26,16 @@
   ],
   // Pooled Postgres connection to Supabase. Create it in the dashboard
   // (Workers & Pages → Hyperdrive) with the Supabase connection string.
-  "hyperdrive": [{ "binding": "HYPERDRIVE", "id": "5d7e2ae1c0884f69bf160bae9b2d8142" }],
+  // localConnectionString is only for local runs (cf:preview, and the local
+  // proxy that `opennextjs-cloudflare deploy` starts to fill the cache);
+  // deployed Workers always use the Hyperdrive config above.
+  "hyperdrive": [
+    {
+      "binding": "HYPERDRIVE",
+      "id": "5d7e2ae1c0884f69bf160bae9b2d8142",
+      "localConnectionString": "postgres://postgres:localpw@127.0.0.1:5433/app"
+    }
+  ],
   "images": { "binding": "IMAGES" },
   // Nightly Bin purge (was a Vercel cron): 21:17 UTC = 03:17 Dhaka.
   "triggers": { "crons": ["17 21 * * *"] }
