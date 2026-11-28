@@ -8,6 +8,17 @@
   // Keep variables set in the dashboard; without this every deploy from
   // GitHub removes the plain-text ones (secrets are always kept).
   "keep_vars": true,
+  // Public, non-secret settings. Secrets (AUTH_SECRET, CRON_SECRET,
+  // RESEND_API_KEY, R2 keys, ADMIN_EMAIL) live in the dashboard only.
+  "vars": {
+    "NEXT_PUBLIC_SUPABASE_URL": "https://lkwqjtehahpeqqubsfph.supabase.co",
+    "NEXT_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imxrd3FqdGVoYWhwZXFxdWJzZnBoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc1ODg2MzYsImV4cCI6MjEwMzE2NDYzNn0.vMY5N-_stFRnPJCV8ONMqPv_yhcHdeT262govwhSVyc",
+    "GOOGLE_CLIENT_ID": "430387821954-fb5aftsid8qds6eg9ahahd39pmvinr4l.apps.googleusercontent.com",
+    "R2_BUCKET_NAME": "nirdeshona-webdev",
+    "R2_PRIVATE_BUCKET_NAME": "nirdeshona-webdev-private",
+    "R2_PUBLIC_URL": "https://cdn.nirdeshona.com",
+    "RESEND_FROM_EMAIL": "noreply@web.nirdeshona.com"
+  },
   "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
   "assets": { "directory": ".open-next/assets", "binding": "ASSETS" },
   // Run next to the database (Supabase, Mumbai) rather than next to each visitor:
