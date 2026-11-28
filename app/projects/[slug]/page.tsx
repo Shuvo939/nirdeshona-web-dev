@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 
 import { renderMarkdown } from "@/app/components/blog/markdown";
+import ProjectFeatures from "@/app/components/projects/project-features";
 import { PROJECT_STATUS, StatusBadge } from "@/app/components/marketing";
 import ProjectCard, { type ProjectCardData } from "@/app/components/project-card";
 import ProjectGallery from "@/app/components/projects/project-gallery";
@@ -42,6 +43,7 @@ type Project = {
   title: string;
   short_description: string | null;
   description: string | null;
+  features: string | null;
   category: string | null;
   status: string;
   progress_percent: number;
@@ -59,7 +61,7 @@ type Project = {
 const getProject = cache(async (slug: string, locale: Locale) => {
   const [project] = (await sql`
     select p.id, p.slug, ${tcol(locale, "p.title")} as title, ${tcol(locale, "p.short_description")} as short_description,
-           ${tcol(locale, "p.description")} as description, p.category, p.status::text as status,
+           ${tcol(locale, "p.description")} as description, ${tcol(locale, "p.features")} as features, p.category, p.status::text as status,
            p.progress_percent, p.featured, p.cover_image_url, p.live_url, p.repository_url,
            p.started_at::text as started_at, p.completed_at::text as completed_at, p.updated_at,
            c.name as client_name, c.logo_url as client_logo
@@ -323,6 +325,15 @@ export default async function ProjectDetailsPage({ params }: Props) {
               <p className="mt-4 text-neutral-600">{project.short_description ?? L("Details for this project are coming soon.", "এই প্রজেক্টের বিস্তারিত শিগগিরই আসছে।")}</p>
             )}
           </div>
+
+          {project.features && (
+            <ProjectFeatures
+              source={project.features}
+              title={L("All features", "সব ফিচার")}
+              count={(n) => num(n)}
+              summary={(f, g) => L(`${f} features in ${g} area${g > 1 ? "s" : ""}`, `${num(g)}টি ভাগে ${num(f)}টি ফিচার`)}
+            />
+          )}
 
           {media.length > 0 && (
             <div>

@@ -42,6 +42,8 @@ export default async function EditProjectPage({
         title_bn,
         short_description_bn,
         description_bn,
+        features,
+        features_bn,
         category,
         status,
         progress_percent,
@@ -126,6 +128,8 @@ export default async function EditProjectPage({
           title_bn: project.title_bn ?? "",
           short_description_bn: project.short_description_bn ?? "",
           description_bn: project.description_bn ?? "",
+          features: project.features ?? "",
+          features_bn: project.features_bn ?? "",
           category:
             project.category ?? "",
           client_id:

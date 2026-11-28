@@ -44,6 +44,8 @@ const ProjectSchema = z.object({
   title_bn: z.string().trim().max(200).optional(),
   short_description_bn: z.string().trim().max(300).optional(),
   description_bn: z.string().trim().optional(),
+  features: z.string().trim().max(40000).optional(),
+  features_bn: z.string().trim().max(40000).optional(),
 
   category: z
     .enum(PROJECT_CATEGORIES)
@@ -117,6 +119,8 @@ function readForm(formData: FormData) {
     title_bn: parseOptionalString(formData.get("title_bn")),
     short_description_bn: parseOptionalString(formData.get("short_description_bn")),
     description_bn: parseOptionalString(formData.get("description_bn"))?.replace(/\r\n?/g, "\n"),
+    features: parseOptionalString(formData.get("features"))?.replace(/\r\n?/g, "\n"),
+    features_bn: parseOptionalString(formData.get("features_bn"))?.replace(/\r\n?/g, "\n"),
     category: parseOptionalString(formData.get("category")),
     client_id: parseOptionalString(formData.get("client_id")),
     status: formData.get("status"),
@@ -197,6 +201,7 @@ async function saveProject(id: string | null, formData: FormData): Promise<Proje
             short_description = ${data.short_description ?? null}, description = ${data.description ?? null},
             title_bn = ${data.title_bn ?? null}, short_description_bn = ${data.short_description_bn ?? null},
             description_bn = ${data.description_bn ?? null},
+            features = ${data.features ?? null}, features_bn = ${data.features_bn ?? null},
             category = ${data.category ?? null}, status = ${data.status}, progress_percent = ${data.progress_percent},
             featured = ${data.featured}, cover_image_url = ${cover}, live_url = ${data.live_url ?? null},
             repository_url = ${data.repository_url ?? null}, started_at = ${data.started_at ?? null},
@@ -205,11 +210,11 @@ async function saveProject(id: string | null, formData: FormData): Promise<Proje
         `;
       } else {
         const [row] = await tx`
-          insert into projects (client_id, title, slug, short_description, description, title_bn, short_description_bn, description_bn, category, status,
+          insert into projects (client_id, title, slug, short_description, description, title_bn, short_description_bn, description_bn, features, features_bn, category, status,
                                 progress_percent, featured, cover_image_url, live_url, repository_url, started_at, completed_at)
           values (${data.client_id ?? null}, ${data.title}, ${data.slug}, ${data.short_description ?? null},
                   ${data.description ?? null}, ${data.title_bn ?? null}, ${data.short_description_bn ?? null},
-                  ${data.description_bn ?? null}, ${data.category ?? null}, ${data.status}, ${data.progress_percent},
+                  ${data.description_bn ?? null}, ${data.features ?? null}, ${data.features_bn ?? null}, ${data.category ?? null}, ${data.status}, ${data.progress_percent},
                   ${data.featured}, ${cover}, ${data.live_url ?? null}, ${data.repository_url ?? null},
                   ${data.started_at ?? null}, ${data.completed_at ?? null})
           returning id

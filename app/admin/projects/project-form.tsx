@@ -29,6 +29,8 @@ export type ProjectFormValues = {
   title_bn?: string;
   short_description_bn?: string;
   description_bn?: string;
+  features?: string;
+  features_bn?: string;
   category?: string;
   client_id?: string;
   status?: string;
@@ -139,6 +141,24 @@ export default function ProjectForm({
               <MarkdownEditor name="description_bn" defaultValue={v.description_bn} rows={10} placeholder="প্রজেক্টের লক্ষ্য, ফিচার ও ফলাফল লিখুন…" />
             </Field>
           </fieldset>
+        </div>
+      </Section>
+
+      <Section
+        title="Features (A–Z)"
+        description="Everything the project does, grouped. Shown as its own section on the case-study page."
+      >
+        <div className="flex flex-col gap-5">
+          <p className="rounded-xl bg-neutral-50 px-3 py-2 font-mono text-xs leading-5 text-neutral-600">
+            ## Group name
+            <br />- **Feature name** — what it does and why it matters.
+          </p>
+          <Field id="features" label="Features (English)" error={e.features}>
+            <MarkdownEditor name="features" defaultValue={v.features} rows={14} placeholder={"## Reading\n- **Quran** — Arabic text with Bangla translation…"} />
+          </Field>
+          <Field id="features_bn" label="Features (Bangla)" error={e.features_bn}>
+            <MarkdownEditor name="features_bn" defaultValue={v.features_bn} rows={14} placeholder={"## পড়া\n- **কুরআন** — আরবি পাঠ ও বাংলা অনুবাদ…"} />
+          </Field>
         </div>
       </Section>
 
