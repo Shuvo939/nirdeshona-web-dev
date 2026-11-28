@@ -26,7 +26,7 @@
   ],
   // Pooled Postgres connection to Supabase. Create it in the dashboard
   // (Workers & Pages → Hyperdrive) with the Supabase connection string.
-  "hyperdrive": [{ "binding": "HYPERDRIVE", "id": "REPLACE_WITH_HYPERDRIVE_ID" }],
+  "hyperdrive": [{ "binding": "HYPERDRIVE", "id": "5d7e2ae1c0884f69bf160bae9b2d8142" }],
   "images": { "binding": "IMAGES" },
   // Nightly Bin purge (was a Vercel cron): 21:17 UTC = 03:17 Dhaka.
   "triggers": { "crons": ["17 21 * * *"] }
