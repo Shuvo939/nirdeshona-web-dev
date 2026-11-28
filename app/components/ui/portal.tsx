@@ -33,3 +33,28 @@ export function useScrollLock(active = true) {
     };
   }, [active]);
 }
+
+/**
+ * Height of the part of the screen that is actually visible. On phones the
+ * browser's address bar slides in and out, and a `fixed inset-0` overlay can
+ * keep the old height, leaving a bottom sheet floating above the bottom edge.
+ * Give the overlay this height so its bottom always sits on the screen edge.
+ */
+export function useVisibleHeight(active = true) {
+  const [height, setHeight] = useState<number | null>(null);
+  useEffect(() => {
+    if (!active) return;
+    const vv = window.visualViewport;
+    const update = () => setHeight(vv ? vv.height + vv.offsetTop : window.innerHeight);
+    update();
+    vv?.addEventListener("resize", update);
+    vv?.addEventListener("scroll", update);
+    window.addEventListener("resize", update);
+    return () => {
+      vv?.removeEventListener("resize", update);
+      vv?.removeEventListener("scroll", update);
+      window.removeEventListener("resize", update);
+    };
+  }, [active]);
+  return height;
+}
