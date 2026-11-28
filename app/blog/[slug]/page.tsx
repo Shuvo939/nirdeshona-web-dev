@@ -122,7 +122,7 @@ export default async function SinglePostPage({
    * Do NOT use increment_post_views() here.
    *
    * trackPostView() checks:
-   * post_id + visitor_id + 12-hour window.
+   * post_id + a cookie-free daily reader hash + 12-hour window.
    */
   await trackPostView(post.id);
 

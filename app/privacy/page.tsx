@@ -34,7 +34,7 @@ export default async function PrivacyPage() {
         "How we collect, use and protect your information when you use this website and our client portal.",
         "এই ওয়েবসাইট ও আমাদের ক্লায়েন্ট পোর্টাল ব্যবহারের সময় আমরা কীভাবে আপনার তথ্য সংগ্রহ, ব্যবহার ও সুরক্ষিত রাখি।",
       )}
-      updated={L("25 November 2026", "২৫ নভেম্বর ২০২৬")}
+      updated={L("28 November 2026", "২৮ নভেম্বর ২০২৬")}
       summary={[
         L("We only collect what we need to reply to you and deliver your project.", "আপনাকে উত্তর দিতে ও প্রজেক্ট সম্পন্ন করতে যতটুকু দরকার, শুধু ততটুকুই সংগ্রহ করি।"),
         L("We never sell your data or share it for advertising.", "আপনার তথ্য আমরা কখনো বিক্রি করি না বা বিজ্ঞাপনের জন্য শেয়ার করি না।"),
@@ -98,13 +98,54 @@ export default async function PrivacyPage() {
           title: L("Cookies", "কুকি"),
           body: (
             <>
-              <p>{L("We use a small number of essential cookies:", "আমরা অল্প কয়েকটি প্রয়োজনীয় কুকি ব্যবহার করি:")}</p>
-              <ul>
-                <li>{L("Authentication cookies that keep you signed in.", "লগইন ধরে রাখার জন্য অথেনটিকেশন কুকি।")}</li>
-                <li>{L("Your language choice (Bangla or English).", "আপনার পছন্দের ভাষা (বাংলা বা ইংরেজি)।")}</li>
-                <li>{L("An anonymous visitor cookie used to count unique article views.", "লেখার স্বতন্ত্র ভিউ গোনার জন্য একটি বেনামি ভিজিটর কুকি।")}</li>
+              <p>
+                {L(
+                  "We only use cookies that the site needs to work or that remember a choice you made. There are no advertising, analytics or cross-site tracking cookies — which is why we don't show a cookie banner.",
+                  "আমরা শুধু সেই কুকিগুলোই ব্যবহার করি, যেগুলো ছাড়া সাইট চলে না অথবা যেগুলো আপনার নিজের বেছে নেওয়া পছন্দ মনে রাখে। বিজ্ঞাপন, অ্যানালিটিক্স বা অন্য সাইটে অনুসরণের কোনো কুকি নেই — তাই আমরা কুকি ব্যানার দেখাই না।",
+                )}
+              </p>
+              <ul className="not-prose !ml-0 !list-none divide-y divide-neutral-200 border-y border-neutral-200 !pl-0">
+                <li className="!ml-0 !list-none py-3 !pl-0">
+                  <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                    <code className="rounded-md bg-neutral-100 px-1.5 py-0.5 font-mono text-xs text-neutral-950">sb-…-auth-token</code>
+                    <span className="text-xs text-neutral-500">{L("Until you close the browser or sign out; up to 400 days with “Remember me”", "ব্রাউজার বন্ধ বা লগআউট পর্যন্ত; “আমাকে মনে রাখুন” দিলে সর্বোচ্চ ৪০০ দিন")}</span>
+                  </div>
+                  <p className="mt-1 text-sm text-neutral-700">{L("Keeps you signed in (split into numbered parts when large).", "লগইন ধরে রাখে (বড় হলে কয়েক ভাগে ভাগ হয়)।")}</p>
+                </li>
+                <li className="!ml-0 !list-none py-3 !pl-0">
+                  <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                    <code className="rounded-md bg-neutral-100 px-1.5 py-0.5 font-mono text-xs text-neutral-950">nw_remember</code>
+                    <span className="text-xs text-neutral-500">{L("400 days", "৪০০ দিন")}</span>
+                  </div>
+                  <p className="mt-1 text-sm text-neutral-700">{L("Remembers that you ticked “Remember me”.", "“আমাকে মনে রাখুন” বেছে নিয়েছেন কি না মনে রাখে।")}</p>
+                </li>
+                <li className="!ml-0 !list-none py-3 !pl-0">
+                  <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                    <code className="rounded-md bg-neutral-100 px-1.5 py-0.5 font-mono text-xs text-neutral-950">nw_locale</code>
+                    <span className="text-xs text-neutral-500">{L("1 year", "১ বছর")}</span>
+                  </div>
+                  <p className="mt-1 text-sm text-neutral-700">{L("Your language — Bangla or English.", "আপনার ভাষা — বাংলা বা ইংরেজি।")}</p>
+                </li>
+                <li className="!ml-0 !list-none py-3 !pl-0">
+                  <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                    <code className="rounded-md bg-neutral-100 px-1.5 py-0.5 font-mono text-xs text-neutral-950">nw_theme</code>
+                    <span className="text-xs text-neutral-500">{L("1 year", "১ বছর")}</span>
+                  </div>
+                  <p className="mt-1 text-sm text-neutral-700">{L("Light, dark or system theme.", "লাইট, ডার্ক বা সিস্টেম থিম।")}</p>
+                </li>
               </ul>
-              <p>{L("We do not use advertising or cross-site tracking cookies.", "আমরা বিজ্ঞাপন বা অন্য সাইটে অনুসরণের কোনো কুকি ব্যবহার করি না।")}</p>
+              <p>
+                {L(
+                  "Counting article views uses no cookie. Each day we combine your IP address, browser and language with a secret value that changes every day, and keep only the resulting code. It can't be turned back into your IP address and can't link your visits on different days.",
+                  "লেখার ভিউ গুনতে কোনো কুকি লাগে না। প্রতিদিন আপনার IP ঠিকানা, ব্রাউজার আর ভাষার সঙ্গে প্রতিদিন বদলানো একটি গোপন মান মিলিয়ে একটি কোড তৈরি হয়, আমরা শুধু সেই কোডটাই রাখি। এটা থেকে IP ঠিকানা বের করা যায় না, আর ভিন্ন দিনের ভিজিট একসঙ্গে জোড়াও যায় না।",
+                )}
+              </p>
+              <p>
+                {L(
+                  "If you sign in with Google, Google may set its own cookies on its sign-in window under Google's privacy policy. You can delete or block cookies in your browser settings; the site will still work, but you'll be signed out and your language and theme will reset.",
+                  "Google দিয়ে লগইন করলে Google তার নিজের লগইন উইন্ডোতে নিজস্ব গোপনীয়তা নীতি অনুযায়ী কুকি রাখতে পারে। ব্রাউজারের সেটিংস থেকে কুকি মুছে ফেলতে বা বন্ধ করতে পারেন; তাতে সাইট চলবে, তবে আপনি লগআউট হয়ে যাবেন আর ভাষা ও থিম আগের অবস্থায় ফিরে যাবে।",
+                )}
+              </p>
             </>
           ),
         },
