@@ -20,9 +20,12 @@ import {
   Smartphone,
   Sparkles,
   Users,
+  MessageCircle,
+  Moon,
 } from "lucide-react";
 
 import PostCardFooter, { postCardStats, type PostCardStats } from "@/app/components/blog/post-card-footer";
+import BlueprintBackdrop from "@/app/components/blueprint-backdrop";
 import CountUp from "@/app/components/home/count-up";
 import HeroSearch from "@/app/components/home/hero-search";
 import { FaqList, ServiceCard } from "@/app/components/marketing";
@@ -134,9 +137,8 @@ export default async function HomePage() {
   return (
     <main className="overflow-hidden bg-white text-neutral-950">
       {/* ================= HERO ================= */}
-      <section className="relative border-b border-neutral-200">
-        <div aria-hidden className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_right,rgb(var(--c-black)/0.035)_1px,transparent_1px),linear-gradient(to_bottom,rgb(var(--c-black)/0.035)_1px,transparent_1px)] bg-[size:48px_48px] [mask-image:radial-gradient(ellipse_at_top,black_25%,transparent_70%)]" />
-        <div aria-hidden className="pointer-events-none absolute left-1/2 top-0 h-[480px] w-[720px] -translate-x-1/2 rounded-full bg-neutral-100/80 blur-3xl" />
+      <section className="relative overflow-x-clip border-b border-neutral-200">
+        <BlueprintBackdrop />
 
         <div className="relative mx-auto max-w-7xl px-5 pb-14 pt-8 sm:px-6 sm:pb-24 sm:pt-20 lg:px-8 lg:pt-24">
           <div className="grid grid-cols-1 items-center gap-12 lg:grid-cols-[1.15fr_.85fr] lg:gap-14">
@@ -189,8 +191,27 @@ export default async function HomePage() {
 
             {/* Hero visual: a live-feeling snapshot of the client portal */}
             <div className="relative mx-auto w-full max-w-md lg:ml-auto">
-              <div aria-hidden className="absolute -inset-6 rounded-[2.5rem] bg-neutral-100 blur-2xl" />
-              <div className="relative rounded-[2rem] border border-neutral-200 bg-white p-4 shadow-2xl shadow-neutral-300/40">
+              {/* A reply notification, as clients see it in the portal */}
+              <div aria-hidden className="absolute -left-2 -top-6 z-10 flex max-w-[78%] items-center gap-2.5 rounded-2xl border border-neutral-200 bg-white/95 px-3 py-2.5 shadow-[0_12px_30px_rgb(0_0_0/0.10)] backdrop-blur sm:-left-10 sm:-top-7">
+                <span className="relative flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-emerald-50 text-emerald-700">
+                  <MessageCircle className="h-4 w-4" />
+                  <span className="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full border-2 border-white bg-emerald-500" />
+                </span>
+                <span className="min-w-0">
+                  <span className="block truncate text-xs font-semibold text-neutral-950">{L("New reply on your ticket", "আপনার টিকেটে নতুন উত্তর")}</span>
+                  <span className="block truncate text-[11px] text-neutral-500">{L("From Nirdeshona, 2 minutes ago", "নির্দেশনা থেকে, ২ মিনিট আগে")}</span>
+                </span>
+              </div>
+              {/* Language and theme, the way the site itself switches them */}
+              <div aria-hidden className="absolute -bottom-5 -right-1 z-10 flex items-center gap-1 rounded-full border border-neutral-200 bg-white/95 p-1 shadow-[0_12px_30px_rgb(0_0_0/0.10)] backdrop-blur sm:-right-8">
+                <span className="rounded-full bg-neutral-950 px-2.5 py-1 text-[11px] font-semibold text-white">বাং</span>
+                <span className="px-2 py-1 text-[11px] font-semibold text-neutral-500">EN</span>
+                <span className="mx-0.5 h-4 w-px bg-neutral-200" />
+                <span className="flex h-6 w-6 items-center justify-center rounded-full text-neutral-600">
+                  <Moon className="h-3.5 w-3.5" />
+                </span>
+              </div>
+              <div className="relative rounded-[2rem] border border-neutral-200 bg-white/90 p-4 shadow-[0_40px_100px_-20px_rgb(0_0_0/0.25)] backdrop-blur">
                 <div className="rounded-[1.5rem] border border-neutral-200 bg-neutral-50 p-5">
                   <div className="flex items-center justify-between">
                     <div>

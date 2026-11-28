@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 
 import { renderMarkdown } from "@/app/components/blog/markdown";
+import BlueprintBackdrop from "@/app/components/blueprint-backdrop";
 import ProjectFeatures from "@/app/components/projects/project-features";
 import { PROJECT_STATUS, StatusBadge } from "@/app/components/marketing";
 import ProjectCard, { type ProjectCardData } from "@/app/components/project-card";
@@ -207,8 +208,8 @@ export default async function ProjectDetailsPage({ params }: Props) {
         }} />
 
       {/* Hero */}
-      <section className="relative overflow-hidden border-b border-neutral-200 bg-neutral-50">
-        <div aria-hidden className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_0%,rgba(16,185,129,0.08),transparent_45%),radial-gradient(circle_at_90%_10%,rgb(var(--c-black)/0.05),transparent_40%)]" />
+      <section className="relative overflow-hidden border-b border-neutral-200">
+        <BlueprintBackdrop />
         <div className="relative mx-auto max-w-7xl px-4 pb-10 pt-6 sm:px-6 sm:pb-12 sm:pt-10 lg:px-8">
           <Breadcrumbs items={[{ label: L("Our work", "আমাদের কাজ"), href: "/projects" }, { label: project.title }]} />
 
