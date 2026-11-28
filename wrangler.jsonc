@@ -2,7 +2,7 @@
   // Cloudflare Workers deployment (trial — Vercel stays live until we switch DNS).
   // Build: npm run cf:build   Local run in workerd: npm run cf:preview   Deploy: npm run cf:deploy
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "nirdeshona-web",
+  "name": "nirdeshona-web-dev",
   "main": ".open-next/worker-entry.js",
   "compatibility_date": "2026-11-28",
   "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
@@ -12,7 +12,7 @@
   "placement": { "mode": "smart" },
   "observability": { "enabled": true },
   "upload_source_maps": true,
-  "services": [{ "binding": "WORKER_SELF_REFERENCE", "service": "nirdeshona-web" }],
+  "services": [{ "binding": "WORKER_SELF_REFERENCE", "service": "nirdeshona-web-dev" }],
   // Next.js page/data cache and its revalidation tags.
   // Plus the site's own media buckets (same buckets as R2_BUCKET_NAME and
   // R2_PRIVATE_BUCKET_NAME), used directly instead of the S3 API.
